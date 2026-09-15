@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "labs-eval-author"
+version = "0.1.0"
+description = "Eval Author skills for Harbor suite discovery, audit validation, trace-derived environments, and Intake trace understanding."
+requires-python = ">=3.12,<3.14"
+dependencies = ["jsonschema>=4.23", "referencing>=0.28.4"]
+
+[dependency-groups]
+dev = [
+  "harbor==0.20.0",
+  "mcp>=1.29,<2",
+  "pydantic>=2",
+  "pytest>=9.0.3",
+  "pyyaml>=6.0",
+  "ruff>=0.14",
+]
+
+[tool.uv]
+# Nothing here installs as a package. The directory holds standalone skills, their
+# bundled scripts, and contract tests. The skills stay at the top level
+# so they can be copied into a customer's repository.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "W291", "W292", "W293", "I001", "I002"]
