@@ -23,7 +23,7 @@ license: Apache-2.0
 user-invocable: false
 allowed-tools: [Bash, Read, Write, Grep, Glob]
 ---
-<!-- SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: inspect an Intake trace

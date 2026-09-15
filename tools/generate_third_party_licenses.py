@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 """Generate and validate dependency license disclosures using the NeMo Platform OSV flow."""
@@ -202,7 +202,7 @@ def _render_summary(records: list[LicenseRecord]) -> str:
 
 def _render_notices(records: list[LicenseRecord]) -> str:
     lines = [
-        "<!-- SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->",
+        "<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->",
         "<!-- SPDX-License-Identifier: Apache-2.0 -->",
         "",
         "# Third-Party Software Licenses",

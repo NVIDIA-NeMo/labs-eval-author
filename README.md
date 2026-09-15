@@ -1,4 +1,4 @@
-<!-- SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # NeMo Eval Author
@@ -91,7 +91,7 @@ The flow does not require model or provider configuration.
 
 ## License
 
-Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 
 Eval Author is licensed under the [Apache License, Version 2.0](LICENSE).
 See [NOTICE](NOTICE) for attributions and the external-materials disclaimer,
