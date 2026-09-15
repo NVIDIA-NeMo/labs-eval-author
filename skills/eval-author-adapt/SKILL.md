@@ -329,13 +329,14 @@ visit. Record their choice in the existing adaptation findings. An audit is
 optional and does not authorize new evals, agent runs, or paid judgments.
 
 If accepted, read [`eval-author-audit`](../eval-author-audit/SKILL.md) from this
-same skill tree and follow its Ethos pre-flight and adapted-eval coverage review.
+same skill tree and follow its Ethos pre-flight and existing steps. The audit
+flow owns its prerequisites, measurement, and reports.
 Carry forward the created task paths/IDs, adaptation findings, known Ethos path,
 unresolved grading/setup requirements, and any run artifacts with their provenance.
 Do not restart discovery or ask the user to locate files already known.
 
 An Ethos is required for the audit, not for completing adaptation. If absent,
 use the audit flow's explanation and supported Ethos creation/provision choices;
-do not invent it from the tasks. Task inspection establishes intended coverage;
-only supported trace measurement establishes observed coverage. Keep unfinished
-execution visible when the user chooses to review task coverage first.
+do not invent it from the tasks. Keep unfinished execution visible: creating
+tasks does not establish measured coverage. If suitable run evidence is missing,
+explain that limitation during the handoff and follow the audit flow's prerequisites.

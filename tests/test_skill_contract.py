@@ -1202,9 +1202,9 @@ def test_discover_report_renderer_cli_summary_and_evidence(tmp_path: Path) -> No
     assert source in saved
 
 
-@pytest.mark.parametrize("skill_dir", [_ADAPT_DIR, _AUDIT_DIR])
-def test_sub_flow_references_are_bundled(skill_dir: Path) -> None:
-    """Copied skills must retain their linked workflow guidance."""
+def test_adapt_references_are_bundled() -> None:
+    """The copied adaptation skill must retain its linked workflow guidance."""
+    skill_dir = _ADAPT_DIR
     _, body = _frontmatter_and_body(skill_dir)
     references = re.findall(r"\]\((references/[^)]+)\)", body)
     assert references, f"{skill_dir.name} must link its supporting workflow guidance"

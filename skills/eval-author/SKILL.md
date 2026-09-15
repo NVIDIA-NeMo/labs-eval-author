@@ -268,9 +268,9 @@ and what is missing. Wait for acceptance unless the user already requested it.
 Task creation alone does not trigger an audit, and declining does not invalidate
 the adaptation work. Carry forward the user's choice and existing artifacts.
 
-On acceptance, route to `eval-author-audit` and its Ethos pre-flight, then its
-adapted-eval coverage review. Keep the task scope and any run evidence explicit;
-drafts can support a review of planned coverage even if live execution is pending.
+On acceptance, route directly to `eval-author-audit`. Carry forward the created
+tasks, adaptation findings, known Ethos path, and run evidence. Follow that flow's
+Ethos pre-flight and existing steps; it owns the audit prerequisites and reports.
 An audit-only request ends with the report. Proposing or creating further tasks
 remains a separate requested continuation.
 

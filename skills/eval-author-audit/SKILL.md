@@ -81,13 +81,6 @@ sub-flow generates and validates a finite coverage denominator from `<ethos_path
 and reviewed audit items, then can measure one ATIF trace and aggregate coverage
 reports against it. It does not generate tasks yet.
 
-When the user accepts the audit offered after adaptation, read
-[Review adapted eval coverage](references/adapted-eval-coverage.md). Carry forward
-the selected task paths, adaptation findings, known Ethos path, and run artifacts.
-Complete the Ethos pre-flight, then Steps 1–3 and that review. Use Steps 4–5 only
-when suitable trace evidence is available; task inspection is not measured
-coverage. Do not restart source selection or conversion approval.
-
 The audit-spec approach has three item kinds in v1:
 
 | Kind | Meaning |
