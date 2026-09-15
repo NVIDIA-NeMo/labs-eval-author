@@ -320,6 +320,40 @@ user, not to you.
 
 ## Communicating with the user
 
+### Explain the eval pieces as they become relevant
+
+Do not assume the user knows Harbor terminology or has a particular repository
+layout, scorer, agent runner, or access to the system being tested. Ground the
+explanation in inspected material and the user's answers. Introduce the relevant
+pieces in plain language before asking the user to make decisions about them:
+
+| Piece | What it does |
+|---|---|
+| Task | The test scenario: what the agent is asked to do, with any inputs and conversation steps |
+| Environment | The files, data, tools, and software the task needs, including its starting state and how to reset it |
+| Agent connection | How Harbor gives the task to the actual agent and collects its responses and actions |
+| Grading criteria | The rules for deciding whether the agent did the task well |
+| Grader, also called a verifier | The checks that apply those rules to evidence from the attempt and produce a result or score |
+| Run and results | One attempt at the task, its recorded actions or outputs, and the grading results |
+
+Use a short explanation of the pieces relevant now, not this entire table in
+every reply. When useful, explain a reference solution as a known correct way to
+complete the task, used to test the grader; a past response is not automatically
+such a solution. Keep environment setup separate from the agent connection.
+
+Map each discussed piece to what was found or created, what was actually tested,
+and any specific gap. Existing executable evals may already supply grading;
+written criteria may need implementation; recordings may lack intended outcomes.
+Unknown access is not proof that access is unavailable. Missing evidence should
+lead to a focused question or an explicit limitation, not an assumed setup.
+Explain unfamiliar terms such as rubric, judge, weights, or partial credit before
+asking about them. A checklist status or file link cannot replace that explanation.
+
+Grading asks how an attempt performed against the task's criteria. A coverage
+audit asks which intended agent behaviors the evaluation evidence covers. Explain
+that distinction when offering the existing audit flow; the audit does not finish
+a task's grader or supply its runtime access.
+
 ### Discovery and adaptation onboarding
 
 For validation and execution reports, lead with the verdict or outcome, then the

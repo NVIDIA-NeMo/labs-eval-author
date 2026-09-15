@@ -41,9 +41,13 @@ Describe the role and actual state of the relevant created parts:
   Say when only a placeholder exists.
 - **Reference response or solution:** a known correct example used to check
   the scorer. Do not describe a placeholder or past response as a verified answer.
-- **Environment and app connection:** the setup that will send the requests
-  to the actual agent and collect its replies. Generated environment files do
-  not establish that the user's application is installed or connected.
+- **Environment:** the files, data, tools, software, and starting/reset state
+  the task needs. State which are prepared and which dependencies remain external.
+- **Agent connection:** how the task reaches the actual agent and how its
+  responses and actions reach the grader. Environment files alone do not
+  establish that this connection works.
+- **Run and results:** whether a fresh agent attempt has happened, and what
+  responses, actions, and scores were actually recorded.
 
 For a desktop or external dependency, name what stays outside the Harbor
 container and how the task is expected to reach it. Explain the session/reset
@@ -53,6 +57,38 @@ guidance while keeping task creation moving.
 
 Introduce file names only alongside their purpose and only when useful. Do not
 recite the entire directory tree. Keep the technical inventory in the README.
+
+## Explain grading before asking the user to finish it
+
+Explain grading as checking what the agent did against the rules for success.
+Walk through one actual criterion from the selected material: what a good result
+means, what evidence would show it, and how the check reaches a verdict. Keep
+missing rules or evidence explicit. If no criterion exists, propose one grounded
+in the task and ask about intended behavior before presenting it as agreed.
+
+Separate the parts that can be missing:
+
+| Part | Explain to the user |
+|---|---|
+| Success rules: individual criteria or a rubric describing how to assess them | What should count as a good result, and whether that rule comes from their material or is a new proposal |
+| Evidence | What the check needs to inspect: a response, tool action, created file, or change in external state |
+| Checking method | Whether existing code can apply the rule, code still needs to be written, or a human/model must review meaning against explicit instructions |
+| Score | How check results become the reported result, including weights or partial credit only where the chosen scoring scheme uses them |
+
+Translate “semantic review” into the actual judgment needed, such as whether
+an answer explains the requested information correctly. Explain who or what
+would make that judgment and what inputs and access it needs. Do not silently
+replace judgment with keyword matching or assume a paid model is available.
+Explain weights as how much each check contributes, and partial credit as credit
+for meeting some of a rule's conditions. Reuse existing scoring rules when known;
+these concepts are not mandatory new decisions for every customer.
+
+Do not leave “grading incomplete” as the entire status. Name the affected rule,
+what is already implemented, and whether the missing part is a behavior decision,
+check implementation, unavailable evidence, or a scoring rule. Say what the
+assistant can do next and what, if anything, the user needs to provide. A rule
+being written down, its checker passing local tests, and a fresh agent attempt
+passing that rule are different milestones.
 
 ## Explain what the completed check proves
 
