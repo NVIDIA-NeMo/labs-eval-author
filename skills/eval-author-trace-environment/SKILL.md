@@ -1,7 +1,4 @@
 ---
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-
 name: eval-author-trace-environment
 version: 1.1.0
 description: >-
@@ -28,6 +25,8 @@ license: Apache-2.0
 user-invocable: true
 allowed-tools: Bash Read Write Grep Glob
 ---
+<!-- SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: trace to environment
 

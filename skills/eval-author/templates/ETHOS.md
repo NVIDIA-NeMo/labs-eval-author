@@ -1,11 +1,11 @@
 ---
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
 schema_version: 1
 name: <agent-name>
 created_timestamp: <ISO-8601-creation-timestamp>
 author: <actual-author>
 ---
+<!-- SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Ethos: <agent-name>
 

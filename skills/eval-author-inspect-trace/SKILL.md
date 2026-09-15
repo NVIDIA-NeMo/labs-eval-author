@@ -1,7 +1,4 @@
 ---
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-
 name: eval-author-inspect-trace
 description: >-
   Use when eval-author has routed to this sub-flow for one Intake trace. Do not
@@ -26,6 +23,8 @@ license: Apache-2.0
 user-invocable: false
 allowed-tools: [Bash, Read, Write, Grep, Glob]
 ---
+<!-- SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: inspect an Intake trace
 
