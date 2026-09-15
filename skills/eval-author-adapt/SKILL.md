@@ -60,8 +60,12 @@ After the source-selection answer is known, pause the workflow to help the user
 understand what they are choosing. Explain Harbor and link its documentation,
 even if discovery already gave a one-line introduction. Connect the explanation
 to the confirmed material: a task packages a request or conversation, the setup
-needed to perform it, and checks that score the result. Describe what will carry
-over, what must be built, and how rerunning helps compare the agent after changes.
+needed to perform it, and checks that score the result. Use the core's
+**Explain the eval pieces as they become relevant** guidance: grading means
+checking what the agent did against the rules for success, and the grader is
+what applies those rules. Distinguish the task's environment from the connection
+to the agent being tested. Describe what can be reused, what must be built, and
+how rerunning helps compare the agent after changes.
 Explain that execution also needs the actual agent, its dependencies, and access;
 creating task files alone does not establish that the eval can run.
 
@@ -88,8 +92,10 @@ supported by inspection:
 > tasks, checks the results, and lets you repeat the tests after changes.
 >
 > A Harbor task brings together what your agent should do, the setup it needs,
-> and how to judge the result. For your material, we'd preserve the requests and
-> written criteria, build the grading checks, and connect them to your agent.
+> and how to judge the result. Grading means checking the agent's response or
+> actions against your rules for success. For your material, we'd preserve the
+> requests and written rules, turn those rules into checks that can score an
+> attempt, and connect the tasks to your agent.
 > We'll gather the requirements, dependencies, and any license or access needs
 > together. Task files can be prepared before all access is available, but a live
 > run will need a working connection and setup.
@@ -241,6 +247,8 @@ creation milestone. Explain what was created in the reply itself: the requests,
 proposed or implemented checks, and setup requirements. Show the request and
 expected behavior together, and explain what a passing or failing answer means.
 Use file links alongside their purpose, not a directory dump or counts alone.
+Before saying grading is incomplete or asking for a scoring decision, use the
+reference's **Explain grading before asking the user to finish it** guidance.
 Use that reference's **Turn remaining gaps into an actionable handoff** guidance:
 explain what works now and, for each main gap, what it blocks, what you can finish,
 what the user needs to supply or decide, and what you will do next. A checklist
