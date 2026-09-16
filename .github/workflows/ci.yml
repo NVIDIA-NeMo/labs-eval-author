@@ -18,8 +18,8 @@ concurrency:
 
 jobs:
   test:
-    # Defense in depth only: PRs can edit this workflow. Administrators must
-    # disable fork PR workflows and restrict repository access; see CONTRIBUTING.md.
+    # Defense in depth only: PRs can edit this workflow. This condition does not
+    # enforce repository access; see CONTRIBUTING.md.
     if: >-
       github.event_name == 'push' ||
       github.event.pull_request.head.repo.full_name == github.repository

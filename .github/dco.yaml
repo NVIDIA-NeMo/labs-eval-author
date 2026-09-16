@@ -1,7 +1,0 @@
-# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-
-# Match nemo-platform: exempt verified organization-member commits in the app.
-# All contributors should still sign off; the local commit-msg hook requires it.
-require:
-  members: false

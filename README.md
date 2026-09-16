@@ -105,7 +105,7 @@ covered by the project license.
 
 Contributions are currently limited to the ASE team. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for development checks, review requirements,
-and the repository access and CI policy.
+and the CI policy.
 
 ```bash
 uv sync --locked
