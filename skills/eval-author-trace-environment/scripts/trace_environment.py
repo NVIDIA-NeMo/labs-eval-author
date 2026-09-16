@@ -309,7 +309,7 @@ def _load_summary(task_dir: Path) -> dict[str, Any]:
     if source is not None and (
         not isinstance(source, dict)
         or set(source) != _SOURCE_KEYS
-        or source.get("kind") not in ("atif", "intake", "mlflow", "otel")
+        or source.get("kind") not in ("atif", "intake", "mlflow", "otel", "gym")
         or source.get("original_path") != "private/source.atif.json"
         or source.get("canonical_path") != "private/canonical.atif.json"
         or source.get("safe_path") != "safe/trace.atif.json"
@@ -3120,7 +3120,7 @@ def _load_batch_manifest(path: Path) -> list[dict[str, Any]]:
         atif = member.get("atif")
         if not isinstance(atif, str) or not atif.strip():
             raise ContractError(f"batch manifest member {index}.atif must be nonempty text")
-        if member.get("source_kind") not in {"atif", "intake", "mlflow", "otel"}:
+        if member.get("source_kind") not in {"atif", "intake", "mlflow", "otel", "gym"}:
             raise ContractError(f"batch manifest member {index}.source_kind is not recognized")
     return members
 
@@ -3455,7 +3455,7 @@ def _parser() -> argparse.ArgumentParser:
     prepare = subparsers.add_parser("prepare", help="validate and scrub one canonical ATIF trajectory")
     prepare.add_argument("--task-dir", required=True, type=Path)
     prepare.add_argument("--atif", required=True, type=Path)
-    prepare.add_argument("--source-kind", choices=("atif", "intake", "mlflow", "otel"), required=True)
+    prepare.add_argument("--source-kind", choices=("atif", "intake", "mlflow", "otel", "gym"), required=True)
     prepare.set_defaults(run=_prepare)
 
     review = subparsers.add_parser("review-privacy", help="record contextual review of every safe ATIF string")

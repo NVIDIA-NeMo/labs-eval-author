@@ -1,13 +1,13 @@
 ---
 name: eval-author-trace-environment
-version: 1.1.0
+version: 1.2.0
 description: >-
-  Use MLflow, Intake, OpenTelemetry, or ATIF trace evidence to derive a private,
+  Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace evidence to derive a private,
   reproducible Harbor environment candidate.
 triggers:
   - create an evaluation environment from a trace
   - turn ATIF into a Harbor task environment
-  - derive an eval task from MLflow Intake or OpenTelemetry data
+  - derive an eval task from Gym MLflow Intake or OpenTelemetry data
 not-for:
   - eval-author (use for the shared standard and routing)
   - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
@@ -88,7 +88,9 @@ Read and follow `references/sources.md`. One task per trace; never merge
 unrelated traces, and never invent an instruction, tool result, file, or final
 answer. Existing ATIF is used as-is; MLflow goes through `mlflow-to-atif`;
 Intake reads one exact trace plus every detailed span; bounded JSON OTLP
-exports map spans directly. Record every missing or lossy field under
+exports map spans directly. For Gym, follow `references/gym.md`: prefer a
+retained Harbor ATIF, otherwise use the offline `gym_to_atif.py` adapter.
+Record every missing or lossy field under
 `extra.normalization.uncertainties` or `extra.normalization.losses`. If no
 complete human instruction exists, record no_candidate instead of guessing.
 
@@ -98,7 +100,7 @@ complete human instruction exists, record no_candidate instead of guessing.
 python <skill_dir>/scripts/trace_environment.py prepare \
   --task-dir <task-dir> \
   --atif <canonical-atif-file> \
-  --source-kind <atif|mlflow|intake|otel>
+  --source-kind <atif|mlflow|intake|otel|gym>
 ```
 
 The helper retains an exact owner-private original, writes the bounded canonical
@@ -337,7 +339,10 @@ python $S check --task-dir <dir>
 
 Invoke the helper as `python <skill_dir>/scripts/trace_environment.py
 <command>`; there is no `run_script()` wrapper. Every command prints one JSON
-object and exits nonzero on contract errors.
+object and exits nonzero on contract errors. Gym's standalone adapter is
+`python <skill_dir>/scripts/gym_to_atif.py --input <record> --output-dir
+<task-dir>/private/gym [--row N] [--source-atif <original>]`; see
+`references/gym.md` for scope selection and explicit projection fallback.
 
 | Command | Purpose | Key arguments |
 |---|---|---|

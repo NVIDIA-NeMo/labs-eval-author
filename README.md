@@ -53,7 +53,11 @@ exact read commands. Findings use `behavior`, `issue`, `recovery`, and
 `eval-author-trace-environment` creates one owner-private, gitignored workspace
 per task under `.eval-author/trace-environments/`. Each finalized workspace has
 a `candidate` or `no_candidate` summary and keeps restricted source evidence
-separate from its text-only scrubbed ATIF copy.
+separate from its text-only scrubbed ATIF copy. It also accepts
+[Gym Responses traces](skills/eval-author-trace-environment/references/gym.md)
+through a bounded offline adapter. For Harbor-backed Gym rollouts, retain and
+prefer the original ATIF rather than round-tripping through Gym's projection.
+No Gym runtime, model invocation, or image download is needed for normalization.
 
 Discovery scripts write no files. Audit scripts write only the requested
 `.eval-author/` artifacts and report JSON summaries to stdout. Trace inspection
