@@ -154,12 +154,13 @@ coverage denominator, measures traces against it, and aggregates deterministic
 coverage reports. `eval-author-task-create` owns the proposal step: prioritize
 dataset improvements from those findings across tools, capabilities, and failure
 cases while preserving their measured or unmeasured status. Proposal-only
-requests stop there. Authorized continuation consumes structured proposals for
-tools, capabilities, failure cases, and observed regressions, including failures on aggregate-covered
-items. It can create a new scenario or strengthen an existing eval in a separate
-Harbor draft. Unresolved evidence or intended behavior defers only the affected
-proposal. It uses Harbor's native task scaffolder. For a requested full workflow,
-proceed from audit to proposals even when there are no eligible tool gaps; an audit-only request ends with the findings.
+requests stop there. Authorized continuation can create a scenario or strengthen
+an existing eval in a separate draft, including regressions on aggregate-covered
+items. Tool gaps use the existing pipeline; other targets use direct Harbor
+authoring as described in the task-creation skill. Missing evidence or intended
+behavior defers only the affected recommendation. A requested full workflow
+continues from audit to proposals even with no tool gaps; an audit-only request
+ends with findings.
 
 ## Establish Ethos before authoring
 

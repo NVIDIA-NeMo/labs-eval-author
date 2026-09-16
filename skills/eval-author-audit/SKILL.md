@@ -397,7 +397,7 @@ uncovered or whether an existing task already exposes an agent failure.
   aggregate report plus per-run details/judgments and relevant trace/verifier
   evidence. Do not classify all missing judgments as failures or unrelated errors
   as evidence of a failure-case trigger.
-- Authorized implementation uses structured proposals to create a scenario or
-  strengthen a separate draft of an existing eval. Empty tool selection does not
+- Authorized implementation follows the written recommendations to create a
+  scenario or strengthen a separate draft of an existing eval. Empty tool selection does not
   block this route. Preserve measured `failure_cases` evidence; items with
   `reason: not_measured_by_any_method` remain unmeasured until measured.
