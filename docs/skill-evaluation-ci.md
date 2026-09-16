@@ -10,7 +10,9 @@ derived from all skill verdicts, without averaging unlike quality scores.
 
 CI uses SkillEvaluator 0.2.1 at commit
 `7e189c6bdada8910dfa1684f25feedca87f2db85`, SkillSpector 2.11.2, Semgrep 1.177.0,
-and Gitleaks 8.30.1. These are isolated CI tools, not runtime dependencies shipped
+and Gitleaks 8.30.1. SkillSpector is installed from its upstream Git repository at
+`69dcdfb74487d361ba4c811d088cfdea2ff3a9dc`, not from the Python package registry.
+These are isolated CI tools, not runtime dependencies shipped
 with the skills. Their transitive Python dependencies are resolved at installation;
 top-level pins do not imply a fully locked scanner environment.
 
@@ -22,8 +24,9 @@ One failed scan does not prevent scanning the remaining skills.
 
 The job uploads `skillevaluator-summary.json` in the artifact named
 `skill-evaluations-<run-id>-<attempt>`, retained for 30 days, including on collection
-failure when a summary could be produced. Tool installation failures are
-non-blocking and do not manufacture a summary. Raw scanner reports, console logs and
+failure when a summary could be produced. After an installation failure, the
+collector still runs unless the job was cancelled, recording missing tools or
+reports as incomplete evidence. Raw scanner reports, console logs and
 scanner home directories are not uploaded because they may include source text
 or findings. They remain available in a local invocation's output directory.
 
@@ -53,8 +56,9 @@ The entire job is **non-blocking**, using job-level `continue-on-error: true`.
 Findings, installation errors, timeouts, collection errors and upload failures
 must not fail the CI workflow. Collection errors remain visible in step logs and
 the summary when available; artifact upload always runs when the runner can
-continue. If installation or infrastructure fails before a summary exists, no
-artifact is available. Existing tests and lint retain their normal blocking behavior.
+continue. If checkout, Python setup or infrastructure prevents collection, no
+artifact is available and upload emits a warning. Existing tests and lint retain
+their normal blocking behavior.
 The collector's optional local `--enforce` flag does not change this CI policy.
 
 Local invocation with the pinned tools installed on `PATH`:

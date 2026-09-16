@@ -25,7 +25,22 @@ def test_ci_evaluation_is_advisory_and_always_attempts_artifact_upload():
     upload = jobs["skill-evaluator"]["steps"][-1]
     assert upload["if"] == "always()"
     assert upload["with"]["path"].endswith("/skillevaluator-summary.json")
+    assert upload["with"]["if-no-files-found"] == "warn"
+    scan = next(step for step in jobs["skill-evaluator"]["steps"] if step.get("name", "").startswith("Scan main"))
+    assert scan["if"] == "${{ !cancelled() }}"
     assert not jobs["test"].get("continue-on-error", False)
+
+
+def test_skillspector_install_uses_pinned_upstream_source_and_publishes_path_first():
+    workflow = Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml"
+    steps = yaml.safe_load(workflow.read_text())["jobs"]["skill-evaluator"]["steps"]
+    install = next(step["run"] for step in steps if step.get("name") == "Install pinned evaluation tools")
+    assert (
+        "skillspector @ git+https://github.com/NVIDIA/SkillSpector.git@69dcdfb74487d361ba4c811d088cfdea2ff3a9dc"
+        in install
+    )
+    assert "skillspector==" not in install
+    assert install.index('>> "$GITHUB_PATH"') < install.index("uv tool install")
 
 
 def valid_report():
