@@ -390,3 +390,250 @@ def test_verify_requires_every_repeat_to_cover_target(tmp_path: Path) -> None:
     )
     assert failed.returncode == 1
     assert json.loads(failed.stdout)["accepted"] is False
+
+
+def _proposal_inputs(tmp_path: Path, *, kind: str = "capability", covered: bool = False):
+    """Synthetic event-planner findings; no customer traces or credentials."""
+    report = tmp_path / "report.json"
+    name = "accurate_user_communication" if covered else "fixture_generalization"
+    if kind == "failure_case":
+        name = "rejection_preserves_reservation"
+    payload = {
+        "covered": ["submit_itinerary"] + ([name] if covered else []),
+        "uncovered_items": []
+        if covered
+        else [
+            {
+                "name": name,
+                "kind": kind,
+                "reason": "not_covered_by_any_input_report",
+                "description": "Exercise the intended outcome.",
+            }
+        ],
+        "input_reports": [{"item_kind": kind, "covered": [name] if covered else []}],
+    }
+    report.write_text(json.dumps(payload))
+    finding = {
+        "id": "planner-outcome",
+        "name": name,
+        "kind": kind,
+        "basis": "observed_failure" if covered else "absent_scenario",
+        "action": "strengthen_existing" if covered else "new_scenario",
+        "scenario": "Check offsite explanation." if covered else "Use a changed world and tighter budget.",
+        "expected_behavior": "Explain accepted times accurately." if covered else "Reserve a feasible itinerary.",
+        "verifier": "Compare claims to accepted minutes." if covered else "Validate against changed world constraints.",
+        "evidence": ["synthetic/run-a/step-18: says 9 AM for minute 900"] if covered else ["reviewed starter fixtures"],
+    }
+    if covered:
+        source = tmp_path / "offsite"
+        source.mkdir()
+        (source / "instruction.md").write_text("Original offsite scenario")
+        finding["existing_task"] = str(source)
+    return report, finding
+
+
+def _proposal_manifest(tmp_path: Path, report: Path, findings: list[dict], *, scope: str = "implement") -> Path:
+    inputs = tmp_path / "findings.json"
+    inputs.write_text(json.dumps({"findings": findings}))
+    result = _run("propose", "--report", str(report), "--findings", str(inputs), "--scope", scope)
+    assert result.returncode == 0, result.stdout + result.stderr
+    manifest = tmp_path / "proposals.json"
+    manifest.write_text(result.stdout)
+    return manifest
+
+
+def test_full_tool_coverage_routes_capability_gap(tmp_path: Path) -> None:
+    report, finding = _proposal_inputs(tmp_path)
+    manifest = _proposal_manifest(tmp_path, report, [finding])
+    legacy = json.loads(_run("select", "--report", str(report)).stdout)
+    selected = json.loads(_run("select", "--report", str(report), "--proposals", str(manifest)).stdout)
+    assert legacy["actionable_count"] == 0
+    assert legacy["selection_scope"] == "tool_gaps_only"
+    assert selected["implementation_count"] == 1
+    assert selected["next_action"] == "scaffold"
+    assert selected["actionable_proposals"][0]["kind"] == "capability"
+    assert selected["actionable_proposals"][0]["scenario"] == finding["scenario"]
+
+
+def test_observed_failure_on_covered_capability_prefers_revision(tmp_path: Path) -> None:
+    report, finding = _proposal_inputs(tmp_path, covered=True)
+    manifest = _proposal_manifest(tmp_path, report, [finding])
+    proposal = json.loads(manifest.read_text())["proposals"][0]
+    assert proposal["aggregate_covered"] is True
+    assert proposal["basis"] == "observed_failure"
+    assert proposal["action"] == "strengthen_existing"
+    assert proposal["implementation_eligible"] is True
+    assert proposal["evidence"] == finding["evidence"]
+
+
+@pytest.mark.parametrize(
+    "status,evidence,eligible",
+    [
+        ("unverified", [], False),
+        ("observed", [], False),
+        ("observed", ["submit_itinerary valid=false; reservation snapshots unchanged"], True),
+        ("proposed", [], False),
+    ],
+)
+def test_observed_failure_requires_its_trigger(tmp_path: Path, status: str, evidence: list, eligible: bool) -> None:
+    report, finding = _proposal_inputs(tmp_path, kind="failure_case")
+    finding.update(
+        basis="observed_failure",
+        trigger={
+            "description": "Reservation submission rejected",
+            "status": status,
+            "evidence": evidence,
+            "verification": "Require valid=false and compare reservation snapshots before and after.",
+        },
+    )
+    manifest = _proposal_manifest(tmp_path, report, [finding])
+    proposal = json.loads(manifest.read_text())["proposals"][0]
+    assert proposal["implementation_eligible"] is eligible
+    # Unknown-route errors are not supplied as evidence of reservation rejection.
+    if not eligible:
+        assert proposal["blockers"]
+
+
+def test_proposed_trigger_supports_design_without_claiming_observation(tmp_path: Path) -> None:
+    report, finding = _proposal_inputs(tmp_path, kind="failure_case")
+    finding["trigger"] = {
+        "description": "Submit a genuinely conflicting seeded plan under unchanged rules.",
+        "status": "proposed",
+        "evidence": [],
+        "verification": "Require domain rejection before checking state preservation.",
+    }
+    proposal = json.loads(_proposal_manifest(tmp_path, report, [finding]).read_text())["proposals"][0]
+    assert proposal["implementation_eligible"] is True
+    assert proposal["basis"] == "absent_scenario"
+    assert proposal["trigger"]["status"] == "proposed"
+    assert proposal["aggregate_covered"] is False
+
+
+def test_missing_evidence_and_undefined_behavior_remain_explicit(tmp_path: Path) -> None:
+    report, finding = _proposal_inputs(tmp_path, kind="failure_case")
+    finding.update(action="define_behavior", expected_behavior=None, verifier=None)
+    manifest = _proposal_manifest(tmp_path, report, [finding])
+    proposal = json.loads(manifest.read_text())["proposals"][0]
+    assert proposal["implementation_eligible"] is False
+    assert "define_expected_behavior" in proposal["blockers"]
+    assert "design_trigger_check" in proposal["blockers"]
+    assert proposal["expected_behavior"] is None
+    unresolved = json.loads(_proposal_manifest(tmp_path, report, []).read_text())["proposals"][0]
+    assert unresolved["basis"] == "insufficient_evidence"
+    assert unresolved["reason"] == "not_covered_by_any_input_report"
+    assert unresolved["action"] == "gather_evidence"
+
+
+def _scaffold_proposal(module, tmp_path: Path, report: Path, manifest: Path):
+    instruction = tmp_path / ".eval-author/proposals/eval-planner-outcome-instruction.md"
+    instruction.parent.mkdir(parents=True, exist_ok=True)
+    instruction.write_text("Plan the requested event and explain the reservation.")
+    return module._scaffold(
+        report_path=report,
+        proposals_path=manifest,
+        target="planner-outcome",
+        output=tmp_path / ".eval-author/task-drafts/eval-planner-outcome",
+        task_name="example/eval-planner-outcome",
+        description="Exercise planner outcome",
+        author="Test",
+        instruction_file=instruction,
+    )
+
+
+def test_proposal_only_cannot_scaffold_or_call_provider(tmp_path: Path, monkeypatch) -> None:
+    module = _load_task_pipeline_module()
+    report, finding = _proposal_inputs(tmp_path)
+    findings = tmp_path / "findings.json"
+    findings.write_text(json.dumps({"findings": [finding]}))
+    initial = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    monkeypatch.setattr(module.subprocess, "run", lambda *a, **k: pytest.fail("must not execute providers"))
+    payload = module._propose(report, findings, "proposal-only")
+    assert {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()} == initial
+    manifest = tmp_path / "proposals.json"
+    manifest.write_text(json.dumps(payload))
+    assert module._select(report, None, manifest)["next_action"] == "report_proposals"
+    with pytest.raises(module.PipelineError, match="proposal-only"):
+        _scaffold_proposal(module, tmp_path, report, manifest)
+    assert not (tmp_path / ".eval-author/task-drafts").exists()
+
+
+@pytest.mark.parametrize("revision", [False, True])
+def test_authorized_non_tool_scaffold_preserves_original(tmp_path: Path, monkeypatch, revision: bool) -> None:
+    module = _load_task_pipeline_module()
+    report, finding = _proposal_inputs(tmp_path, covered=revision)
+    manifest = _proposal_manifest(tmp_path, report, [finding])
+    draft = tmp_path / ".eval-author/task-drafts/eval-planner-outcome"
+    original = Path(finding["existing_task"]) / "instruction.md" if revision else None
+    before = original.read_bytes() if original else None
+    calls = []
+
+    def init(command, **kwargs):
+        calls.append(command)
+        draft.mkdir()
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr(module.shutil, "which", lambda _: "/fake/harbor")
+    monkeypatch.setattr(module.subprocess, "run", init)
+    result = _scaffold_proposal(module, tmp_path, report, manifest)
+    assert result["proposal"]["kind"] == "capability"
+    assert calls[0][1:3] == ["task", "init"]
+    assert (draft / "instruction.md").is_file()
+    if original:
+        assert original.read_bytes() == before
+    with pytest.raises(module.PipelineError, match="already exists"):
+        _scaffold_proposal(module, tmp_path, report, manifest)
+    assert len(calls) == 1
+
+
+def test_forged_readiness_and_changed_report_are_rejected(tmp_path: Path) -> None:
+    module = _load_task_pipeline_module()
+    report, finding = _proposal_inputs(tmp_path)
+    finding.update(expected_behavior=None, source_changes_required=True)
+    manifest = _proposal_manifest(tmp_path, report, [finding])
+    payload = json.loads(manifest.read_text())
+    payload["proposals"][0].update(implementation_eligible=True, blockers=[])
+    manifest.write_text(json.dumps(payload))
+    with pytest.raises(module.PipelineError, match="define_expected_behavior.*source_change_authorization_required"):
+        _scaffold_proposal(module, tmp_path, report, manifest)
+    report.write_text(report.read_text() + "\n")
+    with pytest.raises(module.PipelineError, match="different audit report"):
+        module._select(report, None, manifest)
+
+
+@pytest.mark.parametrize("kind", ["capability", "failure_case"])
+def test_verify_uses_outcome_method_and_separates_results(tmp_path: Path, kind: str) -> None:
+    module = _load_task_pipeline_module()
+    report, finding = _proposal_inputs(tmp_path, kind=kind, covered=kind == "capability")
+    if kind == "failure_case":
+        finding["trigger"] = {
+            "description": "Domain rejection",
+            "status": "proposed",
+            "evidence": [],
+            "verification": "Inspect valid=false response before grading recovery",
+        }
+    manifest = _proposal_manifest(tmp_path, report, [finding])
+    after = []
+    for i in range(2):
+        path = tmp_path / f"repeat-{i}.json"
+        entry = _coverage_input_report(run_id=f"repeat-{i}", covered=[finding["name"]])
+        entry["subject"]["task_id"] = "eval-planner-outcome"
+        entry.update(method=module._METHODS[kind], item_kind=kind)
+        path.write_text(json.dumps({"covered": [finding["name"]], "input_reports": [entry]}))
+        after.append(path)
+    code, result = module._verify(report, after, finding["id"], manifest)
+    assert code == 0
+    assert result["coverage_closed"] is True
+    assert result["task_correctness"] == result["agent_performance"] == "not_assessed"
+    assert "accepted" not in result
+    # A tool-only measurement cannot prove a capability/failure outcome.
+    payload = json.loads(after[1].read_text())
+    payload["input_reports"][0].update(method="tool_calls", item_kind="tool")
+    after[1].write_text(json.dumps(payload))
+    code, result = module._verify(report, after, finding["id"], manifest)
+    assert code == 1
+    assert result["coverage_closed"] is False
+    # Nor can unioning a failing run with a passing run prove repetition.
+    payload["input_reports"].append(_coverage_input_report(run_id="hidden-run", covered=[finding["name"]]))
+    after[1].write_text(json.dumps(payload))
+    with pytest.raises(module.PipelineError, match="one run of the selected draft"):
+        module._verify(report, after, finding["id"], manifest)

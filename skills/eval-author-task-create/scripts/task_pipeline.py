@@ -2,11 +2,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Select actionable audit gaps, scaffold Harbor drafts, and verify closure."""
+"""Route audit proposals, scaffold separate Harbor drafts, and verify coverage."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -108,8 +109,171 @@ def _actionable_tools(report: dict[str, Any]) -> list[dict[str, Any]]:
     return _assign_unique_task_slugs(gaps)
 
 
-def _select(report_path: Path, target: str | None) -> dict[str, Any]:
-    """List actionable uncovered tools from one aggregate coverage report."""
+_PROPOSAL_SCHEMA = "nemo.eval_author.dataset_proposals.v1"
+_METHODS = {"tool": "tool_calls", "capability": "capabilities", "failure_case": "failure_cases"}
+_ACTIONS = {"new_scenario", "strengthen_existing", "retain_regression", "gather_evidence", "define_behavior"}
+_BASES = {"observed_failure", "absent_scenario", "insufficient_evidence"}
+
+
+def _report_digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _strings(value: Any) -> bool:
+    return isinstance(value, list) and bool(value) and all(isinstance(x, str) and x.strip() for x in value)
+
+
+def _proposal_blockers(proposal: dict[str, Any]) -> list[str]:
+    """Check design readiness, never infer task correctness or user authorization."""
+    blockers = []
+    if proposal["basis"] == "insufficient_evidence":
+        blockers.append("inspect_evidence")
+    if proposal["action"] not in {"new_scenario", "strengthen_existing"}:
+        blockers.append(proposal["action"])
+    for field in ("scenario", "expected_behavior", "verifier"):
+        if not isinstance(proposal.get(field), str) or not proposal[field].strip():
+            blockers.append(f"define_{field}")
+    if not _strings(proposal.get("evidence")):
+        blockers.append("inspect_evidence")
+    if proposal["action"] == "strengthen_existing" and not proposal.get("existing_task"):
+        blockers.append("identify_existing_task")
+    if proposal.get("source_changes_required"):
+        blockers.append("source_change_authorization_required")
+    trigger = proposal.get("trigger")
+    if proposal["kind"] == "failure_case" or trigger is not None:
+        trigger = trigger or {}
+        if not trigger.get("description") or not trigger.get("verification"):
+            blockers.append("design_trigger_check")
+        if trigger.get("status") not in {"observed", "proposed"}:
+            blockers.append("establish_trigger")
+        if trigger.get("status") == "observed" and not _strings(trigger.get("evidence")):
+            blockers.append("inspect_trigger_evidence")
+        if proposal["basis"] == "observed_failure" and trigger.get("status") != "observed":
+            blockers.append("inspect_trigger_evidence")
+    return list(dict.fromkeys(blockers))
+
+
+def _build_proposals(report: dict[str, Any], findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Combine reviewed semantic findings with unresolved gaps, preserving report evidence."""
+    inventory = {item["name"]: item["kind"] for item in report.get("uncovered_items", [])}
+    for entry in report.get("input_reports", []):
+        for name in entry.get("covered", []):
+            inventory.setdefault(name, entry.get("item_kind"))
+    proposals = []
+    ids = set()
+    reviewed = set()
+    for finding in findings:
+        if not isinstance(finding, dict):
+            raise PipelineError("each finding must be an object")
+        proposal = dict(finding)
+        proposal_id = proposal.get("id")
+        if not isinstance(proposal_id, str) or not re.fullmatch(r"[a-z][a-z0-9-]*", proposal_id):
+            raise PipelineError("finding id must be a lowercase slug")
+        if proposal_id in ids:
+            raise PipelineError(f"duplicate proposal id: {proposal_id}")
+        ids.add(proposal_id)
+        name, kind = proposal.get("name"), proposal.get("kind")
+        if kind not in _METHODS or inventory.get(name) != kind:
+            raise PipelineError(f"finding target must match an audit item and kind: {name!r}")
+        if proposal.get("basis") not in _BASES or proposal.get("action") not in _ACTIONS:
+            raise PipelineError(f"invalid basis or action: {proposal_id}")
+        if "trigger" in proposal and not isinstance(proposal["trigger"], dict):
+            raise PipelineError("trigger must be an object")
+        if not isinstance(proposal.get("source_changes_required", False), bool):
+            raise PipelineError("source_changes_required must be boolean")
+        if proposal["basis"] == "observed_failure" and not _strings(proposal.get("evidence")):
+            raise PipelineError("observed failure requires per-run evidence references")
+        reviewed.add(name)
+        proposals.append(proposal)
+    for item in report.get("uncovered_items", []):
+        if item["name"] in reviewed:
+            continue
+        proposal_id = "inspect-" + task_slug_for_tool(item["name"])
+        while proposal_id in ids:
+            proposal_id += "-2"
+        ids.add(proposal_id)
+        proposals.append(
+            {
+                "id": proposal_id,
+                "name": item["name"],
+                "kind": item["kind"],
+                "basis": "insufficient_evidence",
+                "action": "gather_evidence",
+                "scenario": item.get("description"),
+                "expected_behavior": None,
+                "verifier": None,
+                "evidence": [],
+                "reason": item.get("reason"),
+            }
+        )
+    for proposal in proposals:
+        proposal["aggregate_covered"] = proposal["name"] in report.get("covered", [])
+        proposal["blockers"] = _proposal_blockers(proposal)
+        proposal["implementation_eligible"] = not proposal["blockers"]
+        proposal["task_slug"] = "eval-" + proposal["id"]
+        proposal["paths"] = _artifact_paths(proposal["task_slug"])
+    return proposals
+
+
+def _propose(report_path: Path, findings_path: Path, scope: str) -> dict[str, Any]:
+    findings = _read_json(findings_path).get("findings")
+    if not isinstance(findings, list):
+        raise PipelineError("findings must be a list of reviewed findings")
+    return {
+        "schema": _PROPOSAL_SCHEMA,
+        "report": str(report_path),
+        "report_sha256": _report_digest(report_path),
+        "scope": scope,
+        "proposals": _build_proposals(_read_json(report_path), findings),
+        "valid": True,
+    }
+
+
+def _load_proposals(path: Path, report_path: Path) -> dict[str, Any]:
+    payload = _read_json(path)
+    if payload.get("schema") != _PROPOSAL_SCHEMA or payload.get("scope") not in {"proposal-only", "implement"}:
+        raise PipelineError("invalid proposal schema or scope")
+    if payload.get("report_sha256") != _report_digest(report_path):
+        raise PipelineError("proposals refer to a different audit report; review findings again")
+    if not isinstance(payload.get("proposals"), list):
+        raise PipelineError("proposals must be a list")
+    # Recompute eligibility and paths; never trust persisted derived flags.
+    payload["proposals"] = _build_proposals(_read_json(report_path), payload["proposals"])
+    return payload
+
+
+def _selected_proposal(path: Path, report_path: Path, target: str) -> dict[str, Any]:
+    manifest = _load_proposals(path, report_path)
+    for proposal in manifest["proposals"]:
+        if proposal["id"] == target:
+            if manifest["scope"] != "implement":
+                raise PipelineError("proposal-only scope does not authorize implementation")
+            if not proposal["implementation_eligible"]:
+                raise PipelineError(f"proposal requires: {', '.join(proposal['blockers'])}")
+            return proposal
+    raise PipelineError(f"unknown proposal id: {target}")
+
+
+def _select(report_path: Path, target: str | None, proposals_path: Path | None = None) -> dict[str, Any]:
+    """Select reviewed proposals or use the backward-compatible tool-gap selector."""
+    if proposals_path is not None:
+        manifest = _load_proposals(proposals_path, report_path)
+        proposals = manifest["proposals"]
+        if target is not None:
+            proposals = [p for p in proposals if p["id"] == target]
+            if not proposals:
+                raise PipelineError(f"unknown proposal id: {target}")
+        eligible = [p for p in proposals if p["implementation_eligible"]]
+        return {
+            "schema": "nemo.eval_author.proposal_selection.v1",
+            "valid": True,
+            "scope": manifest["scope"],
+            "proposal_count": len(proposals),
+            "implementation_count": len(eligible),
+            "actionable_proposals": eligible,
+            "deferred_proposals": [p for p in proposals if not p["implementation_eligible"]],
+            "next_action": "scaffold" if eligible and manifest["scope"] == "implement" else "report_proposals",
+        }
     gaps = _actionable_tools(_read_json(report_path))
     if target is not None:
         gaps = [gap for gap in gaps if gap["name"] == target]
@@ -118,6 +282,7 @@ def _select(report_path: Path, target: str | None) -> dict[str, Any]:
     return {
         "schema": "nemo.eval_author.task_gap_selection.v1",
         "report": str(report_path),
+        "selection_scope": "tool_gaps_only",
         "actionable_count": len(gaps),
         "actionable_tools": gaps,
         "valid": True,
@@ -163,10 +328,18 @@ def _scaffold(
     description: str,
     author: str,
     instruction_file: Path,
+    proposals_path: Path | None = None,
 ) -> dict[str, Any]:
     """Initialize a Harbor-native draft and install the supplied instruction."""
     report = _read_json(report_path)
-    task_slug = _task_slug_for_target(report, target)
+    proposal = _selected_proposal(proposals_path, report_path, target) if proposals_path else None
+    task_slug = proposal["task_slug"] if proposal else _task_slug_for_target(report, target)
+    if proposal and proposal.get("existing_task"):
+        source = Path(proposal["existing_task"])
+        if not source.is_dir():
+            raise PipelineError(f"existing task is not a directory: {source}")
+        if output.resolve() == source.resolve() or source.resolve() in output.resolve().parents:
+            raise PipelineError("draft must be separate from the existing task")
     _require_draft_destination(output)
     _require_task_slug_paths(
         task_slug=task_slug,
@@ -211,7 +384,7 @@ def _scaffold(
     (output / "instruction.md").write_text(instruction, encoding="utf-8")
     return {
         "schema": "nemo.eval_author.harbor_task_draft.v1",
-        "target_tool": target,
+        **({"proposal": proposal} if proposal else {"target_tool": target}),
         "task_slug": task_slug,
         "paths": _artifact_paths(task_slug),
         "draft": str(output),
@@ -243,10 +416,16 @@ def _run_ids_from_report(report: dict[str, Any], *, report_path: Path) -> list[s
     return run_ids
 
 
-def _verify(before_path: Path, after_paths: list[Path], target: str) -> tuple[int, dict[str, Any]]:
+def _verify(
+    before_path: Path, after_paths: list[Path], target: str, proposals_path: Path | None = None
+) -> tuple[int, dict[str, Any]]:
     """Accept only when ``target`` was an actionable gap before and covered in every repeat report."""
     before = _read_json(before_path)
-    _task_slug_for_target(before, target)
+    proposal = _selected_proposal(proposals_path, before_path, target) if proposals_path else None
+    if proposal:
+        target = proposal["name"]
+    else:
+        _task_slug_for_target(before, target)
     if len(after_paths) < _MIN_VERIFY_REPORTS:
         raise PipelineError(f"at least {_MIN_VERIFY_REPORTS} --after reports are required")
     resolved_paths = [path.resolve() for path in after_paths]
@@ -259,9 +438,22 @@ def _verify(before_path: Path, after_paths: list[Path], target: str) -> tuple[in
     for path in after_paths:
         report = _read_json(path)
         report_run_ids = _run_ids_from_report(report, report_path=path)
+        if proposal:
+            # An aggregate union of multiple trials must not hide a failing repeat.
+            report_run_ids = list(dict.fromkeys(report_run_ids))
+            subjects = {(e["subject"].get("task_id"), e["subject"]["run_id"]) for e in report["input_reports"]}
+            if subjects != {(proposal["task_slug"], report_run_ids[0])}:
+                raise PipelineError("each after report must contain one run of the selected draft")
         run_ids.extend(report_run_ids)
         covered = target in set(report.get("covered") or [])
         still_uncovered = target in set(report.get("uncovered") or [])
+        if proposal:
+            covered = covered and any(
+                entry.get("method") == _METHODS[proposal["kind"]]
+                and entry.get("item_kind") == proposal["kind"]
+                and target in entry.get("covered", [])
+                for entry in report["input_reports"]
+            )
         passed = covered and not still_uncovered
         all_covered = all_covered and passed
         runs.append(
@@ -285,21 +477,42 @@ def _verify(before_path: Path, after_paths: list[Path], target: str) -> tuple[in
         "accepted": all_covered,
         "valid": True,
     }
+    if proposal:
+        payload.pop("accepted")
+        payload.pop("target_tool")
+        payload.update(
+            {
+                "schema": "nemo.eval_author.proposal_verification.v1",
+                "proposal_id": proposal["id"],
+                "target": target,
+                "kind": proposal["kind"],
+                "coverage_closed": all_covered,
+                "task_correctness": "not_assessed",
+                "agent_performance": "not_assessed",
+            }
+        )
     return (0 if all_covered else 1), payload
 
 
 def _parser() -> argparse.ArgumentParser:
-    """Build the ``select``, ``scaffold``, and ``verify`` subcommand parser."""
+    """Build the proposal, selection, scaffolding, and verification CLI."""
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    propose = subparsers.add_parser("propose", help="validate reviewed findings and emit dataset proposals")
+    propose.add_argument("--report", type=Path, required=True)
+    propose.add_argument("--findings", type=Path, required=True)
+    propose.add_argument("--scope", choices=["proposal-only", "implement"], default="proposal-only")
 
     select = subparsers.add_parser("select", help="list actionable uncovered tool gaps")
     select.add_argument("--report", type=Path, required=True)
     select.add_argument("--target")
+    select.add_argument("--proposals", type=Path)
 
     scaffold = subparsers.add_parser("scaffold", help="initialize a Harbor-native task draft")
     scaffold.add_argument("--report", type=Path, required=True)
     scaffold.add_argument("--target", required=True)
+    scaffold.add_argument("--proposals", type=Path)
     scaffold.add_argument("--out", type=Path, required=True)
     scaffold.add_argument("--task-name", required=True)
     scaffold.add_argument("--description", required=True)
@@ -310,6 +523,7 @@ def _parser() -> argparse.ArgumentParser:
     verify.add_argument("--before", type=Path, required=True)
     verify.add_argument("--after", type=Path, action="append", required=True)
     verify.add_argument("--target", required=True)
+    verify.add_argument("--proposals", type=Path)
     return parser
 
 
@@ -317,8 +531,11 @@ def main(argv: list[str] | None = None) -> int:
     """Run one pipeline subcommand and print a JSON verdict on stdout."""
     args = _parser().parse_args(argv)
     try:
-        if args.command == "select":
-            payload = _select(args.report, args.target)
+        if args.command == "propose":
+            payload = _propose(args.report, args.findings, args.scope)
+            exit_code = 0
+        elif args.command == "select":
+            payload = _select(args.report, args.target, args.proposals)
             exit_code = 0
         elif args.command == "scaffold":
             payload = _scaffold(
@@ -329,10 +546,11 @@ def main(argv: list[str] | None = None) -> int:
                 description=args.description,
                 author=args.author,
                 instruction_file=args.instruction_file,
+                proposals_path=args.proposals,
             )
             exit_code = 0
         else:
-            exit_code, payload = _verify(args.before, args.after, args.target)
+            exit_code, payload = _verify(args.before, args.after, args.target, args.proposals)
     except PipelineError as exc:
         payload = {"valid": False, "error": str(exc)}
         exit_code = 1

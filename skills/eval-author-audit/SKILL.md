@@ -392,8 +392,12 @@ uncovered or whether an existing task already exposes an agent failure.
   [`eval-author-task-create`](../eval-author-task-create/SKILL.md). Hand off there
   when the user requests proposals or continuation through the full workflow;
   an audit-only request ends with the findings.
-- The proposal step considers tools, capabilities, and failure cases. Automatic
-  task creation still accepts only uncovered tool items with
-  `reason: not_covered_by_any_input_report`. Items with
-  `reason: not_measured_by_any_method` remain unmeasured, even when the proposal
-  step suggests a candidate scenario for them.
+- The proposal step considers tools, capabilities, failure cases, and observed
+  per-run regressions even when the aggregate item is covered. Hand off the
+  aggregate report plus per-run details/judgments and relevant trace/verifier
+  evidence. Do not classify all missing judgments as failures or unrelated errors
+  as evidence of a failure-case trigger.
+- Authorized implementation uses structured proposals to create a scenario or
+  strengthen a separate draft of an existing eval. Empty tool selection does not
+  block this route. Preserve measured `failure_cases` evidence; items with
+  `reason: not_measured_by_any_method` remain unmeasured until measured.
