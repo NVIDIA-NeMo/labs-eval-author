@@ -31,9 +31,10 @@ make commit-check COMMIT_MSG=/path/to/prepared-commit-message
 License validation requires OSV-Scanner 2.3.3 on `PATH` and network access;
 see [DEVELOPMENT.md](DEVELOPMENT.md) for setup and dependency updates.
 `make hooks` installs the local sign-off check for `git commit`.
-`make commit-check` checks Git's last commit-message file by default; pass
-`COMMIT_MSG` to check a prepared message before committing. Report any failed
-or skipped checks and explain their impact in the pull request. Describe the
+`make commit-check` checks the current `HEAD` commit's message by default,
+including after a fresh clone or pull. Pass `COMMIT_MSG` to check a prepared
+message before committing. Report any failed or skipped checks and explain
+their impact in the pull request. Describe the
 problem, resulting behavior, and validation.
 Obtain approval from another ASE team member before merging; `.github/CODEOWNERS`
 assigns that team to every file, including workflows and CODEOWNERS itself.

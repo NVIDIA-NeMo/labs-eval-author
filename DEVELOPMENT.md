@@ -9,7 +9,8 @@ Run `uv sync --locked` and `make hooks` to install the DCO commit-message hook.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for sign-off and PR-title conventions.
 Before committing, check a prepared message with
 `make commit-check COMMIT_MSG=/path/to/prepared-commit-message`; the hook also
-runs on `git commit`.
+runs on `git commit`. Plain `make commit-check` validates the current `HEAD`
+commit, so it also works after cloning or pulling a merged change.
 
 When adding NVIDIA-authored files or changing dependencies, update the tracked
 licensing artifacts first:
