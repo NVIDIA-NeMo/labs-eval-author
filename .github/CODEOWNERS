@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Require code-owner review in the main branch rules; this file alone does not
+# enforce review or restrict repository access. Includes this file and workflows.
+* @NVIDIA-NeMo/ase_team
