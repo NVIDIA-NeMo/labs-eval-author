@@ -31,6 +31,11 @@ validation need PyYAML to read YAML and jsonschema to enforce
 supported `nemo` CLI, an explicit workspace, and read access to a configured
 local or remote NeMo Platform instance.
 
+Workflow retrospectives need available conversation history and local PDF
+creation and inspection tools, supplied by the host or already installed (for
+example ReportLab, a PDF text extractor, and Poppler). They require no Harbor
+or NeMo service and add no dependencies to the evaluation suite.
+
 Development uses Python 3.12 or 3.13 and uv. The development dependency group
 includes the test runner, validators, MCP, and the Harbor version used by the
 source monorepo. No NeMo Platform checkout is required.
@@ -46,6 +51,7 @@ source monorepo. No NeMo Platform checkout is required.
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Sub-flow. Creates and proves one Harbor task from an actionable audit gap. |
 | [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | Sub-flow. Converts one canonicalized trace into a private candidate, inventories ground truth and software constraints, and builds a reproducible Harbor task environment when supported. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Utility. Normalizes bounded MLflow exports to canonical ATIF. |
+| [`eval-author-report`](skills/eval-author-report/SKILL.md) | Explicit request only. Creates a PDF retrospective of workflow difficulties, recoveries, and improvements from the user's available history. |
 
 Discovery also reports availability of the optional
 [Harbor assistant skills](https://github.com/harbor-framework/harbor/tree/main/skills).
@@ -75,6 +81,23 @@ under `.eval-author/adapted-tasks/`, preserving the source cases and scoring rul
 After a completed agent evaluation, offer help creating more evals through an
 optional repository and coverage audit; see the shared
 [post-evaluation handoff](skills/eval-author/references/milestone-checkins.md#after-a-successful-evaluation).
+
+`eval-author-report` saves a PDF under `.eval-author/reports/`, with findings
+linked to history evidence and explicit limits on the history reviewed. It
+includes the recorded authoring models and model switches, plus key user and
+assistant prompt excerpts showing confusion, corrections, and recovery. Missing
+model metadata or original prompts are labeled rather than reconstructed. It runs
+only when the user invokes it or explicitly asks for this retrospective; it is
+never an automatic workflow step. For example:
+
+```text
+Use $eval-author-report to create a PDF of where I struggled with Eval Author
+in this repository, based on the available conversation history.
+```
+
+Hosts loading skills directly can use `skills/eval-author-report/SKILL.md` for
+the same explicit request. Keep `agents/openai.yaml` when copying the skill so
+Codex preserves its explicit-only invocation policy.
 
 `eval-author-discover` leaves a report at `.eval-author/discovery.md`, carrying the
 JSON in an evidence section so a later model reads the verdict without Harbor. It is

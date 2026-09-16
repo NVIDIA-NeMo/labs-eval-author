@@ -29,6 +29,7 @@ not-for:
   - eval-author-task-create (use to propose dataset improvements; when task creation is requested, create and prove an eligible Harbor task)
   - eval-author-inspect-trace (use after this skill selects the trace sub-flow)
   - eval-author-trace-environment (use to derive a Harbor environment from canonical ATIF evidence)
+  - eval-author-report (use only when explicitly asked for a retrospective of the user's workflow difficulties)
   - nemo-intake (use to instrument agents, ingest telemetry, or query Intake outside Eval Author)
   - mlflow-to-atif (use to convert MLflow traces into canonical ATIF files)
   - nemo-experimentalist (use to run insight-driven optimization end to end, which drives the Eval Author agent itself)
@@ -147,6 +148,12 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Harbor task and prove it with Oracle and repeated measured runs |
 | `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
 | `eval-author-trace-environment` | Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor task when evidence supports it |
+
+The optional [`eval-author-report`](../eval-author-report/SKILL.md) creates a PDF
+retrospective from the user's available workflow history. Select it only when
+the user explicitly invokes it or asks for that retrospective. Do not run it
+because a user encounters an error, asks for ordinary evaluation results, or
+finishes a workflow; it is not an automatic sub-flow or completion step.
 
 `eval-author-audit` works one level above tasks: it generates and validates the
 coverage denominator, measures traces against it, and aggregates deterministic
