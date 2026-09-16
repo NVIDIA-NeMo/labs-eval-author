@@ -1,15 +1,15 @@
 ---
 name: eval-author
 description: >-
-  Build first evals from a required Ethos, work on existing evaluation suites
-  in a user's repository, adapt non-Harbor evals into Harbor, or derive an environment from
+  Build first evals or adapt non-Harbor evals from a required Ethos, work on existing
+  evaluation suites in a user's repository, or derive an environment from
   trace evidence, or understand an agent run from NeMo Intake. Owns the evidence
   standard that every Eval Author sub-flow
   follows. Use when the user asks "help me with my evals",
   "what's the state of the eval suite here?", "what happened in this trace?", or
-  when you need to pick between the Eval Author sub-flows. Routes to a sub-flow
-  and changes none of the user's source. The selected sub-flow uses the
-  provider's supported tools and saves its findings under `.eval-author/`.
+  when you need to pick between the Eval Author sub-flows. Establishes local
+  Ethos before routing, without changing the agent's implementation. The selected
+  sub-flow uses the provider's supported tools and saves findings under `.eval-author/`.
 triggers:
   - help me build evals for my agent
   - my agent has no evals yet
@@ -34,14 +34,15 @@ not-for:
   - nemo-experimentalist (use to run insight-driven optimization end to end, which drives the Eval Author agent itself)
   - nemo-evaluator (use to run an existing benchmark rather than work on a repository's own suite)
 compatibility: >-
-  The router is read-only. Discovery, audit, and task creation use the local
-  checkout. Task execution requires Harbor and may require Docker and provider
+  The core can save the local Ethos; execution is delegated to sub-flows.
+  Discovery, audit, and task creation use the local checkout.
+  Task execution requires Harbor and may require Docker and provider
   credentials. Trace inspection requires the nemo CLI, an explicit workspace,
   and read access to configured Intake.
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
-allowed-tools: [Read, Grep, Glob]
+allowed-tools: [Read, Write, Grep, Glob]
 ---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
@@ -50,6 +51,41 @@ allowed-tools: [Read, Grep, Glob]
 
 Work on repository-owned evaluation suites and understand agent traces. Route
 each request to the narrow sub-flow that owns it.
+
+## Show the path ahead
+
+For a fresh request to get repository evals working, give the opening reply from
+this section immediately after reading this file. No other skill, reference,
+repository inspection, Harbor probe, or discovery result is needed to show the
+plan. A request to read the whole local skill tree does not require doing so before
+this welcome; defer that reading until after the opening answer. Otherwise load
+only the instructions needed for the current stage, from this same local tree.
+
+Briefly acknowledge the experience, then render this checklist with literal
+`- [ ]` checkboxes, all unchecked, marking the first stage **We're here**. Plain
+bullets are not the checklist. Shorten descriptions as useful, but retain the labels:
+
+- [ ] **Establish the agent’s Ethos** — understand the agent's purpose, boundaries, and success criteria; reuse or create and review its Ethos.
+- [ ] **Get Harbor ready** — introduce the required framework, then verify its installation and check optional assistant skills.
+- [ ] **Understand the evaluation starting point** — find existing evals and confirm the material to use, or establish that we are starting from scratch.
+- [ ] **Define the evaluation scope** — select behaviors and cases, establish success criteria, and resolve conflicts between Ethos and existing evals.
+- [ ] **Prepare cases and grading** — create task instructions, expected outcomes, and scoring checks; preserve existing scoring when adapting.
+- [ ] **Prepare the execution environment** — set up dependencies, fixtures, application access, starting conditions, and reset behavior.
+- [ ] **Connect the agent** — configure how tasks reach the agent and how its responses and actions reach the grader.
+- [ ] **Validate the evals** — check task validity, environment behavior, and whether graders distinguish correct and incorrect outcomes.
+- [ ] **Evaluate the agent** — execute the selected cases and capture fresh evidence and scores.
+- [ ] **Review results and explain reruns** — explain outcomes, limitations, remaining gaps, and how to repeat the evaluation.
+
+End with “Ready to get started?” and wait. Do not follow the opening with tool
+calls in the same turn. After acceptance, read
+[Milestone check-ins](references/milestone-checkins.md) for stage transitions,
+progress, and resumption; begin with Ethos. The opening answer does not complete
+that stage or waive its check-in.
+
+On return visits, reuse an answered opening and resume the saved stage. Narrow
+inventory, readiness, audit, and trace requests use their scoped sub-flow instead
+of this onboarding experience. If onboarding later finds an existing Harbor suite,
+tailor the remaining work to that suite without restarting the completed stages.
 
 A report that a downstream model trusts has to be right. A plausible report is
 worse than no report when somebody acts on it.
@@ -62,9 +98,10 @@ The authority depends on the sub-flow:
 
 - For suite discovery, Harbor's validators judge runnability. A file's presence
   doesn't prove that Harbor accepts it.
-- For adapting existing evals, the original cases, fixtures, and scoring rules
-  establish what to preserve. Harbor validation and controlled task runs prove
-  the new wiring; they do not by themselves prove scoring equivalence.
+- For adapting existing evals, Ethos establishes intended agent behavior; the
+  original cases, fixtures, and scoring rules establish what to preserve.
+  Resolve conflicts with the user before changing scoring. Harbor validation and
+  controlled task runs prove the new wiring, not scoring equivalence by themselves.
 - For first evals, Ethos establishes intended behavior. NOP and Oracle check
   basic task wiring and verifier behavior; the user's agent run establishes
   a baseline. Working setup does not establish evaluation quality or coverage,
@@ -98,14 +135,14 @@ The sub-flows share this language, and reports use it verbatim.
 
 ## Sub-flows
 
-Read the sub-flow's own `SKILL.md` and follow it. This file carries the standard
-and the boundaries; the sub-flow carries the steps.
+Read the selected sub-flow's own `SKILL.md` when its stage begins and follow it.
+This file carries the standard and boundaries; the sub-flow carries the steps.
 
 | Sub-flow | Use it to |
 |---|---|
 | `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and set up a small working suite while teaching the user how to run and extend it |
 | `eval-author-discover` | Establish whether a repository's evaluations run, name the rung that fails, and get the exact command to run them |
-| `eval-author-adapt` | Convert existing non-Harbor material into task files, implement supported checks, and guide validation and execution when available |
+| `eval-author-adapt` | Establish required Ethos, convert existing non-Harbor material into task files, preserve scoring, and guide validation and execution |
 | `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Harbor task and prove it with Oracle and repeated measured runs |
 | `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
@@ -121,50 +158,13 @@ tool gaps and uses Harbor's native task scaffolder rather than guessing a task
 layout. For a requested full workflow, proceed from audit to proposals even when
 there are no eligible tool gaps; an audit-only request ends with the findings.
 
-## Show the path ahead
+## Establish Ethos before authoring
 
-At the start of repository onboarding, lead with the Harbor introduction in
-Communicating with the user, including its documentation link. Then show this checklist so the
-user knows what getting their evals working involves:
-
-- [ ] **Find your starting point** — existing evals, test cases, reports, examples, and documentation.
-- [ ] **Understand what success means** — requirements, expected behavior, and how results should be graded.
-- [ ] **Understand the setup** — agent connection, software and services, dependencies, supported operating systems, licenses, credentials, and starting/reset conditions.
-- [ ] **Prepare your Harbor evals** — turn the available material into tasks, grading checks, and environment configuration.
-- [ ] **Run and verify** — check that the setup and grading work, then evaluate the agent.
-- [ ] **Review the results** — explain outcomes, remaining gaps, and how to rerun.
-
-Use the checklist to orient the conversation. At each stage, explain what you
-learned, why it matters, and the next decision or action in ordinary language.
-Show one current stage; later stages remain ahead even if some background
-inspection overlaps. Merely listing statuses does not guide the user.
-
-Source selection establishes which evals the user has. The adaptation introduction
-then explains Harbor and asks whether they want to convert those evals. Wait for
-each needed answer; do not treat the checklist as an instruction to complete every
-stage without the user's input. Other milestones need no automatic approval.
-Tailor the preparation step after
-discovery: reuse or fix Harbor evals, adapt other material, or use the available
-first-eval flow. For narrower inventory, audit, or trace requests, show only the
-steps for that outcome; a checklist must not expand the requested work.
-
-Show the checklist when a user returns, using saved findings and inspection of
-the current artifacts to establish where they are. Reuse answers and completed
-work when still applicable; do not restart onboarding or assume old readiness
-evidence still applies after inputs change. Refresh it at meaningful milestones
-and in the final handoff, rather than with every tool call. Sub-flows carry
-forward the same checklist instead of starting their own.
-
-Use `[x]` only for completed milestones. Mark the current item **We're here**
-and explain what you are working out together. Leave future items unchecked;
-name a specific missing prerequisite only when it affects the work underway.
-An ordinary onboarding question does not need a **Needs input** status.
-Keep partial work unchecked
-and name its scope: task files may exist while grading or configuration remains
-unfinished. Identifying a dependency does not prove it is available, and loading
-task files does not prove an agent run works. A completed run may have low scores.
-Follow the checklist with the next action and any specific input needed from the
-user. Continue independent authorized work while other items need input.
+Both first-eval and adaptation require an applicable `ETHOS.md` before case design,
+new scoring decisions, or task authoring. Read [Local Ethos](references/local-ethos.md)
+for the shared locate, reuse, intent, creation, validation, and review procedure.
+Agent documentation can inform Ethos before any evaluation inventory. Existing
+evals establish what is currently tested; they do not replace intended behavior.
 
 ## Gather requirements and setup from evidence
 
@@ -193,86 +193,42 @@ Do not overwrite generated evidence reports or require a new intake document
 before conversion. For read-only requests, explain findings in the reply within
 that sub-flow's reporting boundaries.
 
-## Start with discovery
+## Route after the evaluation starting point
 
-For repository eval onboarding, start with `eval-author-discover` for every user,
-including users who say they have no evals or already name another framework.
-Reuse a completed discovery pass from this session when its repository and inputs
-are unchanged. Do not repeat questions the user has already answered. Explicit
-audit, task-gap, and trace requests still use their own sub-flows.
+The shared milestone procedure leads onboarding through Ethos, Harbor, then
+`eval-author-discover`. Discovery owns the evaluation inventory, source selection,
+and saved findings; its runtime probes can be used separately during the Harbor
+stage. Reuse completed checks and answers when their inputs are unchanged.
 
-Discovery's empty-scan conversation introduces Harbor as the framework Eval
-Author uses to run eval cases and score results, then asks whether the user has
-evals in any form and where to find them. An empty Harbor scan is not proof that
-the user has no evals. Inspection can identify candidates, but only the user can
-settle whether those are the evals they want to work from. When this has not
-already been answered, explain what you found and ask before choosing a case,
-extracting the full collection, or creating adapted tasks. For example, when
-the inspected material supports it:
+Follow discovery's **When no Harbor evals were found** conversation before routing
+candidate material; an empty Harbor scan does not establish that no evals exist.
+An explicitly supplied source already answers source selection. Once the evaluation
+starting point is settled, carry the established Ethos, Harbor invocation, findings,
+and answered check-ins into the selected path:
 
-> I didn't find Harbor evals in the locations I checked. I did find reports with
-> example conversations and written checks, which look like possible eval material.
-> Are these the evals you'd like us to work from, or do you have evals somewhere
-> else? If you don't have existing evals, we can start with your first one.
+- **Existing Harbor suite or tasks:** continue discovery and resolve configuration
+  or readiness failures. Broken evals are not a reason to start over.
+- **Existing non-Harbor material:** read
+  [`eval-author-adapt`](../eval-author-adapt/SKILL.md) and continue at **Define the
+  evaluation scope**. When Harbor and non-Harbor evals coexist, follow the user's
+  chosen suite. Adaptation owns mapping, scoring preservation, task delivery, and
+  the optional audit handoff.
+- **Confirmed absence of evals:** read
+  [`eval-author-first-eval`](../eval-author-first-eval/SKILL.md) and continue at
+  **Define the evaluation scope**. A missing config does not block this starter
+  flow; do not substitute audit-gap task creation.
+- **Unknown or inaccessible evals:** ask for the location or an accessible
+  representative case and its scoring. An access failure does not prove absence.
 
-Keep **Find your starting point** current while awaiting that answer. Save the
-discovery findings, but wait to begin conversion. A broad “Help me get my evals
-working” does not identify discovered candidates as the user's intended source.
-If the user already identified the material as their evals or explicitly asked
-to convert it, reuse that source answer without asking where their evals are again. Saying that
-evals exist without giving their location still requires locating them. Follow
-the answer:
-
-- **Harbor suite or standalone Harbor tasks:** continue discovery and resolve
-  the missing configuration or failed checks. Broken Harbor evals are existing
-  evals, not a reason to start over.
-- **The user identifies existing evals in another form:** read
-  [`eval-author-adapt`](../eval-author-adapt/SKILL.md). Use the supplied path or
-  artifact, including tests, scripts, notebooks, datasets, and manual rubrics.
-  If Harbor and other evals coexist, preserve both and follow the user's chosen
-  suite; do not silently ignore their request to adapt the non-Harbor evals.
-  A conversion request should produce Harbor task files from the available
-  material. App access and runtime verification can remain pending; they must
-  not redirect task creation into a specification-only interview. Written
-  criteria from reviews are usable inputs even if the evals have never run.
-  Once the source is identified, follow adaptation Step 1: explain Harbor, what
-  conversion will create, and what execution will require, then ask whether the
-  user wants to proceed. “Use these reports” settles the source; it does not
-  answer this informed choice. Wait before detailed requirements gathering,
-  choosing a case, bulk extraction, or task creation. Reuse an earlier acceptance
-  of this explained conversion path rather than asking again.
-  If the user points elsewhere, inspect that location and use those evals.
-  Let the adaptation flow choose a representative
-  case unless there is a material scope ambiguity; do not end at a scenario menu.
-- **The user confirms there are no existing evals:** use `eval-author-first-eval`
-  for the guided intent-to-starter-eval experience. Carry forward discovery and
-  answers already given; a missing-config finding must not block authoring.
-  This flow requires Ethos and follows [Local Ethos](references/local-ethos.md)
-  to save and review it in the repo when needed. No platform service or upload
-  is involved. Harbor is needed for scaffolding and execution; Ethos and case
-  planning can proceed without it. Do not substitute audit-gap task creation.
-- **Unknown or inaccessible evals:** ask for the location or a representative
-  case and how it is scored. Do not treat an unanswered question, unreadable
-  path, or discovery error as confirmation that no evals exist.
-
-For an inventory-only request, report what was found and offer the appropriate
-next step. Creating or running evals requires that intent; discovery alone does
-not authorize either.
+An inventory-only request ends with findings and an offered next step. Discovery
+alone does not authorize creating or running evals.
 
 ## Continue from adaptation to coverage auditing
 
-When the user indicates they are done with their adapted evals and task files
-exist, use `eval-author-adapt` Step 6 to offer a coverage audit. Explain that it
-compares the agent's Ethos with the created evals to identify what is addressed
-and what is missing. Wait for acceptance unless the user already requested it.
-Task creation alone does not trigger an audit, and declining does not invalidate
-the adaptation work. Carry forward the user's choice and existing artifacts.
-
-On acceptance, route directly to `eval-author-audit`. Carry forward the created
-tasks, adaptation findings, known Ethos path, and run evidence. Follow that flow's
-Ethos pre-flight and existing steps; it owns the audit prerequisites and reports.
-An audit-only request ends with the report. Proposing or creating further tasks
-remains a separate requested continuation.
+Follow `eval-author-adapt`'s optional coverage-audit handoff. An accepted audit goes
+directly to `eval-author-audit`, which owns its prerequisites and reports. An
+audit-only request ends with those findings; further tasks require a requested
+continuation.
 
 ## Boundaries
 
@@ -291,19 +247,14 @@ user, not to you.
   proposals, job outputs, and measurements there; `eval-author-trace-environment`
   writes only private, gitignored task workspaces there.
   `eval-author-adapt` writes its mapping, task copies, configs, and job outputs
-  under `.eval-author/`; the original evals remain the source of truth.
-  `eval-author-first-eval` writes plans, drafts, configs, and jobs there. Its
-  Ethos is a repository-owned document, saved and checked locally. Never upload
-  it, create a Fileset, or require NeMo services or account configuration for
-  local first-eval or audit authoring.
+  under `.eval-author/`; the original evals remain the source for preserved cases
+  and scoring. `eval-author-first-eval` writes plans, drafts, configs, and jobs there.
+  Both authoring flows use the narrow local Ethos write exception above.
 - **A missing tool is a finding, not a task.** When the provider is not installed,
   say so and stop short of proving anything. Report what you found regardless, and
   do not install the provider automatically. Use discovery's Harbor setup guidance
   to explain installation and verification. An explicit request to install is
   authorization for that setup; a broad eval request alone is not.
-  Adapting evals can still proceed through source inspection and mapping without
-  Harbor; scaffolding and execution remain unproven until it is available.
-  First-eval Ethos and case planning can also proceed before Harbor is available.
 - **Do not run without approval.** Discovery proves an existing suite can run and
   hands over the command. Task creation may run Oracle locally, then starts
   real-agent jobs only when the user explicitly asked for or approved that spend.
@@ -352,81 +303,6 @@ Grading asks how an attempt performed against the task's criteria. A coverage
 audit asks which intended agent behaviors the evaluation evidence covers. Explain
 that distinction when offering the existing audit flow; the audit does not finish
 a task's grader or supply its runtime access.
-
-### Discovery and adaptation onboarding
-
-For validation and execution reports, lead with the verdict or outcome, then the
-evidence. First-time onboarding has a different opening: explain that this skill
-uses Harbor to run evals before presenting readiness or installation findings.
-Include this explanation in the first substantive discovery reply, even if an
-earlier progress message introduced Harbor. For example:
-
-> Eval Author uses [Harbor](https://www.harborframework.com/docs) to run evals.
-> It gives your agent a task, checks the result, and lets you repeat the same
-> test after changes to see how your agent is doing.
-
-Make clear that Harbor is needed for execution; users can bring existing work
-in other formats. Then explain what you found and why it looks useful in plain
-language. For example, describe “conversations and descriptions of what a good
-answer should look like” before discussing assertions, scores, or file formats.
-Keep the discovery scope accurate: say no Harbor evals were found in the locations
-checked, rather than asserting the whole repository has none.
-
-Keep that explanation together as its own opening paragraph. Successful tool
-installation is usually incidental to the source conversation; keep it in the
-saved findings. If a missing tool affects the next step, explain the effect
-briefly. When no Harbor evals were found, the source question does not need an
-additional “readiness remains unproven” verdict. Describe possible source material
-without treating its historical scores as verified results.
-
-Show the shared checklist, keeping **Find your starting point** current until
-the source is settled. Explain the immediate purpose: “Let's first make sure
-we're starting with the right material.” Follow with the source question.
-Put artifact links beside what they contain or after the explanation; an
-installation verdict, report link, or technical inventory should not replace
-the welcome and guidance. Tool versions and scan mechanics belong in saved
-findings unless needed to resolve a problem. Introduce Harbor filenames when
-they become useful. The later adaptation introduction explains the proposed
-conversion in more detail using the source the user has identified.
-Once the user has identified the eval source, follow `eval-author-adapt` Step 1
-to explain the conversion and ask whether to proceed. Begin conversion after that
-answer. Before source selection, use the discovery conversation. Use the task-explanation guidance
-when files have been created. Ask a question only when its answer is needed;
-an inventory and a scenario menu are not a completed conversion.
-
-### Onboarding and intent questions
-
-When helping someone create their first evals, lead with what they will gain:
-a starter eval set for their agent, with customer scenarios and criteria for
-scoring its responses. Explain that they can rerun these evals after changes to
-see whether performance improves or regresses. Call each scenario an “eval case.”
-Follow the first-eval opening with a short bulleted requirements list,
-explaining each requirement's purpose and observed status. Explain Ethos
-in ordinary language before asking for intent: it records what the agent should
-do, its boundaries, and what success means, so the evals have a target.
-The opening need not call Ethos “local” or say the requested skill explains it.
-Then ask a concrete question grounded in the agent's workflows. The user's
-answer is part of designing the evals, not a validation verdict.
-
-This introduction belongs in the message containing the first intent question,
-even if an earlier progress message already mentioned the workflow. Preserve it
-when following the local Ethos procedure: its intent questions and content
-review remain part of the first-eval onboarding conversation.
-
-An ordinary intent question gathers information needed to do the requested work.
-It is not a request for permission to continue or, by itself, a blocked-work
-report. Explain why the answer helps define the evals, then end with the
-question. Do not append skill names, file paths, requirement quotes, or interview
-mechanics just to justify asking it. Missing Ethos being actively created through
-the available interview is part of onboarding; unavailable prerequisites or
-required approval are separate situations. If the host explicitly requires a
-skill disclosure, preserve it, but do not add one solely because a question awaits
-an answer or because the interview asks questions one at a time.
-
-Report Harbor version, importability, and readiness when those facts help the
-user resolve a setup problem or understand execution. They are not the opening
-headline for a first-eval conversation. Follow the first-eval skill's opening
-example and explain Harbor's role before reporting its status.
 
 ### Validation and result reports
 

@@ -1,225 +1,129 @@
-<!-- SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Explaining a task draft
 
-Use this at the first task-creation milestone, especially when the user has
-never worked with Harbor. Explain the result in the reply itself; a README
-link is useful for inspection but must not carry the entire explanation.
-Scale later updates to what changed rather than repeating the introduction.
-
-Refresh the core's shared checklist at this milestone. Keep its high-level labels;
-explain the created files beneath **Prepare your Harbor evals** instead of replacing
-the user's map with a technical checklist. For example, when task files exist but
-grading is incomplete, keep preparation unchecked and say “Task files created;
-finishing the grading checks.” If an external connection is unavailable, identify
-what live execution needs and what preparation can continue now. A first case is
-partial progress when the user requested a larger suite.
+Use this at the first task-creation milestone, especially for a user new to
+Harbor. Apply [Milestone check-ins](../../eval-author/references/milestone-checkins.md)
+for stage transitions and the core's evidence standard for readiness claims.
+This reference owns the case and grading explanation, not another checklist.
 
 ## Make the created files understandable
 
-Start with the concrete outcome: “I created a draft of your first eval case.”
-Explain that a Harbor task packages what the agent is asked, the setup it needs,
-and the checks used to judge its response. State whether the artifact is one
-conversation with several steps or several independent cases. For multi-step
-tasks, explain whether retaining conversation history is implemented or still
-required; a sequence of files does not prove the agent will remember prior turns.
+Lead with the concrete artifact, such as a draft of the first eval case. Explain
+the result in the reply itself; a README supports inspection but should not carry
+the whole explanation. Scale later updates to what changed.
 
-Show the request and proposed expected behavior together, using a small table
-or short list. Preserve the actual requests and criteria in the files; summaries
-in the reply can be shorter. A count such as “nine criteria” tells the user
-nothing about what is being tested. Explain enough of the criteria to support
-the decision being requested, and link the rest when useful. Distinguish
-criteria taken from source material, already confirmed intent, and new proposals.
+Show the actual request and expected behavior together in a short list or table.
+A count such as “nine criteria” does not explain what is tested. Distinguish source
+criteria, confirmed Ethos intent, and newly proposed rules, including any scoring
+changes the user chose. Preserve full requests and criteria in the task files.
 
-Describe the role and actual state of the relevant created parts:
+State whether this is one conversation with several steps or several independent
+cases. For a multi-step task, explain whether conversation history is implemented
+or still required; ordered files alone do not demonstrate retained history.
 
-- **Requests:** the messages the agent will receive.
-- **Grading criteria:** the written description of a good response. A saved
-  rubric is not necessarily a working scorer.
-- **Scoring code:** the checks that will read responses and produce scores.
-  Say when only a placeholder exists.
-- **Reference response or solution:** a known correct example used to check
-  the scorer. Do not describe a placeholder or past response as a verified answer.
-- **Environment:** the files, data, tools, software, and starting/reset state
-  the task needs. State which are prepared and which dependencies remain external.
-- **Agent connection:** how the task reaches the actual agent and how its
-  responses and actions reach the grader. Environment files alone do not
-  establish that this connection works.
-- **Run and results:** whether a fresh agent attempt has happened, and what
-  responses, actions, and scores were actually recorded.
+Connect useful file links to their state and purpose:
 
-For a desktop or external dependency, name what stays outside the Harbor
-container and how the task is expected to reach it. Explain the session/reset
-requirement and what that means for rerunning the eval. “App connection missing”
-alone hides this distinction; follow the parent skill's execution-dependency
-guidance while keeping task creation moving.
+- Instructions contain the messages the agent will receive.
+- Verifier-only criteria record the rules; identify which have working checks
+  and which remain written requirements.
+- Reference data or solutions need a stated basis for correctness; identify
+  generated placeholders and unverified historical responses as such.
+- The task README records source case IDs, decisions, and per-part status.
 
-Introduce file names only alongside their purpose and only when useful. Do not
-recite the entire directory tree. Keep the technical inventory in the README.
+For application, session, and reset requirements, use
+[Execution dependencies](execution-dependencies.md). Keep the complete technical
+inventory in the README rather than reciting a directory tree.
 
 ## Explain grading before asking the user to finish it
 
-Explain grading as checking what the agent did against the rules for success.
-Walk through one actual criterion from the selected material: what a good result
-means, what evidence would show it, and how the check reaches a verdict. Keep
-missing rules or evidence explicit. If no criterion exists, propose one grounded
-in the task and ask about intended behavior before presenting it as agreed.
+Walk through an actual source criterion: what a good result means, what evidence
+would show it, and how a check reaches a verdict. When no criterion exists, ground
+a proposed rule in the request and established Ethos and identify the unresolved
+behavior decision before presenting it as agreed.
 
 Separate the parts that can be missing:
 
 | Part | Explain to the user |
 |---|---|
-| Success rules: individual criteria or a rubric describing how to assess them | What should count as a good result, and whether that rule comes from their material or is a new proposal |
-| Evidence | What the check needs to inspect: a response, tool action, created file, or change in external state |
-| Checking method | Whether existing code can apply the rule, code still needs to be written, or a human/model must review meaning against explicit instructions |
-| Score | How check results become the reported result, including weights or partial credit only where the chosen scoring scheme uses them |
+| Success rule | What counts as a good result; whether the rule comes from the source or is proposed |
+| Evidence | What the check must inspect: a response, tool action, created file, or external state |
+| Checking method | Whether code applies the rule, code must be written, or a human/model must assess meaning |
+| Score | How check results combine, including weights or partial credit where the source scheme uses them |
 
-Translate “semantic review” into the actual judgment needed, such as whether
-an answer explains the requested information correctly. Explain who or what
-would make that judgment and what inputs and access it needs. Do not silently
-replace judgment with keyword matching or assume a paid model is available.
-Explain weights as how much each check contributes, and partial credit as credit
-for meeting some of a rule's conditions. Reuse existing scoring rules when known;
-these concepts are not mandatory new decisions for every customer.
+Translate “semantic review” into the actual judgment, such as whether an answer
+explains requested information correctly. Explain who or what makes that judgment
+and the inputs and access it needs. Explain weights as each check's contribution
+and partial credit as credit for some of a rule's conditions; neither is a mandatory
+new decision when the source already defines scoring.
 
-Do not leave “grading incomplete” as the entire status. Name the affected rule,
-what is already implemented, and whether the missing part is a behavior decision,
-check implementation, unavailable evidence, or a scoring rule. Say what the
-assistant can do next and what, if anything, the user needs to provide. A rule
-being written down, its checker passing local tests, and a fresh agent attempt
-passing that rule are different milestones.
+For “grading incomplete,” name the affected rule and the missing part: behavior
+decision, implementation, evidence, or score aggregation. Do not label code that
+can be implemented from available evidence as something the user must supply.
 
-## Explain what the completed check proves
+### Explain a decision through its effect on agent behavior
 
-Translate “Harbor loaded the structure” into “Harbor can read the task files.”
-That establishes the format, not working grading or agent behavior. Describe
-the unfinished work concretely: implement checks for the agreed criteria,
-check them with reference responses, connect the app, and run the conversation.
-Explain which of those can proceed now and what requires app access. Reuse
-the execution and scoring boundaries in the parent skill.
+If tool ordering is ambiguous, show whether a correct result reached through a
+different sequence would pass or fail. Ask which behavior the check should accept,
+not whether the user approves a report's entire intended behavior. Keep uncertainty
+local to the affected check, and implement the resolved rule in the task.
 
-## Make the next decision concrete
+## Turn remaining gaps into an actionable handoff
 
-### Turn remaining gaps into an actionable handoff
+Explain what the draft contains, what its completed checks establish, and what
+remains necessary for live evaluation. Open checklist items and a README link
+alone do not tell the user how to finish their evals.
 
-At a draft handoff, explain **what you have now**, **what you can try now**, and
-**what is needed for a live evaluation** in the reply itself. Keep the shared
-checklist as an overview; open checklist items and a README link do not explain
-how to move forward. Lead with the task drafts and their purpose, then describe
-the actual validation. If the user requested a mock, report its outcome too and
-connect it back to the remaining work on their evals.
-
-For a replay, explain that it sends saved responses through the implemented
-checks. It can test the replay interface and parts of the grading without invoking
-the real agent. Say whether Harbor itself executed a job or only accepted the
-task format. Label commands by what they actually run, such as **Replay saved
-conversations**, rather than a broad “Run all scenarios” that suggests live evals.
+For a replay, explain that saved responses pass through the implemented checks.
+Say whether Harbor executed a job or only accepted the task format, and label
+commands by their actual purpose, such as **Replay saved conversations**.
 Describe grading coverage by complete and partial source criteria when measured;
 subchecks can cover parts of criteria, so their counts are not interchangeable.
+A mock does not supply missing grading rules or establish historical equivalence.
 
-For each relevant unresolved requirement, give the specific gap, what it blocks,
-the smallest useful input from the user, and what you will do with that input.
-Use a short list or table for the main remaining requirements. Keep the full
-per-case inventory in the linked findings. Distinguish work the assistant can
-finish now, decisions the user needs to make, and access needed later. For example:
+For the main unresolved requirements, give the gap, its effect, and the smallest
+useful input or implementation needed. Keep the full per-case inventory in the
+findings. For example:
 
-| Remaining work | Why it matters | How we can finish it |
+| Remaining work | Effect | How to finish it |
 |---|---|---|
-| A case has requests but no grading rules | We cannot yet decide whether its result passes | Draft criteria from the request and ask the user about the specific proposed behavior; then implement the agreed checks |
-| Two source rules disagree | Either interpretation could give a different score | Show the conflicting expectations for that case, explain the consequence, and ask which behavior is intended |
-| The agent connection is unknown | New requests cannot reach the real agent | Ask for a setup guide, runner/config path, or working request-and-response example; inspect it and build the supported connection |
-| Starting data or reset instructions are absent | Repeated runs may start in different states | Identify the fixture or state referenced by the task and ask for that material or instructions; then prepare and verify repeatable setup |
+| Requests have no grading rules | A passing result is undefined | Draft criteria from the request and Ethos; resolve the missing behavior decision and implement the checks |
+| Source rules conflict with each other or Ethos | Interpretations produce different scores | Show the conflicting expectations and their scoring consequence, then resolve the affected rule |
+| The agent connection is unknown | Tasks cannot reach the actual agent | Inspect a setup guide, runner/config, or request-and-response example and implement the supported interface |
+| Starting data or reset instructions are absent | Repeated runs may start in different states | Identify and obtain the referenced fixture or state requirements, then implement the setup |
 
-These are examples, not requirements to impose on every user. Include only gaps
-supported by the inspected material. For software or license access, explain
-which dependency needs access and what task operation it enables; a setup guide
-or pointer to the person who manages it can be enough to start. Never ask for
-secret values or license keys in chat. Do not label implementation work as
-something the user must supply when the evidence is sufficient to build it.
+These are examples, not an inventory to impose on every user. For unavailable
+software or licenses, explain which operation needs access and use the dependency
+reference's setup guidance. A guide or pointer to its owner can be enough to start.
 
-Respect what the user has already told you. If reports are all they have, do not
-keep asking for the original scorer or dataset. Explain which historical scoring
-details cannot be recovered, propose new grading decisions where needed, and
-label their equivalence to the old scores as unproven. If the user lacks a real
-endpoint and requested a mock, keep real integration as later work rather than
-asking again for that endpoint. A mock does not fill missing grading rules.
+If only reports survive, identify the historical scoring details that cannot be
+recovered and explain any new proposed grading decisions as such. If the user
+requested a mock because no real endpoint exists, describe its contribution to
+the drafts and the remaining real integration work. Save the concrete remaining
+actions with their evidence in the adaptation findings or task README.
 
-End with one recommended next action and a focused question only when needed.
-Do not ask the user to solve the whole inventory or choose among unexplained
-technical tasks. For a grading decision, present the concrete proposed rule
-before asking. If independent implementation can continue, do it; explain what
-will be possible after the next missing input arrives. Save these actions beside
-their evidence in the existing adaptation findings or task README for resumption.
+## Example: after the user settles a sequence rule
 
-### Explain the decision in terms of agent behavior
+Suppose reports and recordings prescribe a tool sequence, and the user has settled
+whether additional calls are allowed. Implement that decision and the other
+supported checks. If the actual artifacts support it, the explanation can be:
 
-When behavior needs clarification, show what an answer would mean for this
-test. For example, if the source leaves tool ordering ambiguous, explain whether
-a correct result reached through a different sequence would pass or fail.
-Ask which behavior the check should accept, rather than
-asking the user to approve “the report's intended behavior” as a bundle.
-
-Ask about one unresolved behavior at a time, preserve decisions already made,
-and explain what you will implement after the answer. Do not turn every created
-draft into a mandatory approval gate: when behavior is already clear and the
-work is authorized, explain the milestone and continue implementing the checks.
-Keep uncertainty local to the affected check. When the user answers, implement
-that decision in the task and continue the conversion, rather than only saving
-the answer and ending the turn. Missing app access does not prevent task files,
-written criteria, and supported offline verifier checks from being created.
-
-## Example: continuing after the user settles a sequence rule
-
-Use only when the actual artifacts support these statements. Adapt the
-explanation to the user's source material and the work actually completed.
-
-The user has reports and recorded conversations, asked to preserve a report's
-prescribed tool sequence, and clarified whether additional calls are allowed.
-Apply that decision to the Harbor task and continue implementing the supported
-checks. Explain the immediate work in a progress update:
-
-> I’ll add that rule to the task, keeping your original requests and checks.
-> We can test the supported tool-sequence checks with recorded data now.
-> Running the eval against your agent will also need its application connection.
-
-Then do the work. After creating files and performing the described checks, a
-milestone explanation could be:
-
-> I created a draft of your first eval case. It keeps the conversation together
-> as one task, with your original requests in order and the checks from your
-> report alongside them.
+> I created a draft of your first eval case. It keeps your original conversation
+> in order as one task and preserves the report's checks.
 >
-> Here’s what I put in the task:
+> The implemented grader checks tool counts, ordering, and the rule you confirmed
+> for additional calls. The remaining criteria need trace fields absent from the
+> recordings, so they are retained as unresolved requirements.
 >
-> - **The conversation:** the messages the agent will receive, in their original order.
-> - **The grading criteria:** the report's requirements, including the tool
->   sequence and the rule you confirmed for additional calls.
-> - **The implemented checks:** the call counts and ordering rules supported
->   by the source. The remaining criteria are retained and marked as unfinished.
+> Harbor can read the task files. I also checked the implemented rules with example
+> traces that satisfy and violate them. Those checks exercise the scoring code;
+> a fresh agent run will measure the agent's performance.
 >
-> Harbor can read the task files. I also checked the implemented rules with
-> example traces that satisfy and violate them. That tests the scoring code;
-> we still need a fresh agent run to measure its performance.
->
-> You can inspect the messages and checks in the linked task draft. There are
-> two pieces left before a live evaluation:
->
-> - **Finish grading:** I'll implement the remaining rules supported by your
->   report. If a rule is missing or contradictory, I'll show you the proposed
->   check and the specific behavior we need to decide together.
-> - **Connect your agent:** when available, a setup guide, runner script, or
->   example of sending a request and receiving a response will help me wire up
->   the real connection. I'll use that to check how conversations retain their
->   state and how each test starts fresh.
->
-> We can continue the grading work while that connection is unavailable. We can
-> test the implemented checks offline now; a live run will measure new
-> responses from your agent once grading and setup are ready.
+> You can inspect the conversation and checks in the linked task draft. The missing
+> grading inputs keep cases and grading incomplete. The next stage prepares
+> dependencies, fixtures, and starting and reset conditions.
+> Would you like to defer the missing grading inputs and prepare that environment?
 
-Name only checks that were actually implemented and run. If structural validation
-or offline verifier testing is unavailable, substitute its observed status and
-specific next action. Preserve the distinction between task files, working
-grading, and an actual agent run without making runtime readiness a condition
-for saying task files exist. Continue other requested conversions where their
-inputs are available rather than ending at the first blocked case.
+Adapt the example to the actual criteria and evidence. Link the real artifacts,
+and use the shared milestone procedure for the accompanying checklist and reply.

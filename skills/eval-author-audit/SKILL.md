@@ -37,42 +37,15 @@ allowed-tools: [Bash, Read, Write, Grep, Glob]
 
 ## Ethos Pre-flight
 
-Before drafting audit items, locate the Ethos file that will serve as the source
-of truth. If the user provides `--ethos <path>`, validate and use that path as
-`<ethos_path>` before applying repository discovery. Otherwise, prefer
-`ETHOS.md` at the repository root when it exists. If it is missing, check for one
-existing local Ethos at
-`agents/<name>-ethos/ETHOS.md` and use that path as `<ethos_path>`.
+Before drafting audit items or generating `audit.md`, require the selected agent's
+established Ethos to define what the audit should cover. An explicit
+`--ethos <path>` overrides any prior handoff path; otherwise pass the established
+path supplied by first-eval or adaptation when available.
 
-If no Ethos file exists, pause audit-item drafting and generation while completing
-the local Ethos prerequisite below. Explain why it is needed: Eval
-Author needs a source of truth for how the agent is supposed to behave before it
-can decide what `audit.md` should cover. Code shows what the agent does today;
-Ethos records intended behavior, mission, constraints, success and failure
-criteria, and what may change. Link the user to
-[ETHOS.md](https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos)
-for what Ethos is and how to create one.
-
-Follow [Local Ethos](../eval-author/references/local-ethos.md) to capture and
-validate intent locally. Save the document and wait for the user's review of its
-contents before resuming audit-item drafting with the exact path as `<ethos_path>`.
-The bundled procedure reuses saved interview answers and defaults to root
-`ETHOS.md`. It does not require installed NeMo skills, a running platform,
-a workspace, or any upload. Do not call the platform Ethos or model-selection
-flows as prerequisites for local audit authoring.
-
-If the user prefers to create the file themselves, or local filesystem access
-prevents writing it, explain the local limitation, provide the Ethos documentation
-link above, and ask for the saved file's path. An unreachable NeMo service is
-not a blocker. A demo may explicitly use demo policies without airline approval;
-record that scope instead of inventing production guarantees.
-
-The local Ethos handoff creates a real document from user-confirmed intent; an
-empty file or placeholder written merely to bypass this prerequisite does not
-qualify. Do not substitute other repository material for Ethos. Contributor docs, operations docs, README
-files, code, traces, or draft labels are not valid source-of-truth replacements
-for a missing Ethos. Do not synthesize an audit denominator from those materials,
-even if the output is marked as draft. First save and review the real local Ethos.
+Follow [Local Ethos](../eval-author/references/local-ethos.md) to locate, check,
+reuse, or create and review the document. That procedure owns the document
+prerequisite and its recovery. Use its exact returned path as `<ethos_path>` and
+resume audit-item drafting only after the prerequisite is complete.
 
 # Eval Author: audit
 
@@ -96,8 +69,9 @@ the whole file; do not add sequential numeric IDs. Tool references in
 valid tool name, including tools the agent must never call and therefore should
 not declare as allowed tools.
 
-Write audit artifacts under `.eval-author/`. Do not edit the customer's source,
-existing evals, source-of-truth documents, or `ETHOS.md`.
+Write audit artifacts under `.eval-author/`. Audit operations do not edit the
+customer's source, existing evals, source-of-truth documents, or `ETHOS.md`;
+prerequisite Ethos work belongs to the shared procedure in the pre-flight above.
 
 ## Scripts
 

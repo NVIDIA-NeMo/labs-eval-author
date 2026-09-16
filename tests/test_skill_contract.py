@@ -654,11 +654,10 @@ def test_frontmatter_carries_every_required_field(skill_dir: Path) -> None:
 
 @pytest.mark.parametrize("skill_dir", _SKILL_DIRS, ids=lambda path: path.name)
 def test_no_skill_can_edit_what_it_did_not_write(skill_dir: Path) -> None:
-    """Eval Author creates its own report and changes nothing that was already there.
+    """General source-editing tools stay unavailable across the skill tree.
 
-    ``Write`` covers sub-flow artifacts under ``.eval-author/``. ``Edit`` would let
-    it rewrite files that predate it, which is the permission customers declined to
-    grant and the reason these ship as skills.
+    ``Write`` covers artifacts under ``.eval-author/`` and the explicit local
+    Ethos exception. General source editing is outside that scope.
     """
     frontmatter, _ = _frontmatter_and_body(skill_dir)
     tools = _allowed_tools(frontmatter)
@@ -679,8 +678,8 @@ def _allowed_tools(frontmatter: dict) -> set[str]:
     return tools
 
 
-def test_the_core_routes_and_the_sub_flow_executes() -> None:
-    """The core only picks a sub-flow, so it neither runs nor saves anything."""
+def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
+    """Ethos can be saved before routing; executable work belongs to sub-flows."""
     core_tools = _allowed_tools(_frontmatter_and_body(_CORE_DIR)[0])
     discover_tools = _allowed_tools(_frontmatter_and_body(_DISCOVER_DIR)[0])
     adapt_tools = _allowed_tools(_frontmatter_and_body(_ADAPT_DIR)[0])
@@ -689,7 +688,8 @@ def test_the_core_routes_and_the_sub_flow_executes() -> None:
     inspect_tools = _allowed_tools(_frontmatter_and_body(_INSPECT_DIR)[0])
     trace_environment_tools = _allowed_tools(_frontmatter_and_body(_TRACE_ENVIRONMENT_DIR)[0])
 
-    assert not {"Bash", "Write"} & core_tools, f"the core routes and explains; {sorted(core_tools)} is too broad"
+    assert "Write" in core_tools, "the core must be able to save Ethos before selecting an authoring flow"
+    assert "Bash" not in core_tools, "the core delegates executable work to a sub-flow"
     assert {"Bash", "Write"} <= discover_tools, (
         f"{_DISCOVER_DIR.name} runs a script and saves a report; it has {sorted(discover_tools)}"
     )
@@ -1765,10 +1765,17 @@ def test_audit_skill_reads_schema_before_drafting_items() -> None:
 
 
 def test_local_ethos_handoff_resources_are_self_contained() -> None:
-    """Both entry points must resolve the same portable local procedure/template."""
+    """All Ethos callers must resolve the same portable local procedure/template."""
     reference = _CORE_DIR / "references" / "local-ethos.md"
     template = _CORE_DIR / "templates" / "ETHOS.md"
-    for skill_dir in (_FIRST_EVAL_DIR, _AUDIT_DIR):
+    checkins = reference.parent / "milestone-checkins.md"
+    assert checkins.is_file()
+    for skill_dir in (_CORE_DIR, _FIRST_EVAL_DIR, _ADAPT_DIR):
+        _, body = _frontmatter_and_body(skill_dir)
+        links = re.findall(r"\]\(([^)]+milestone-checkins\.md)\)", body)
+        assert links, f"{skill_dir.name} has no shared milestone handoff"
+        assert all((skill_dir / link).resolve() == checkins.resolve() for link in links)
+    for skill_dir in (_CORE_DIR, _FIRST_EVAL_DIR, _ADAPT_DIR, _AUDIT_DIR):
         _, body = _frontmatter_and_body(skill_dir)
         links = re.findall(r"\[Local Ethos\]\(([^)]+)\)", body)
         assert links, f"{skill_dir.name} has no local Ethos handoff"

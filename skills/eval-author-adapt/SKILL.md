@@ -1,14 +1,12 @@
 ---
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-
 name: eval-author-adapt
 description: >-
   Turn existing non-Harbor evaluation material into Harbor task files after
   repository discovery. Preserve requests and scoring criteria from tests,
   scripts, notebooks, datasets, or manual rubrics; implement the checks the
   evidence supports and explain the resulting tasks. Use when the user wants
-  their existing evals working with Eval Author. Writes only under `.eval-author/`.
+  their existing evals working with Eval Author. Writes under `.eval-author/`
+  except for the local agent Ethos.
 triggers:
   - convert my existing evals to Harbor
   - my evals are scripts rather than Harbor tasks
@@ -20,8 +18,9 @@ not-for:
   - eval-author-task-create (use to create tasks from actionable audit tool gaps)
   - mlflow-to-atif (use to normalize traces rather than migrate eval cases)
 compatibility: >-
-  Inspection and mapping need no Harbor or NeMo service. Scaffolding and
-  structure validation require the installed Harbor CLI and Python environment.
+  Source inspection and local Ethos work need no Harbor or NeMo service.
+  Scaffolding and structure validation require the installed Harbor CLI and
+  Python environment.
   Live runs need the configured backend, actual agent connection, and any required
   credentials. Real-agent and paid-judge execution require authorization.
 maturity: alpha
@@ -29,266 +28,172 @@ license: Apache-2.0
 user-invocable: true
 allowed-tools: [Bash, Read, Write, Grep, Glob]
 ---
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: adapt existing evals
 
-Read `eval-author` for the shared standard and boundaries. Start with its
-repository discovery, reusing a completed pass when the inputs are unchanged.
-A request such as “Help me get my evals working” proceeds into task creation
-after the user has identified the existing eval material and accepted the Harbor
-conversion explained in Step 1. Identifying source files alone does not start
-conversion. If discovery
-only found possible candidates, follow the core's source-selection conversation
-and wait for the answer before conversion. An explicit inspection-only request
-ends with findings.
+Read `eval-author` for the shared standard, checklist, and boundaries. Apply
+[Milestone check-ins](../eval-author/references/milestone-checkins.md) for the ten
+checklist stages below; it owns stage order and handoff. For a direct
+invocation, use the core's opening before repository work. When routed here after
+evaluation discovery, carry forward the established Ethos, Harbor status,
+confirmed source, and answered check-ins into stage 4 once the first three stage
+transitions are settled. These sections describe that shared onboarding; do not
+restart completed work or repeat the intent interview when entering adaptation.
 
 **The conversion deliverable is actual Harbor task files under
-`.eval-author/adapted-tasks/`.** Notes and extracted specifications support those
-files; they do not replace them. Creating tasks and running the customer's agent
-are separate milestones. Missing app access, credentials, or historical scoring
-code can leave grading or execution unfinished without blocking the known parts
-of a task. Do not require an Ethos interview, audit, or tool-gap selection.
+`.eval-author/adapted-tasks/`.** Extracted specifications and notes support those
+files; they do not replace them. Audit and tool-gap selection are optional.
 
-## 1. Explain Harbor and ask whether to convert
+## 1. Establish the agent’s Ethos
 
-Carry forward the core's **Show the path ahead** checklist and completed discovery
-work. On a return visit, inspect saved findings and tasks, show current progress,
-and continue from the next unfinished item. Preserve an earlier acceptance of the
-explained conversion path; do not ask for it again on return visits.
+Follow [Local Ethos](../eval-author/references/local-ethos.md) using the agent's
+documentation and intended behavior, independently of any existing eval source.
+Carry the resulting checked Ethos path and review state into the adaptation
+findings below.
 
-After the source-selection answer is known, pause the workflow to help the user
-understand what they are choosing. Explain Harbor and link its documentation,
-even if discovery already gave a one-line introduction. Connect the explanation
-to the confirmed material: a task packages a request or conversation, the setup
-needed to perform it, and checks that score the result. Use the core's
-**Explain the eval pieces as they become relevant** guidance: grading means
-checking what the agent did against the rules for success, and the grader is
-what applies those rules. Distinguish the task's environment from the connection
-to the agent being tested. Describe what can be reused, what must be built, and
-how rerunning helps compare the agent after changes.
-Explain that execution also needs the actual agent, its dependencies, and access;
-creating task files alone does not establish that the eval can run.
+## 2. Get Harbor ready
 
-Ask whether they want to turn this material into evals they can execute with
-Harbor, and wait for the answer before detailed requirements gathering, case
-selection, bulk extraction, task creation, or agent-connection questions. Keep
-the checklist at the transition from finding the source to understanding the
-work ahead. This is a choice about the proposed workflow, not a setup interview.
-If they ask questions, answer them before proceeding; if they decline, stop
-conversion and ask what outcome they want from their existing evals. Declining
-Harbor does not mean they have no evals and must not route to first-eval creation.
-
-Use the inspected material to describe what would become a task in everyday terms.
-Keep tool versions, internal skill routing, raw check counts, and discovery
-mechanics in the reports unless needed to resolve a setup problem. Describe
-report scores as unverified unless independently reproduced; reports may be
-illustrative or generated by an agent without an evaluation ever having run.
-
-For example, after the user identifies the reports as the evals to use, and when
-supported by inspection:
-
-> Those reports and conversations give us a starting point. We use
-> [Harbor](https://www.harborframework.com/docs) to run evals: it gives your agent
-> tasks, checks the results, and lets you repeat the tests after changes.
->
-> A Harbor task brings together what your agent should do, the setup it needs,
-> and how to judge the result. Grading means checking the agent's response or
-> actions against your rules for success. For your material, we'd preserve the
-> requests and written rules, turn those rules into checks that can score an
-> attempt, and connect the tasks to your agent.
-> We'll gather the requirements, dependencies, and any license or access needs
-> together. Task files can be prepared before all access is available, but a live
-> run will need a working connection and setup.
->
-> Would you like to continue turning these reports and conversations into evals
-> you can run with Harbor?
-
-After the user accepts, explain the next step and continue the authorized work.
-Use an explicitly selected case or scope. Otherwise choose a representative case
-with clear requests and usable criteria and explain why it is a useful start.
-Multiple scenarios for the same agent do not require a scenario menu. Clarify
-scope only when alternatives imply materially different work, such as unrelated
-agents or separate projects, and intent cannot be inferred. For a large
-collection, work in batches and track each source case. Complete the requested
-scope and identify cases with missing inputs rather than silently omitting them.
-
-## 2. Inspect and map the source
-
-Gather requirements, documentation, and setup using the core's **Gather requirements
-and setup from evidence** guidance. Save findings and specific unknowns in
-`.eval-author/adaptation.md`, with their sources and the work they affect. Explain
-what is known and what remains without turning gathering into a mandatory interview.
-
-Read the supplied location, one representative case, its criteria, and the
-referenced setup and runner when available. Search nearby to follow relevant
-references; do not scan unrelated repositories. For inaccessible remote material,
-ask for an accessible source or representative case. Do not infer absence from
-an access failure or install tools to make discovery succeed.
-
-Identify where the agent's tools actually execute, not only which libraries the
-agent imports. When evidence points to a desktop app, licensed software, hardware,
-or an external service, read [Execution dependencies](references/execution-dependencies.md).
-Record the dependency and proposed connection in the mapping and task README,
-explain it early, and continue creating task files. An unavailable desktop runtime
-blocks its live checks; it does not turn the conversion into a setup interview.
-
-Use the source's intent and preserve its requirements:
-
-- Tests and scripts may supply executable assertions and fixtures. Check that
-  they evaluate agent behavior; a unit test of a helper is not automatically an
-  agent task. Identify the request and observable result before adapting it.
-- Datasets and manual rubrics can supply requests and intended responses without
-  a scorer. Preserve written criteria; do not silently replace semantic judgment
-  with exact matching or keyword checks.
-- Notebooks can depend on cell order, hidden state, or live services. Record those
-  requirements instead of assuming that copying cells creates a repeatable setup.
-- Reports and traces can supply requests, criteria, and example outputs even if
-  the original runner is unavailable or the evals have never run. Extract those
-  into tasks. Do not use past verdicts as ground truth or past responses as
-  verified reference solutions. Truncated payloads remain incomplete evidence.
-
-Keep every conversation turn and its ordering. Preserve tool-sequence requirements
-when specified; do not replace them with outcome-only grading. Conversely, do not
-invent a required tool sequence when the source only judges results. Keep source
-alternatives, score scales, thresholds, normalization, aggregation, and judge
-settings where supplied. Separate clear requirements from ambiguous proposals.
-
-Ask only for information needed to implement the next affected part. Use known
-source requirements without reconfirming each one. Missing historical code does
-not trigger a new intent interview. When genuinely new grading rules are needed,
-explain the proposed meaning and resolve that decision with the user. Continue
-unaffected parts while waiting. Apply each answer to the task and resume work in
-that turn; saving the answer in notes is not completion.
-
-Write a concise `.eval-author/adaptation.md` tracking source paths and case IDs,
-selected scope, source-to-task mapping, retained criteria, unresolved decisions,
-and status of each task. Reuse it on later turns. Keep provider discovery JSON
-unchanged. Proceed to Step 3 rather than ending with only this mapping.
-
-If inspection finds Harbor tasks, continue discovery on their actual location.
-Confirmed absence of any existing evals or usable examples follows the core's
-first-eval handoff. Reports with written cases belong in adaptation.
-
-## 3. Create the task files and supported checks
-
-Use discovery's verified Harbor environment. If Harbor is unavailable, retain
-the mapping and follow discovery's
+Apply the shared Harbor introduction before obtaining readiness evidence from
+[`eval-author-discover`](../eval-author-discover/SKILL.md)'s runtime checks.
+For missing or broken setup, use
 [Harbor setup guidance](../eval-author-discover/references/harbor-setup.md).
-Explain what can continue now and what needs installation; do not install
-automatically or invent a task layout. After verified setup, resume the accepted
-conversion. Missing app access alone does not block this step.
+Carry the verified Harbor invocation into the adaptation findings for scaffolding
+and validation below.
+
+## 3. Understand the evaluation starting point
+
+Use `eval-author-discover`'s source-selection result. If the intended source remains
+unconfirmed, finish discovery's source-selection conversation before mapping
+cases. Record the selected source and established Ethos path in
+`.eval-author/adaptation.md`.
+
+## 4. Define the evaluation scope
+
+Use the selected case or scope. Otherwise start with a representative case with
+clear requests and usable criteria, explaining why it is a useful starting point.
+Multiple scenarios for the same agent do not require a scenario menu. For a large
+collection, plan batches and track every source case in the requested scope,
+including cases with missing inputs.
+
+Read the supplied material, one representative case, its criteria, and referenced
+setup and runner. Follow relevant nearby references using the core's evidence
+standard. If inspection finds Harbor tasks, route their actual location back to
+discovery. Reports with written cases belong in adaptation; confirmed absence of
+existing evals or usable examples follows discovery's first-eval handoff.
+
+Map each source according to what it supplies:
+
+- Tests and scripts may supply assertions and fixtures. Confirm that they evaluate
+  agent behavior; a helper's unit test is not automatically an agent task.
+- Datasets and manual rubrics may supply requests and intended responses without
+  a scorer. Preserve semantic criteria instead of replacing them with exact
+  matching or keyword checks.
+- Notebooks may depend on cell order, hidden state, or live services. Record those
+  requirements rather than assuming copied cells produce repeatable setup.
+- Reports and traces may supply requests, criteria, and example outputs even
+  when their runner is unavailable or the evals have never run. Past verdicts
+  are not ground truth, past responses are not verified reference solutions,
+  and truncated payloads remain incomplete evidence.
+
+Preserve conversation turns and order, required tool sequences, allowed
+alternatives, score scales, thresholds, normalization, aggregation, and supplied
+judge settings. Do not invent a tool sequence when the source judges only results.
+Record any conflict with Ethos and the user's resolution before changing the
+affected behavior or scoring. Missing historical code does not itself call for
+new intent; genuinely new grading rules need an explicit meaning and decision.
+
+When the source depends on a desktop app, licensed software, hardware, or external
+service, use [Execution dependencies](references/execution-dependencies.md) to
+establish where tools execute and map their runtime and result requirements.
+
+Save `.eval-author/adaptation.md` with source paths and case IDs, selected scope,
+source-to-task mapping, retained criteria, resolved changes, missing inputs, and
+per-case status. Keep provider discovery JSON unchanged. The stage's result is a
+traceable conversion scope, including any limits on reproducing old scores.
+
+## 5. Prepare cases and grading
+
+Use the source mapping and verified Harbor environment. If Harbor is unavailable,
+retain the mapping and use Step 2's setup guidance; do not invent a task layout.
+Missing app access alone does not block task files or supported offline checks.
 
 Read installed `harbor task init --help` and use Harbor's native scaffolder in
 an unused directory under `.eval-author/adapted-tasks/`. Preserve the generated
 schema and supported multi-step layout rather than copying a sibling task or
 using the audit-gap selector. Resolve unsupported layout features explicitly;
-do not flatten a multi-turn case merely to make an older schema accept it.
-Supply required metadata through the documented options so scaffolding does not
-wait for interactive input. Use known project attribution or clearly identified
-local-draft metadata; do not invent a customer author or organization.
+do not flatten a multi-turn case to fit an older schema. Supply required metadata
+through documented options to avoid interactive prompts. Use known attribution
+or clearly identified local-draft metadata, not an invented customer author.
 
 Populate the scaffold from the mapping:
 
 | Source material | Created task part |
 |---|---|
 | Requests and constraints | Agent-visible instructions, one per step when supported |
-| Fixtures and setup | Environment files and documented external requirements |
+| Fixtures and setup | Task inputs and environment requirements; configure the runtime in Step 6 |
 | Assertions, reference data, rubric | Verifier-only criteria and scoring code |
 | Independent correct output or procedure | Reference solution when it can be established |
 | Original case IDs and decisions | README with source references and each part's status |
 
-Keep all created files and outputs under `.eval-author/`. Preserve original
-source, evals, CI, and `.gitignore`. Copy only selected fixtures and dependencies;
-reference credential variables by name rather than copying their values. Keep
-answers and grading-only data out of the agent's initial environment. Label
-generated environment and reference-solution placeholders as unfinished.
-If execution depends on an external app, the README must distinguish what the
-Harbor environment contains from what remains on the host or remote machine.
-Do not let a generated Dockerfile imply that the desktop application is packaged,
-licensed, reachable, or ready to automate.
+Copy only selected fixtures and task inputs. Keep answers and grading-only data
+out of the agent's initial environment. Retain generated environment and
+reference-solution placeholders as unfinished rather than claiming they work.
 
-Implement checks whose meaning and inputs are available. For tool sequences,
-these may include explicit counts, stated ordering, and supported argument checks.
-Preserve allowed alternatives and user decisions. A missing schema or ambiguous
-criterion blocks that check, not every check or the task directory.
+Implement checks whose meaning and inputs are available, such as explicit tool
+counts, stated ordering, and supported argument checks. A missing schema or
+ambiguous criterion blocks that check, not the entire task directory.
 
-Document the verifier's input contract using the available trace format or
-installed Harbor interfaces. A declared local response format can be implemented
-and tested before the app adapter is connected; do not claim the app already
-emits it. Exercise checks with recorded data or labeled test fixtures, including
-passing and failing examples. These test the verifier, not the customer's agent.
-Incomplete trace fields must not be fabricated to claim a recorded case passed.
-Retain parseable events when another payload is truncated, and mark checks that
-depend on the missing fields as unresolved. A malformed argument block need not
-prevent checking independently available tool names or other complete events.
+Document the verifier's input contract from the available trace format or installed
+Harbor interfaces. A declared response format can be implemented before its app
+adapter, without claiming that the app emits it. Exercise supported checks with
+recorded data or labeled fixtures, including passing and failing examples.
+Retain parseable events when another payload is truncated. Do not fabricate
+missing trace fields; mark only the checks that need them unresolved. For example,
+malformed arguments need not prevent checking complete tool names or events.
 
-Retain unsupported criteria in verifier-only files and report them as unresolved.
-Do not silently omit them from an aggregate or award them passing scores. When
-missing criteria or aggregation prevent an overall reward, expose the supported
-individual results and fail explicitly at that boundary. An unconditional
-unconfigured script is not a completed scorer; implement the supported subset.
-Do not invent a backend or substitute a different agent to claim integration.
+Retain unsupported criteria in verifier-only files. Do not omit them from an
+aggregate or award passing scores. When missing criteria or aggregation prevent
+an overall reward, expose supported individual results and fail explicitly at
+that boundary. Implement the supported subset rather than an unconditional
+unconfigured script.
 
-Ask the installed Harbor validator or task model to load the created task. Check
-that its requests, steps, and criteria match the selected source. Record structure
-validation separately from verifier tests and live readiness. Fix conversion
-errors before reusing that pattern for the other cases in scope. App availability
-is not a prerequisite for creating those additional task files.
+Have Harbor's validator or task model load each created task, and compare its
+requests, steps, and criteria with the source mapping and resolved decisions.
+Fix conversion errors before reusing the pattern for other cases in scope.
 
-## 4. Explain the created tasks and finish available work
+At the first task-creation milestone, read
+[Explaining a task draft](references/explaining-a-task-draft.md) for the explanation
+of cases, grading decisions, validation evidence, and remaining inputs. Record
+created, partly implemented, and deferred cases in the mapping; verify the linked
+files exist. This stage produces tasks and supported graders, not just notes.
 
-This is a progress milestone. If Step 5's prerequisites are available, continue
-through validation and authorized execution before the final delivery. If they
-are unavailable, finish the independent conversion work and deliver the task
-files with the specific remaining requirements.
+## 6. Prepare the execution environment
 
-Read [Explaining a task draft](references/explaining-a-task-draft.md) at the first
-creation milestone. Explain what was created in the reply itself: the requests,
-proposed or implemented checks, and setup requirements. Show the request and
-expected behavior together, and explain what a passing or failing answer means.
-Use file links alongside their purpose, not a directory dump or counts alone.
-Before saying grading is incomplete or asking for a scoring decision, use the
-reference's **Explain grading before asking the user to finish it** guidance.
-Use that reference's **Turn remaining gaps into an actionable handoff** guidance:
-explain what works now and, for each main gap, what it blocks, what you can finish,
-what the user needs to supply or decide, and what you will do next. A checklist
-entry such as “grading incomplete” or “access unverified” is not a next action.
+Implement the scaffold's environment configuration and recorded fixtures and
+reset requirements. For Docker-backed tasks, follow discovery's Docker access
+verification. For external dependencies, apply the runtime plan from the execution
+dependencies reference. Capture the implemented environment and any external
+requirements in each task's README.
 
-Explain only the milestones actually reached. “Harbor can read these files”
-means structure validation, not working grading or measured agent performance.
-Local verifier tests can be complete while app integration is unfinished. Ask
-only about a genuinely unresolved decision, then apply the answer and continue;
-there is no mandatory draft-review gate.
+## 7. Connect the agent
 
-Before ending a conversion turn, verify the reported task files exist and finish
-all independent work in the requested scope. Track created, partly implemented,
-and deferred cases with specific reasons. If only notes exist and Harbor and
-source requests are available, continue task creation. If the user asks whether
-tasks exist, answer from the filesystem and resume any unfinished authorized
-conversion; do not stop at acknowledging non-delivery.
+When the actual agent connection is known, create `.eval-author/adapted-evals.yaml`
+using the installed Harbor JobConfig schema. Select the adapted tasks and actual
+agent, reference required credential variables, and direct jobs to
+`.eval-author/jobs/`. Configure request delivery, required conversation state, and
+collection of responses and actions using supported interfaces. An unknown
+connection remains a task requirement; do not invent a backend or substitute
+another agent merely to supply a command. Record the request and result path
+that the following validation will exercise.
 
-Deliver task links and a plain-language account of what each tests, what checks
-ran, and what remains. Missing live access can justify handing over task drafts;
-it cannot justify handing over only specifications. Do not claim a runnable suite
-until the required grading, environment, and agent integration are verified.
-Update the shared checklist and retain the current scope, evidence, and next action
-in the adaptation findings or task README for the next visit. Keep **Prepare your
-Harbor evals** open when task files exist but required grading or configuration is
-unfinished, and explain those completed parts in the milestone summary.
-When reporting user-requested replay or mock work, explain its contribution to
-the task drafts and label its commands as replay/mock checks. Keep the remaining
-grading and real-agent setup visible, and recommend the next feasible action
-without asking again for inputs the user already said they do not have.
-When the user says they are finished with the adapted evals, use Step 6 to offer
-the next flow. This can happen before live execution; retain any unfinished
-grading or setup requirements rather than marking them complete.
+## 8. Validate the evals
 
-## 5. Verify and run when the prerequisites are available
-
-This step continues the same workflow when execution is possible. It does not
-gate task-file creation. Follow discovery's Docker access verification for
-Docker-backed environments. Read `harbor run --help` and keep all job outputs
-under `.eval-author/jobs/` with distinct names.
+Validate the selected config with `eval-author-discover` and confirm that its
+resolved task set matches the selection. Keep its per-config status separate
+from other suites. Read `harbor run --help` and use distinct job output names
+under `.eval-author/jobs/`. Exercise the environment and result-collection path.
 
 With a working environment, verifier, and reference solution, run local NOP and
 Oracle sanity checks. Doing nothing should fail the intended task; the reference
@@ -296,55 +201,43 @@ solution should receive the expected passing score without exceptions. For
 normalized binary rewards these are 0 and 1. Preserve a graded eval's documented
 scale rather than forcing binary scoring. Do not weaken assertions to pass checks.
 
-When an original scorer and suitable outputs are available, compare original and
-adapted per-case scores using the same outputs. Record mismatches. NOP and Oracle
-alone do not prove scoring equivalence. Unknown judge settings, nondeterminism,
-or unavailable original scoring code leave historical equivalence unproven.
-Paid judges and live-service calls require the relevant execution authorization.
+When an original scorer and suitable outputs exist, compare original and adapted
+per-case scores on the same outputs and record mismatches. NOP and Oracle alone
+do not prove scoring equivalence. Unknown judge settings, nondeterminism, or
+missing historical scoring code leave that equivalence unproven. Paid judges
+and live-service calls require the applicable execution authorization.
 
-When the actual agent connection is known, create `.eval-author/adapted-evals.yaml`
-using the installed Harbor JobConfig schema. Explicitly select the adapted tasks
-and actual agent, reference required credential variables, and direct jobs to
-`.eval-author/jobs/`. Validate with `eval-author-discover` and confirm that the
-resolved task set matches the selection. Report its per-config status separately
-from other suites. An unknown connection belongs in the task requirements; do
-not invent an agent configuration merely to supply a command.
+The stage's result separates structural validity, scorer behavior, runtime
+integration, and scoring equivalence, with evidence for each claim.
 
-Run the real agent only when that execution and spend are authorized, preserving
-existing authorization across turns. Inspect all selected results and exceptions.
-A low agent score can be a valid baseline, not a reason to change the criteria.
-Provide a validated rerun command only when available; label any proposed command
-as unvalidated. Update task statuses and remaining work. Audit and trace-driven
-improvement are optional later work, not conversion prerequisites.
+## 9. Evaluate the agent
 
-## 6. Offer a coverage audit when the user finishes adaptation
+Run the actual agent only with execution and spend authorization, preserving
+existing authorization across turns. Inspect every selected result and exception,
+recording fresh responses, actions, and per-case scores. A low agent score is a
+valid baseline, not a reason to change the criteria.
 
-Once task files exist and the user indicates they are done adapting them, offer
-the next step. For example, “I'm done with these evals” or “These are ready for
-the next step” signals this handoff. Creating the first draft, a successful
-replay, or a pause for missing inputs alone does not. Do not interrupt ongoing
-adaptation or ask after every case. If the user already requested the audit,
-carry that request forward without asking again.
+## 10. Review results and explain reruns
 
-> Now that we have some evals to start from, would you like me to audit your
-> coverage? I'll compare your Ethos—the description of what your agent should
-> do—with these evals to show what's addressed, where checks are missing, and
-> what else you may want to test.
+Explain performance on the converted cases, historical scoring discrepancies,
+unresolved criteria or runtime requirements, and the run's limitations. Provide
+a validated rerun command when available; label proposed commands as unvalidated.
+Keep the task links, findings, and run artifacts available for later comparison.
+When the user indicates adaptation is finished, offer the optional audit below.
 
-Wait for the answer before starting the audit. If the user declines or defers,
-keep their tasks and findings available without repeating the offer on every
-visit. Record their choice in the existing adaptation findings. An audit is
-optional and does not authorize new evals, agent runs, or paid judgments.
+## 11. Offer a coverage audit when the user finishes adaptation
 
-If accepted, read [`eval-author-audit`](../eval-author-audit/SKILL.md) from this
-same skill tree and follow its Ethos pre-flight and existing steps. The audit
-flow owns its prerequisites, measurement, and reports.
-Carry forward the created task paths/IDs, adaptation findings, known Ethos path,
-unresolved grading/setup requirements, and any run artifacts with their provenance.
-Do not restart discovery or ask the user to locate files already known.
+Task files must exist and the user must indicate they are done adapting them,
+such as “I'm done with these evals.” A first draft, successful replay, or pause
+for missing inputs alone does not trigger this offer. Audit is optional and does
+not authorize new evals, agent runs, or paid judgments.
 
-An Ethos is required for the audit, not for completing adaptation. If absent,
-use the audit flow's explanation and supported Ethos creation/provision choices;
-do not invent it from the tasks. Keep unfinished execution visible: creating
-tasks does not establish measured coverage. If suitable run evidence is missing,
-explain that limitation during the handoff and follow the audit flow's prerequisites.
+Offer to compare the established Ethos with the adapted evals to identify covered
+behavior, missing checks, and further cases worth testing. Record acceptance,
+deferral, or decline in the adaptation findings; do not repeat a settled offer.
+
+When accepted, read [`eval-author-audit`](../eval-author-audit/SKILL.md) and follow
+its pre-flight and workflow. Pass the established Ethos path, task paths and IDs,
+adaptation findings, unresolved grading/setup requirements, and run artifacts
+with provenance. Missing run evidence remains a limitation for the audit flow
+rather than evidence that creating tasks established measured coverage.
