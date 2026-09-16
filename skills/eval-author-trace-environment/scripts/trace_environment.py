@@ -644,7 +644,7 @@ def _bound_stringified_images(payload: dict[str, Any]) -> dict[str, int]:
         if isinstance(value, dict):
             image_like = (
                 image_context
-                or value.get("type") in {"image", "base64"}
+                or (isinstance(value.get("type"), str) and value["type"] in {"image", "base64"})
                 or (isinstance(value.get("media_type"), str) and value["media_type"].startswith("image/"))
             )
             for key, nested in value.items():
