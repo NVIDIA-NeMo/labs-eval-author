@@ -1668,6 +1668,41 @@ def test_prepare_omits_repeated_image_metadata_without_losing_prose(
     assert operation["metadata_omitted_characters"] == encoded_size
 
 
+@pytest.mark.parametrize("metadata_type", [{"kind": "record"}, ["image", "base64"], None, 42, True])
+@pytest.mark.parametrize("image_media_type", [False, True])
+def test_prepare_handles_non_string_metadata_type(
+    tmp_path: Path, metadata_type: object, image_media_type: bool
+) -> None:
+    code, initialized = _run("init", "--root", str(tmp_path / ".eval-author"), "--task-id", "structured-metadata")
+    assert code == 0, initialized
+    task_dir = Path(initialized["task_dir"])
+    payload = _atif()
+    metadata = {
+        "type": metadata_type,
+        "data": "synthetic payload",
+        "children": [{"type": "image", "source": {"type": "base64", "data": "ENCODED"}}],
+    }
+    if image_media_type:
+        metadata["media_type"] = "image/png"
+    payload["extra"] = {"nested": [metadata]}
+    source = tmp_path / "source.atif.json"
+    _write_json(source, payload)
+
+    code, result = _run("prepare", "--task-dir", str(task_dir), "--atif", str(source), "--source-kind", "atif")
+
+    assert code == 0, result
+    assert (task_dir / "private/source.atif.json").read_bytes() == source.read_bytes()
+    for relative in ("private/canonical.atif.json", "safe/trace.atif.json"):
+        actual = json.loads((task_dir / relative).read_text())["extra"]["nested"][0]
+        assert actual["type"] == metadata_type
+        assert actual["data"] == ("" if image_media_type else "synthetic payload")
+        if relative == "private/canonical.atif.json":
+            assert actual["children"][0]["source"]["data"] == ""
+        else:
+            assert actual["children"][0]["type"] == "text"
+            assert "ENCODED" not in json.dumps(actual)
+
+
 def test_shared_verifier_is_rejected(tmp_path: Path) -> None:
     task_dir, _ = _workspace(tmp_path)
     _candidate(task_dir)
