@@ -16,6 +16,13 @@ copied skill tree, not published as a package API.
 
 ## Prerequisites
 
+Harbor is required to create, validate, and run eval tasks; see the
+[setup guide](skills/eval-author-discover/references/harbor-setup.md) for missing
+or broken installations. First-eval creation and non-Harbor adaptation also require
+an applicable local Ethos before evaluation design. The bundled
+[Local Ethos procedure](skills/eval-author/references/local-ethos.md) supports
+reuse and creation without a NeMo service, account, or upload.
+
 Discovery imports nothing beyond the standard library and Harbor itself, so it
 runs on whatever Python the customer already has. Audit generation and
 validation need PyYAML to read YAML and jsonschema to enforce
@@ -31,18 +38,45 @@ source monorepo. No NeMo Platform checkout is required.
 | Skill | Role |
 | --- | --- |
 | [`eval-author`](skills/eval-author/SKILL.md) | Core. Owns the standard every sub-flow follows and routes to one. |
-| [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md) | Sub-flow. Requires Ethos, plans cases without Harbor, and builds a small working starter suite while explaining how to run and extend it. |
+| [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md) | Sub-flow. Plans and builds a small working starter suite while explaining how to run and extend it. |
 | [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Sub-flow. Records whether a repository's Harbor evals are ready to run. |
+| [`eval-author-adapt`](skills/eval-author-adapt/SKILL.md) | Sub-flow. Converts non-Harbor evals while preserving their cases and scoring rules. |
 | [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Sub-flow. Validates an existing finite `audit.md` coverage denominator. |
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Sub-flow. Not user-invocable. Explains one Intake trace after `eval-author` selects it. |
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Sub-flow. Creates and proves one Harbor task from an actionable audit gap. |
 | [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | Sub-flow. Converts one canonicalized trace into a private candidate, inventories ground truth and software constraints, and builds a reproducible Harbor task environment when supported. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Utility. Normalizes bounded MLflow exports to canonical ATIF. |
 
+Discovery also reports availability of the optional
+[Harbor assistant skills](https://github.com/harbor-framework/harbor/tree/main/skills).
+
 ## Where findings go
 
+Repository onboarding opens with the plan, then establishes Ethos, introduces and
+checks Harbor, and discovers the evaluation starting point. It then routes to
+first-eval creation or adaptation according to the selected material. The core owns the
+[shared checklist](skills/eval-author/SKILL.md#show-the-path-ahead), with
+[stage check-ins](skills/eval-author/references/milestone-checkins.md) for discussing
+progress before advancing.
+
+For a local skill tree, invoke the entrypoint and load supporting instructions as
+each stage needs them:
+
+```text
+Use Eval Author at <skill-tree>/eval-author/SKILL.md to help me get my evals working
+in this repository. Show me the plan first. Load sub-flows and references from
+that same local skill tree as needed for the current stage.
+```
+
+First-eval saves its plan in `.eval-author/first-eval.md`, drafts under
+`.eval-author/task-drafts/`, and a run config in `.eval-author/first-eval.yaml`.
+Adaptation saves its source mapping in `.eval-author/adaptation.md` and drafts
+under `.eval-author/adapted-tasks/`, preserving the source cases and scoring rules.
+Coverage auditing is an optional follow-up; see the
+[adaptation handoff](skills/eval-author-adapt/SKILL.md#11-offer-a-coverage-audit-when-the-user-finishes-adaptation).
+
 `eval-author-discover` leaves a report at `.eval-author/discovery.md`, carrying the
-JSON as front matter so a later model reads the verdict without Harbor. It is
+JSON in an evidence section so a later model reads the verdict without Harbor. It is
 visible and worth committing: a teammate who reads it skips the discovery pass.
 
 `eval-author-inspect-trace` leaves one report per trace under
@@ -124,28 +158,3 @@ The default tests use synthetic local evidence and mocked providers. Tests that
 need a running environment backend skip when one is unavailable. The optional
 Ethos parser compatibility test skips without the NeMo Agents plugin. Live
 model execution is opt-in; see [trace fixture checks](docs/trace-derived-fixtures.md#regression-checks).
-
-## Next Steps
-
-- If your agent has no evals, start with
-  [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md). It requires
-  Ethos, saves and checks it locally in the repo using the bundled
-  [Local Ethos procedure](skills/eval-author/references/local-ethos.md), and
-  reuses saved interview answers. No NeMo service or upload is involved.
-  Missing Harbor leaves you with an evaluation plan and
-  installation guidance; it is never installed automatically. Generated eval
-  artifacts stay under `.eval-author/`; the Ethos itself defaults to root `ETHOS.md`.
-  The first milestone is a few functioning tasks and a repeatable run command,
-  with basic verifier checks and clear limitations. Coverage analysis and
-  trace-driven improvement follow once the suite is working.
-- Start with [`eval-author`](skills/eval-author/SKILL.md) to select the right
-  sub-flow and apply the shared evaluation standard.
-- Use [`eval-author-discover`](skills/eval-author-discover/SKILL.md) to check
-  whether a Harbor suite can run.
-- Use [`eval-author-audit`](skills/eval-author-audit/SKILL.md) to validate an
-  existing finite `audit.md` coverage denominator.
-- After `eval-author` selects it, follow
-  [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) to
-  explain one Intake trace.
-- Use [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md)
-  to derive a private, evidence-backed environment from one trace.
