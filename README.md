@@ -72,8 +72,9 @@ First-eval saves its plan in `.eval-author/first-eval.md`, drafts under
 `.eval-author/task-drafts/`, and a run config in `.eval-author/first-eval.yaml`.
 Adaptation saves its source mapping in `.eval-author/adaptation.md` and drafts
 under `.eval-author/adapted-tasks/`, preserving the source cases and scoring rules.
-Coverage auditing is an optional follow-up; see the
-[adaptation handoff](skills/eval-author-adapt/SKILL.md#11-offer-a-coverage-audit-when-the-user-finishes-adaptation).
+After a completed agent evaluation, offer help creating more evals through an
+optional repository and coverage audit; see the shared
+[post-evaluation handoff](skills/eval-author/references/milestone-checkins.md#after-a-successful-evaluation).
 
 `eval-author-discover` leaves a report at `.eval-author/discovery.md`, carrying the
 JSON in an evidence section so a later model reads the verdict without Harbor. It is

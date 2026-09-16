@@ -226,21 +226,5 @@ Explain performance on the converted cases, historical scoring discrepancies,
 unresolved criteria or runtime requirements, and the run's limitations. Provide
 a validated rerun command when available; label proposed commands as unvalidated.
 Keep the task links, findings, and run artifacts available for later comparison.
-When the user indicates adaptation is finished, offer the optional audit below.
-
-## 11. Offer a coverage audit when the user finishes adaptation
-
-Task files must exist and the user must indicate they are done adapting them,
-such as “I'm done with these evals.” A first draft, successful replay, or pause
-for missing inputs alone does not trigger this offer. Audit is optional and does
-not authorize new evals, agent runs, or paid judgments.
-
-Offer to compare the established Ethos with the adapted evals to identify covered
-behavior, missing checks, and further cases worth testing. Record acceptance,
-deferral, or decline in the adaptation findings; do not repeat a settled offer.
-
-When accepted, read [`eval-author-audit`](../eval-author-audit/SKILL.md) and follow
-its pre-flight and workflow. Pass the established Ethos path, task paths and IDs,
-adaptation findings, unresolved grading/setup requirements, and run artifacts
-with provenance. Missing run evidence remains a limitation for the audit flow
-rather than evidence that creating tasks established measured coverage.
+Use the shared [post-evaluation handoff](../eval-author/references/milestone-checkins.md#after-a-successful-evaluation)
+for the next-step offer and audit routing.

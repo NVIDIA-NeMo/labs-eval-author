@@ -211,8 +211,7 @@ and answered check-ins into the selected path:
 - **Existing non-Harbor material:** read
   [`eval-author-adapt`](../eval-author-adapt/SKILL.md) and continue at **Define the
   evaluation scope**. When Harbor and non-Harbor evals coexist, follow the user's
-  chosen suite. Adaptation owns mapping, scoring preservation, task delivery, and
-  the optional audit handoff.
+  chosen suite. Adaptation owns mapping, scoring preservation, and task delivery.
 - **Confirmed absence of evals:** read
   [`eval-author-first-eval`](../eval-author-first-eval/SKILL.md) and continue at
   **Define the evaluation scope**. A missing config does not block this starter
@@ -223,12 +222,12 @@ and answered check-ins into the selected path:
 An inventory-only request ends with findings and an offered next step. Discovery
 alone does not authorize creating or running evals.
 
-## Continue from adaptation to coverage auditing
+## Continue after a successful evaluation
 
-Follow `eval-author-adapt`'s optional coverage-audit handoff. An accepted audit goes
-directly to `eval-author-audit`, which owns its prerequisites and reports. An
-audit-only request ends with those findings; further tasks require a requested
-continuation.
+Follow the shared [post-evaluation handoff](references/milestone-checkins.md#after-a-successful-evaluation)
+to offer help creating more evals through a repository and coverage audit.
+That procedure owns the trigger, question, and accepted handoff to
+`eval-author-audit` for both first-eval and adaptation.
 
 ## Boundaries
 
