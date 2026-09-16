@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Route review requests to ASE, including this file and workflows.
+# This file does not enforce approval or restrict repository access.
+* @NVIDIA-NeMo/ase_team
