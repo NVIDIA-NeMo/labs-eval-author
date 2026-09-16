@@ -1,4 +1,4 @@
-<!-- SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # NeMo Eval Author
@@ -89,6 +89,18 @@ a candidate requires Harbor and Docker for the `harbor run -a nop` and
 `harbor run -a oracle` checks; without them, the environment remains unproven.
 The flow does not require model or provider configuration.
 
+## License
+
+Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+Eval Author is licensed under the [Apache License, Version 2.0](LICENSE).
+See [NOTICE](NOTICE) for attributions and the external-materials disclaimer,
+and [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for dependency licenses
+and links to their full upstream notices.
+
+The bundled JSON examples and synthetic test fixtures are NVIDIA-authored and
+covered by the project license.
+
 ## Development
 
 ```bash
@@ -96,16 +108,18 @@ uv sync --locked
 uv run --locked pytest -q
 uv run --locked ruff check .
 uv run --locked ruff format --check .
+make check-copyright-headers
+make check-licenses
 ```
+
+After dependency changes, run `make update-licenses` and commit the generated
+disclosures. License generation and checking require OSV-Scanner 2.3.3 and network
+access. See [DEVELOPMENT.md](DEVELOPMENT.md) for the licensing workflow.
 
 The default tests use synthetic local evidence and mocked providers. Tests that
 need a running environment backend skip when one is unavailable. The optional
 Ethos parser compatibility test skips without the NeMo Agents plugin. Live
 model execution is opt-in; see [trace fixture checks](docs/trace-derived-fixtures.md#regression-checks).
-
-This repository starts with a fresh history from a pinned source snapshot.
-See [migration provenance](docs/migration.md) for the source revision and the
-small changes needed to run independently.
 
 ## Next Steps
 

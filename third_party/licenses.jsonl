@@ -1,0 +1,6 @@
+{"name": "attrs", "version": "26.1.0", "license": "MIT", "package_url": "https://pypi.org/project/attrs/26.1.0/", "license_documents": ["third_party/NOTICES.txt", "third_party/license_texts/MIT.txt"]}
+{"name": "jsonschema", "version": "4.26.0", "license": "MIT", "package_url": "https://pypi.org/project/jsonschema/4.26.0/", "license_documents": ["third_party/NOTICES.txt", "third_party/license_texts/MIT.txt"]}
+{"name": "jsonschema-specifications", "version": "2025.9.1", "license": "MIT", "package_url": "https://pypi.org/project/jsonschema-specifications/2025.9.1/", "license_documents": ["third_party/NOTICES.txt", "third_party/license_texts/MIT.txt"]}
+{"name": "referencing", "version": "0.37.0", "license": "MIT", "package_url": "https://pypi.org/project/referencing/0.37.0/", "license_documents": ["third_party/NOTICES.txt", "third_party/license_texts/MIT.txt"]}
+{"name": "rpds-py", "version": "2026.6.3", "license": "MIT", "package_url": "https://pypi.org/project/rpds-py/2026.6.3/", "license_documents": ["third_party/NOTICES.txt", "third_party/license_texts/MIT.txt"]}
+{"name": "typing-extensions", "version": "4.16.0", "license": "PSF-2.0", "package_url": "https://pypi.org/project/typing-extensions/4.16.0/", "license_documents": ["third_party/NOTICES.txt", "third_party/license_texts/PSF-2.0.txt"]}
