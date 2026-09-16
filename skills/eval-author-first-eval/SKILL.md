@@ -84,6 +84,10 @@ failure example, and the Ethos requirement each case tests. Ask only for intent
 or invocation details not already established. Do not make the user supply
 Harbor YAML or choose a framework.
 
+When agent or setup evidence points to software or state outside the agent
+process, use [Execution dependencies](../eval-author/references/execution-dependencies.md)
+to establish the selected cases' runtime and result-collection requirements.
+
 Save `.eval-author/first-eval.md` with the Ethos path and requirement references,
 cases, agent invocation, planned verifiers, prerequisites,
 and unresolved questions. This is an **evaluation plan**, not a coverage report
@@ -99,6 +103,8 @@ case with the user.
 
 Without Harbor, the deliverable at this point is the evaluation plan; native
 task creation remains blocked on setup.
+
+Present the plan using the shared [scope checkpoint](../eval-author/references/milestone-checkins.md#scope-checkpoint).
 
 ## 5. Prepare cases and grading
 
@@ -136,6 +142,8 @@ without requiring a separate tutorial or exhaustive methodology exercise.
 Populate the generated `environment/` with the dependencies, fixtures, and
 starting state each selected case needs. Check documented access requirements,
 credential variable names, and the reset behavior that makes reruns repeatable.
+For external dependencies, apply the runtime plan from
+[Execution dependencies](../eval-author/references/execution-dependencies.md).
 Keep solutions and verifier-only data outside the agent's initial environment.
 Verify the selected backend and required application access before declaring
 this milestone complete; identifying their requirements is only partial progress.

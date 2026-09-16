@@ -3,15 +3,22 @@
 
 # Execution dependencies
 
-Use this when source evidence points to software or state outside the agent
-process: desktop applications, licensed tools, hardware, or external services.
-A tool name alone does not establish where it executes. Stage timing follows
-[Milestone check-ins](../../eval-author/references/milestone-checkins.md).
+Use this in first-eval or adaptation when evidence points to software or state
+outside the agent process: desktop applications, licensed tools, hardware, or
+external services. A tool name alone does not establish where it executes.
+Stage timing follows [Milestone check-ins](milestone-checkins.md): learn the
+requirements while defining scope, implement the supported environment later,
+and verify it during validation. Scope does not require a live connection or
+finished environment configuration.
 
-## Record the execution setup
+## Learn the execution requirements at scope
 
-Inventory dependencies for both task execution and result checking. Save findings
-in `.eval-author/adaptation.md` and the task README with their source references:
+Follow relevant setup documentation, runner/configuration, and working examples
+to establish the dependencies for task execution and result checking. Record the
+applicable details below with their source references in the calling workflow's
+existing findings file, and carry them into the task README once it exists.
+Keep unknowns explicit; these details are not a separate audit or a mandatory
+inventory of every tool.
 
 | Detail | What to establish |
 |---|---|
@@ -26,9 +33,10 @@ An enterprise or site license does not itself establish redistribution rights,
 headless operation, or container compatibility. Record known constraints instead
 of packaging proprietary software on those assumptions.
 
-## Choose a supported execution path
+## Configure a supported execution path during environment preparation
 
-Check the installed Harbor version and selected backend before configuring the
+Use the requirements learned at scope. Check the installed Harbor version and
+selected backend before configuring the
 [task environment](https://www.harborframework.com/docs/task-format). Permitted
 network access does not prove reachability or repeatable external sessions.
 
@@ -64,15 +72,16 @@ requires it. For example, when the source establishes a separate application hos
 If only a gateway is documented, keep the application location unknown. Seek an
 existing setup guide or working example before requesting separate technical
 details. Distinguish missing documentation, an unverified connection, and a
-confirmed incompatibility. Use
-[Explaining a task draft](explaining-a-task-draft.md#turn-remaining-gaps-into-an-actionable-handoff)
-to turn these findings into concrete remaining actions.
+confirmed incompatibility. For each unresolved requirement, explain the affected
+operation and the smallest useful input or implementation needed. Save the
+remaining actions in the calling workflow's findings or task README.
 
 ## Verify external state and isolation
 
 During validation, check reachability and result collection in a disposable test
-session with an agreed reset procedure. Resetting the Harbor container does not
-reset an external application. Keep trials serial until separate app sessions
-and state isolation are proven; preserve conversation and application state
-across steps within a trial. Include the external requirements in rerun instructions
-so a task tied to a particular desktop is not described as independently portable.
+session with an agreed reset procedure, preserving existing user sessions.
+Resetting the Harbor container does not reset an external application. Keep
+trials serial until separate app sessions and state isolation are proven;
+preserve conversation and application state across steps within a trial. Include
+the external requirements in rerun instructions so a task tied to a particular
+desktop is not described as independently portable.

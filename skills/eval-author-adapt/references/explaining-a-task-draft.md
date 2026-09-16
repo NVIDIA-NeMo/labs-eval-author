@@ -33,8 +33,9 @@ Connect useful file links to their state and purpose:
 - The task README records source case IDs, decisions, and per-part status.
 
 For application, session, and reset requirements, use
-[Execution dependencies](execution-dependencies.md). Keep the complete technical
-inventory in the README rather than reciting a directory tree.
+[Execution dependencies](../../eval-author/references/execution-dependencies.md).
+Keep the applicable technical details in the README rather than reciting a
+directory tree.
 
 ## Explain grading before asking the user to finish it
 

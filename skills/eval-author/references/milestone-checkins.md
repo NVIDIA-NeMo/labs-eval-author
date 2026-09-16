@@ -131,3 +131,30 @@ Name **Define the evaluation scope** as the next stage and use the core's
 setup evidence, and answered transitions; do not restart them when first-eval
 or adaptation takes over. Any conflict between discovered criteria and Ethos is
 resolved during scope planning, not by silently changing either one.
+
+## Scope checkpoint
+
+At **Define the evaluation scope**, explain what the selected cases will measure
+before moving to **Prepare cases and grading**. Use the calling flow's existing
+plan or mapping to make the scope concrete:
+
+- **Behavior and purpose:** what the agent should accomplish and why these cases
+  matter, using established workflow priorities when available.
+- **Success and evidence:** the expected outcome, what the grader must inspect,
+  and whether the rule comes from existing criteria or is a proposed decision.
+- **Execution requirements:** the capabilities, software, starting state, and
+  access the cases need; distinguish known requirements from verified readiness.
+- **Limits and open decisions:** missing criteria or evidence, which checks or
+  runs they affect, and what is needed to resolve them.
+
+Explain this through a representative case, grouping others with the same needs
+and calling out material differences. Distinguish checking a tool sequence from
+checking its resulting outcome. Explain the role of operational metrics such as
+cost or latency when present; they establish success only where the agreed
+criteria use them. Preserve existing scoring and explain its limits rather than
+silently replacing it.
+
+Use the existing stage check-in to settle the next affected decision or confirm
+the scope. Reuse established answers; missing inputs for one check need not hold
+up independent case preparation. This checkpoint explains the selected scope,
+without requiring a coverage audit or a new intake document.

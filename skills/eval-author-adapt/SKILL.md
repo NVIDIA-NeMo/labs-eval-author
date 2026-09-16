@@ -105,13 +105,16 @@ affected behavior or scoring. Missing historical code does not itself call for
 new intent; genuinely new grading rules need an explicit meaning and decision.
 
 When the source depends on a desktop app, licensed software, hardware, or external
-service, use [Execution dependencies](references/execution-dependencies.md) to
-establish where tools execute and map their runtime and result requirements.
+service, use
+[Execution dependencies](../eval-author/references/execution-dependencies.md) to
+learn where tools execute and establish their runtime and result requirements.
 
 Save `.eval-author/adaptation.md` with source paths and case IDs, selected scope,
 source-to-task mapping, retained criteria, resolved changes, missing inputs, and
 per-case status. Keep provider discovery JSON unchanged. The stage's result is a
 traceable conversion scope, including any limits on reproducing old scores.
+Use the shared [Scope checkpoint](../eval-author/references/milestone-checkins.md#scope-checkpoint)
+before preparing cases and grading.
 
 ## 5. Prepare cases and grading
 
