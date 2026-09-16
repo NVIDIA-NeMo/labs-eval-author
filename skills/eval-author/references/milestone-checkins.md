@@ -54,7 +54,10 @@ The owning sub-flow defines the evidence needed to complete each stage.
 Save the stage, evidence, pending question or answered transition, and next action
 in the existing findings or task README. Before those exist, retain early-stage
 state in the conversation or existing intent notes; do not run discovery just to
-obtain a report. On return, reuse applicable answers and completed work, rechecking
+obtain a report. Keep Harbor probe evidence, local interpreter paths, and milestone
+or approval records in that workflow state, not in `ETHOS.md`. This does not exclude
+substantive evaluation requirements from Ethos's Evaluation Setup section.
+On return, reuse applicable answers and completed work, rechecking
 readiness when inputs changed. Do not infer an answer from an installed tool or
 saved file, or restart a completed opening or Ethos interview. Narrow inventory,
 readiness, audit, trace, and internal validation requests keep their scoped flow.
@@ -79,25 +82,37 @@ nor answering an intent question completes the document procedure.
 ### 2. Get Harbor ready
 
 After the Ethos check-in, introduce Harbor in the conversation before probing its
-installation. Explain its purpose and required role even if installation evidence
-is already available. For example:
-
-> Now that we've established what your agent should do, we'll prepare the eval
-> framework. [Harbor](https://www.harborframework.com/docs) gives the agent cases,
-> runs them in their required environment, applies grading checks, and records
-> results for repeatable comparisons. Eval Author requires Harbor to create,
-> validate, and run its eval tasks. I'll check its setup next.
+installation. The stage's checkpoint reply must also explain what Harbor
+does, state explicitly that Eval Author requires it, and link to
+[Harbor's documentation](https://www.harborframework.com/docs). Include this
+grounding when setup passes, when an existing installation is reused, or when an
+earlier progress message already introduced Harbor. A version number, “setup
+passed,” and the optional assistant-skills link do not supply this explanation.
 
 Then use discovery's [runtime prerequisite checks](../../eval-author-discover/SKILL.md#runtime-prerequisite-checks),
 including its optional-skill advisory, without running the full evaluation scan.
 Use its [setup guide](../../eval-author-discover/references/harbor-setup.md) for a
 missing or broken installation. Preserve the actual command, interpreter, and
-version for later use; setup does not prove task-specific readiness.
+version for later use; setup does not prove task-specific readiness. For a verified
+installation, the checkpoint reply can begin:
 
-Explain the setup result and check in before **Understand the evaluation starting
-point**. If the user has not supplied evals, asking whether they have existing
-material can serve as this transition. If a source is already supplied, name the
-planned inspection without asking them to select it again. Missing Harbor can be
+> [Harbor](https://www.harborframework.com/docs) is the evaluation framework that
+> gives your agent test cases, runs them in their required environment, applies
+> grading checks, and records results so you can repeat the tests after changes.
+> **Eval Author requires Harbor to create, validate, and run its eval tasks.**
+>
+> Setup passed: Harbor is installed and its command and Python environment work.
+> The task environment and access to your agent still need their later checks.
+
+Use actual setup evidence and adapt that result when checks failed or remain
+incomplete. Keep interpreter versions and paths in the findings unless they help
+the user act. Follow with the optional-skills advisory when relevant and the
+shared checklist; the official skills collection is separate from Harbor's docs.
+
+Check in before **Understand the evaluation starting point**. If the user has not
+supplied evals, asking whether they have existing material can serve as this
+transition. If a source is already supplied, name the planned inspection without
+asking them to select it again. Missing Harbor can be
 deferred using the rule above; it does not prevent finding the user's eval material.
 
 ### 3. Understand the evaluation starting point
