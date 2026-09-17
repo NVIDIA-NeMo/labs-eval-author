@@ -4,6 +4,8 @@
 name: SkillEvaluator Tier 2 and 3
 
 on:
+  push:
+    branches: [ci/skillevaluator-pr11-smoke]
   workflow_dispatch:
     inputs:
       run_live:
@@ -37,8 +39,8 @@ jobs:
           persist-credentials: false
       - name: Report selected skills and dataset coverage without model calls
         env:
-          EVALUATION_TIER: ${{ inputs.tier }}
-          EVALUATION_SKILL: ${{ inputs.skill }}
+          EVALUATION_TIER: ${{ inputs.tier || 'both' }}
+          EVALUATION_SKILL: ${{ inputs.skill || 'mlflow-to-atif' }}
         run: |
           python tools/collect_live_skill_evaluations.py --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --output "$RUNNER_TEMP/skill-plan"
           cat "$RUNNER_TEMP/skill-plan/live-skillevaluator-summary.md" >> "$GITHUB_STEP_SUMMARY"
@@ -53,7 +55,8 @@ jobs:
   live:
     needs: plan
     if: >-
-      inputs.run_live && github.ref == 'refs/heads/main' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/ci/skillevaluator-pr11-smoke') ||
+       (inputs.run_live && github.ref == 'refs/heads/main')) &&
       vars.SKILL_EVALUATION_LIVE_ENABLED == 'true'
     environment: skill-evaluator
     runs-on: ubuntu-24.04
@@ -86,8 +89,8 @@ jobs:
           uv tool install --python 3.12 'skillevaluator[tier2,tier3] @ git+https://github.com/NVIDIA/SkillEvaluator.git@7e189c6bdada8910dfa1684f25feedca87f2db85'
       - name: Run advisory evaluations
         env:
-          EVALUATION_TIER: ${{ inputs.tier }}
-          EVALUATION_SKILL: ${{ inputs.skill }}
+          EVALUATION_TIER: ${{ inputs.tier || 'both' }}
+          EVALUATION_SKILL: ${{ inputs.skill || 'mlflow-to-atif' }}
           INFERENCE_HUB_API_KEY: ${{ secrets.INFERENCE_HUB_API_KEY }}
           SKILL_EVAL_LLM_MODEL: ${{ vars.SKILL_EVAL_LLM_MODEL }}
           SKILL_EVAL_EMBEDDING_MODEL: ${{ vars.SKILL_EVAL_EMBEDDING_MODEL }}

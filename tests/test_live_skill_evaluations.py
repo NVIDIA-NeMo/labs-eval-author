@@ -72,12 +72,15 @@ def tier3():
             "opencode": {
                 "execution_status": "succeeded",
                 "conditions": {"with_skill": arm.copy(), "without_skill": arm.copy()},
-                "dimensions_with_skill": dict.fromkeys(
-                    ("security", "correctness", "discoverability", "effectiveness", "efficiency"), 0.8
-                ),
-                "dimensions_without_skill": dict.fromkeys(
-                    ("security", "correctness", "discoverability", "effectiveness", "efficiency"), 0.9
-                ),
+                # Native dimension_scores() returns score/source objects, not scalars.
+                "dimensions_with_skill": {
+                    dimension: {"score": 0.8, "sources": {"PRIVATE-SENTINEL": 1}}
+                    for dimension in ("security", "correctness", "discoverability", "effectiveness", "efficiency")
+                },
+                "dimensions_without_skill": {
+                    dimension: {"score": 0.9, "sources": {"PRIVATE-SENTINEL": 1}}
+                    for dimension in ("security", "correctness", "discoverability", "effectiveness", "efficiency")
+                },
                 "pass_at_k": {
                     "with_skill": {"passed_cases": 0, "total_cases": 1, "k": 1},
                     "without_skill": {"passed_cases": 1, "total_cases": 1, "k": 1},
@@ -138,7 +141,7 @@ def test_failed_execution_exports_only_fixed_diagnostic_categories(live, message
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), -1, 2, True, "secret"])
 def test_invalid_live_scores_cannot_be_published(live, value):
     report = tier3()
-    report["agents"]["opencode"]["dimensions_with_skill"]["security"] = value
+    report["agents"]["opencode"]["dimensions_with_skill"]["security"]["score"] = value
     with pytest.raises(ValueError):
         live.summarize_tier3(report, 0, 1)
 
@@ -321,7 +324,8 @@ def test_input_mutation_invalidates_evidence_and_stops_further_calls(live, repo,
 
 def test_manual_workflow_keeps_credentials_off_pull_requests():
     workflow = yaml.safe_load((ROOT / ".github/workflows/skill-evaluation-live.yml").read_text())
-    assert set(workflow[True]) == {"workflow_dispatch"}
+    assert set(workflow[True]) == {"workflow_dispatch", "push"}
+    assert workflow[True]["push"]["branches"] == ["ci/skillevaluator-pr11-smoke"]
     assert workflow[True]["workflow_dispatch"]["inputs"]["run_live"]["default"] is False
     job = workflow["jobs"]["live"]
     assert "refs/heads/main" in job["if"] and "SKILL_EVALUATION_LIVE_ENABLED" in job["if"]
