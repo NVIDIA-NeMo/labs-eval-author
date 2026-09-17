@@ -69,6 +69,8 @@ def summarize_tier3(report, code, cases):
         reason = "execution_incomplete"
         if "Docker compose command failed" in detail and " build." in detail:
             reason = "docker_build_failed"
+        elif "Docker compose command failed" in detail:
+            reason = "docker_runtime_failed"
         elif "OpenCode emitted error event" in detail:
             reason = "agent_api_failed"
         elif "NonZeroAgentExitCodeError" in detail and any(word in detail for word in ("apt-get", "nvm install")):
@@ -187,6 +189,11 @@ def collect(
     digests = {s.name: tree_digest(s) for s in skills}
     models, env, missing_key = configuration(provider)
     output.mkdir(parents=True, exist_ok=False, mode=0o700)
+    # Docker needs a home for its client state; never inherit host credentials
+    # or let an unset HOME redirect that state into the skill repository.
+    runtime_home = output / "runtime-home"
+    runtime_home.mkdir(mode=0o700)
+    env["HOME"] = str(runtime_home)
     report = {
         "schema": "nemo.eval_author.live_skill_evaluations.v1",
         "repository": "NVIDIA-NeMo/labs-eval-author",

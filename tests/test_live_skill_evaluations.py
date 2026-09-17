@@ -117,6 +117,7 @@ def test_negative_lift_is_a_completed_experiment_not_an_execution_failure(live):
             "docker_build_failed",
         ),
         ("opencode runtime preflight failed: invalid response", "agent_runtime_preflight_failed"),
+        ("opencode runtime preflight failed: Docker compose command failed", "docker_runtime_failed"),
         ("opencode runtime preflight failed: NonZeroAgentExitCodeError", "agent_command_failed"),
         ("NonZeroAgentExitCodeError: OpenCode emitted error event(s)", "agent_api_failed"),
         ("NonZeroAgentExitCodeError: apt-get update", "agent_install_failed"),
@@ -205,10 +206,19 @@ def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path
     monkeypatch.setenv("INFERENCE_HUB_API_KEY", "test-credential")
     monkeypatch.setenv("OPENAI_API_KEY", "UNRELATED-SECRET")
     monkeypatch.setenv("SKILL_EVAL_LLM_BASE_URL", "https://unintended.example")
+    ambient_home = tmp_path / "ambient-home"
+    ambient_home.mkdir()
+    (ambient_home / ".docker").mkdir()
+    (ambient_home / ".docker/config.json").write_text('{"auths":{"private":"UNRELATED-SECRET"}}')
+    monkeypatch.setenv("HOME", str(ambient_home))
     calls = []
 
     def execute(argv, cwd, env, log, timeout):
         calls.append(argv)
+        child_home = Path(env["HOME"])
+        assert child_home.is_dir() and not child_home.is_relative_to(repo)
+        assert child_home != ambient_home and child_home.stat().st_mode & 0o777 == 0o700
+        assert not (child_home / ".docker/config.json").exists()
         assert "OPENAI_API_KEY" not in env and "NVIDIA_API_KEY" not in env
         assert env["SKILL_EVAL_LLM_BASE_URL"] == live.HUB_BASE_URL
         assert env["SKILL_EVAL_EMBEDDING_BASE_URL"] == live.HUB_BASE_URL
@@ -287,6 +297,8 @@ def test_manual_workflow_keeps_credentials_off_pull_requests():
     assert workflow["permissions"] == {"contents": "read"}
     assert "provider" not in workflow[True]["workflow_dispatch"]["inputs"]
     evaluation = next(step for step in job["steps"] if step.get("name") == "Run advisory evaluations")
+    # Installation/checksum failures must prevent secret-bearing execution.
+    assert "if" not in evaluation  # GitHub's default success() gate.
     assert evaluation["env"]["INFERENCE_HUB_API_KEY"] == "${{ secrets.INFERENCE_HUB_API_KEY }}"
     assert not {"OPENAI_API_KEY", "NVIDIA_API_KEY", "HUB_METADATA_API_KEY"}.intersection(evaluation["env"])
 

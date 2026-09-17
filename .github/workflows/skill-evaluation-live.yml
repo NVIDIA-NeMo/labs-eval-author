@@ -71,6 +71,15 @@ jobs:
           version: '0.12.3'
           python-version: '3.12'
           enable-cache: false
+      - name: Install verified Docker Compose runtime
+        env:
+          COMPOSE_VERSION: '5.5.1'
+          COMPOSE_SHA256: db1889184726840f75c4f9c001048430d4f25b3be3cb084d3ddd762bc0aed576
+        run: |
+          curl --fail --location --silent --show-error "https://github.com/docker/compose/releases/download/v${COMPOSE_VERSION}/docker-compose-linux-x86_64" --output "$RUNNER_TEMP/docker-compose"
+          echo "$COMPOSE_SHA256  $RUNNER_TEMP/docker-compose" | sha256sum --check -
+          sudo install -D -m 0755 "$RUNNER_TEMP/docker-compose" /usr/local/lib/docker/cli-plugins/docker-compose
+          test "$(docker compose version --short)" = "$COMPOSE_VERSION"
       - name: Install isolated Tier 2 and 3 runtime
         env:
           UV_TOOL_DIR: ${{ runner.temp }}/live-evaluator-tools
@@ -79,7 +88,6 @@ jobs:
           echo "$UV_TOOL_BIN_DIR" >> "$GITHUB_PATH"
           uv tool install --python 3.12 'skillevaluator[tier2,tier3] @ git+https://github.com/NVIDIA/SkillEvaluator.git@7e189c6bdada8910dfa1684f25feedca87f2db85'
       - name: Run advisory evaluations
-        if: ${{ false }}
         env:
           EVALUATION_TIER: ${{ inputs.tier || 'both' }}
           EVALUATION_SKILL: ${{ inputs.skill || 'mlflow-to-atif' }}
@@ -89,71 +97,9 @@ jobs:
           SKILL_EVAL_AGENT_MODEL: ${{ vars.SKILL_EVAL_AGENT_MODEL }}
         run: |
           python tools/collect_live_skill_evaluations.py --run --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --output "$RUNNER_TEMP/skill-live"
-      - name: Diagnose Docker without credentials or evaluation inputs
-        if: always()
-        run: |
-          "$RUNNER_TEMP/live-evaluator-tools/skillevaluator/bin/python" - <<'PY'
-          import json, os, subprocess, tempfile
-          from pathlib import Path
-          from skillevaluator.tier3.harbor.adapter import generate_harbor_tasks
-          from skillevaluator.tier3.harbor.runner import build_harbor_run_command
-          root = Path(tempfile.mkdtemp(prefix='docker-home-probe-'))
-          route = {'OPENAI_API_KEY': 'diagnostic-placeholder', 'OPENAI_BASE_URL': 'https://inference-api.nvidia.com/v1'}
-          verifier = {**route, 'SKILL_EVAL_LLM_PROVIDER': 'openai-compatible', 'SKILL_EVAL_LLM_MODEL': 'azure/openai/gpt-5.4-mini'}
-          tasks = generate_harbor_tasks(Path('skills/mlflow-to-atif').resolve(), root / 'tasks', with_skill=True, runtime_env={k: '${' + k + '}' for k in route}, verifier_env={k: '${' + k + '}' for k in verifier})
-          for use_home in (False, True):
-              env = {'PATH': os.environ['PATH'], 'LANG': 'C.UTF-8', **verifier}
-              if use_home:
-                  home = root / 'home'
-                  home.mkdir()
-                  env['HOME'] = str(home)
-              job_name = 'probe-home-' + str(use_home).lower()
-              command = build_harbor_run_command(dataset_path=root / 'tasks', agent='nop', job_name=job_name, env_mode='docker', model='', jobs_dir=root / 'jobs', n_attempts=1, n_concurrent=1, disable_verification=True, include_task_names=[tasks[0].name])
-              result = subprocess.run(command, env=env, cwd=root, capture_output=True, text=True, timeout=600)
-              print('Keyless Docker probe:', {'isolated_home': use_home, 'exit_code': result.returncode})
-              if result.returncode:
-                  print((result.stdout + result.stderr)[-12000:])
-              for path in (root / 'jobs' / job_name).glob('*/result.json'):
-                  exception = json.loads(path.read_text()).get('exception_info')
-                  if exception:
-                      print('Credential-free Docker exception:', exception['exception_message'][-12000:])
-          PY
       - name: Show sanitized summary
         if: always()
         run: |
-          python - <<'PY'
-          import json, os
-          from pathlib import Path
-          signals = [
-              'Docker compose command failed', 'PermissionError', 'FileNotFoundError',
-              'RuntimeError', 'TypeError', 'AttributeError', 'ValidationError', 'KeyError',
-              'errored', 'invalid', 'no agent result', 'no step results', 'mixed top-level',
-              'no evaluation statistics', 'missing trial statistics', 'could not start',
-              'timed out', 'unreadable', 'did not produce', 'no agent artifacts',
-              'n_completed_trials', 'n_trials', 'n_errors', 'reward_stats',
-              'input device is not a TTY', 'stdin is not a terminal',
-              'No space left', 'Permission denied', 'Cannot connect', 'up -d',
-              'ConnectionError', 'APIError', 'ModelNotFoundError', 'Agent install failed',
-              'NonZeroAgentExitCodeError', 'OpenCode emitted error', 'NameError',
-              '401', '403', '404', '429', '500', '502', '503',
-              ' build', ' exec', ' down', ' up', 'chmod', 'chown',
-              'read-only file system', 'no such file or directory',
-              'permission denied', 'invalid mount', 'not a directory',
-              'unable to get image', 'failed to solve', 'failed to create',
-              'out of memory', 'address already in use', 'Error response from daemon',
-              'Cannot locate specified Dockerfile', 'is not set', 'ValueError',
-              '$HOME', 'not defined', 'home directory', 'credential', 'buildx',
-          ]
-          for path in (Path(os.environ['RUNNER_TEMP']) / 'skill-live').glob('check-*/results/**/result.json'):
-              data = json.loads(path.read_text())
-              errors = data.get('execution_errors', [])
-              exception = data.get('exception_info')
-              if isinstance(exception, dict):
-                  errors = [*errors, exception.get('exception_message', '')]
-              detail = ' '.join(item for item in errors if isinstance(item, str))
-              if detail:
-                  print('Preflight diagnostic flags:', json.dumps({s: s.lower() in detail.lower() for s in signals}))
-          PY
           if test -f "$RUNNER_TEMP/skill-live/live-skillevaluator-summary.md"; then
             cat "$RUNNER_TEMP/skill-live/live-skillevaluator-summary.md" >> "$GITHUB_STEP_SUMMARY"
           fi
