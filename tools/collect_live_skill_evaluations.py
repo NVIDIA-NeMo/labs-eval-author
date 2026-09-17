@@ -19,7 +19,7 @@ from collect_skill_evaluations import EVALUATOR_REVISION, execute, now, sha, tre
 
 HUB_BASE_URL = "https://inference-api.nvidia.com/v1"
 HUB_KEY = "INFERENCE_HUB_API_KEY"
-DEFAULT_CHAT_MODEL = "azure/openai/gpt-5.4-mini"
+DEFAULT_CHAT_MODEL = "azure/openai/gpt-5.6-luna"
 DEFAULT_EMBEDDING_MODEL = "azure/openai/text-embedding-3-small"
 DIMENSIONS = ("security", "correctness", "discoverability", "effectiveness", "efficiency")
 FINDINGS = {"duplicate", "EXACT_DUPLICATE", "HIGH_SIMILARITY", "SIMILAR", "LOOSELY_RELATED", "DISTINCT"}

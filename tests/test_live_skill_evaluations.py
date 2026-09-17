@@ -198,9 +198,9 @@ def test_hub_defaults_apply_to_unset_or_blank_model_variables(live, monkeypatch,
             monkeypatch.setenv(key, value)
     models, env, _ = live.configuration("inference_hub")
     assert models == {
-        "chat": "azure/openai/gpt-5.4-mini",
+        "chat": "azure/openai/gpt-5.6-luna",
         "embedding": "azure/openai/text-embedding-3-small",
-        "agent": "openai/azure/openai/gpt-5.4-mini",
+        "agent": "openai/azure/openai/gpt-5.6-luna",
     }
     assert env["SKILL_EVAL_LLM_BASE_URL"] == env["SKILL_EVAL_EMBEDDING_BASE_URL"] == live.HUB_BASE_URL
 
@@ -322,13 +322,27 @@ def test_input_mutation_invalidates_evidence_and_stops_further_calls(live, repo,
         live.collect(repo, tmp_path / "dirty", run=True)
 
 
-def test_manual_workflow_keeps_credentials_off_pull_requests():
+def test_live_workflow_runs_automatically_and_is_advisory():
     workflow = yaml.safe_load((ROOT / ".github/workflows/skill-evaluation-live.yml").read_text())
-    assert set(workflow[True]) == {"workflow_dispatch"}
+    ci = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
+    assert set(workflow[True]) == {"push", "pull_request", "workflow_dispatch"}
+    for event in ("push", "pull_request"):
+        assert workflow[True][event] == ci[True][event]
     assert workflow[True]["workflow_dispatch"]["inputs"]["run_live"]["default"] is False
+    assert workflow[True]["workflow_dispatch"]["inputs"]["tier"]["default"] == "both"
+    assert workflow["concurrency"] == ci["concurrency"]
+    for job in workflow["jobs"].values():
+        assert job["continue-on-error"] is True
+        assert "github.event.pull_request.head.repo.full_name == github.repository" in job["if"]
+    plan = workflow["jobs"]["plan"]
+    assert "environment" not in plan and "secrets." not in json.dumps(plan)
     job = workflow["jobs"]["live"]
-    assert "refs/heads/main" in job["if"] and "SKILL_EVALUATION_LIVE_ENABLED" in job["if"]
+    assert all(
+        guard in job["if"]
+        for guard in ("refs/heads/main", "SKILL_EVALUATION_LIVE_ENABLED", "inputs.run_live", "workflow_dispatch")
+    )
     assert job["environment"] == "skill-evaluator" and job["continue-on-error"]
+    assert not ci["jobs"]["test"].get("needs")
     upload = job["steps"][-1]
     assert upload["if"] == "always()" and upload["with"]["path"].endswith("live-skillevaluator-summary.*")
     assert workflow["permissions"] == {"contents": "read"}
@@ -337,6 +351,8 @@ def test_manual_workflow_keeps_credentials_off_pull_requests():
     # Installation/checksum failures must prevent secret-bearing execution.
     assert "if" not in evaluation  # GitHub's default success() gate.
     assert evaluation["env"]["INFERENCE_HUB_API_KEY"] == "${{ secrets.INFERENCE_HUB_API_KEY }}"
+    assert evaluation["env"]["EVALUATION_TIER"] == "${{ inputs.tier || 'both' }}"
+    assert evaluation["env"]["EVALUATION_SKILL"] == "${{ inputs.skill || 'all' }}"
     assert not {"OPENAI_API_KEY", "NVIDIA_API_KEY", "HUB_METADATA_API_KEY"}.intersection(evaluation["env"])
 
 

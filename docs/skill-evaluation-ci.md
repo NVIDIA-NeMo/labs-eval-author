@@ -71,16 +71,28 @@ Use a new output directory each time. Skills must be clean in Git. The collector
 does not rewrite skill sources. Raw output stays local; only the summary has the
 allowlisted fields intended for fixtures ingestion.
 
-## Tier 2 and Tier 3: explicit live workflow
+## Tier 2 and Tier 3: automatic advisory workflow
 
-`skill-evaluation-live.yml` adds a separate manual workflow. PR checks remain
-credential-free Tier 1 checks. All live model roles use NVIDIA Inference Hub.
-The new workflow always produces a keyless plan (without environment secrets
-or environment-scoped model variables);
-live work requires `run_live: true`, the repository variable
-`SKILL_EVALUATION_LIVE_ENABLED=true`, and dispatch from `main`. The live job uses
-the `skill-evaluator` GitHub environment and is advisory. No schedule or
-automatic PR model calls are added.
+`skill-evaluation-live.yml` runs automatically on same-repository pull requests
+targeting `main` or the stacked base `ci/skillevaluator-reports`, and on pushes
+to `main`, matching Tier 1's triggers. Automatic runs select both tiers and all
+skills. Fork PRs are excluded. All live model roles use NVIDIA Inference Hub
+with the explicitly authorized CI-only credential in the `skill-evaluator`
+GitHub environment. The repository variable
+`SKILL_EVALUATION_LIVE_ENABLED=true` enables live work; setting it to false is
+the opt-out for automatic and manual execution.
+
+Both the keyless plan and live job use `continue-on-error: true`. Findings,
+missing credentials, evaluator failures, timeouts, and upload errors are
+advisory. Unit tests and Tier 1 run independently, without waiting for this
+workflow. Do not configure the live jobs as required merge checks if pending
+live runs should not delay merging. New commits cancel superseded runs on the
+same PR or branch.
+
+Manual dispatch remains available from `main` for a selected tier and skill.
+It defaults to a keyless plan; `run_live: true` opts into execution for that
+dispatch. The plan has no environment secrets or environment-scoped model
+overrides, so it describes coverage rather than validating live configuration.
 
 Tier 2 runs `context-optimization-check` for selected skills (embeddings plus
 chat), then `similarity-check` over the complete collection (embeddings only).
@@ -106,7 +118,7 @@ after interruption.
 The live tool environment installs the same SkillEvaluator source pin with
 `[tier2,tier3]`. Its Harbor dependency is **0.13.2**, isolated from this repository's
 development Harbor **0.20.0**; do not combine the environments or upgrade one to
-match the other. Docker Compose v2 and outbound access to the provider, package
+match the other. The Docker Compose plugin and outbound access to the provider, package
 registries, and container registries are needed. The upstream Docker runtime
 installs the agent CLI; a separate host OpenCode installation is not required.
 The evaluator source is pinned, but transitive packages, downloaded agent tools,
@@ -114,29 +126,32 @@ and base images are not fully locked by this workflow.
 
 ### Setup needed
 
-Repository settings inspected on 2026-09-17 include the `skill-evaluator`
-environment and its `INFERENCE_HUB_API_KEY` secret. No repository enable
-variable, environment model overrides, or environment protection rules were
-configured. This PR does not create credentials or change those settings.
+Repository settings verified on 2026-09-17 include the `skill-evaluator`
+environment, its `INFERENCE_HUB_API_KEY` secret, repository enable variable
+`SKILL_EVALUATION_LIVE_ENABLED=true`, and environment model override
+`SKILL_EVAL_LLM_MODEL=azure/openai/gpt-5.6-luna`. No environment protection rules
+or deployment-branch restrictions were configured.
 
-1. Merge the parent PR #9 and this stacked PR before dispatching live CI; the
-   live workflow deliberately refuses non-`main` refs. The ordinary CI and title
-   workflows also accept `ci/skillevaluator-reports` as a PR base so this stack
-   receives normal checks.
+1. Same-repository PRs run automatically, including this PR before merge.
+   Once merged, pushes to `main` also run automatically and manual dispatch is
+   available from `main`. The ordinary CI and title workflows also accept
+   `ci/skillevaluator-reports` as a PR base so this stack receives normal checks.
 2. Use the existing `skill-evaluator` environment. Optional deployment branch
    restrictions and required reviewers can be configured in GitHub settings;
    declaring an environment in YAML does not configure them. The workflow
-   itself requires a manual dispatch from `main` and the repository enable flag.
+   requires the repository enable flag. Required reviewers or branch restrictions
+   can pause or prevent automatic live runs; configure them accordingly.
 3. The environment secret **`INFERENCE_HUB_API_KEY`** must contain your NVIDIA
    Inference Hub **inference** key from
    [Hub key management](https://inference.nvidia.com/key-management). The Hub
    metadata key and NVIDIA Build key are not used by this workflow. Do not put
    credentials in `evals/config.yml`.
-4. The default chat/grader/agent model is **`azure/openai/gpt-5.4-mini`** and
+4. The default chat/grader/agent model is **`azure/openai/gpt-5.6-luna`** and
    the default embedding model is **`azure/openai/text-embedding-3-small`**.
    Both IDs were listed by the Hub's authenticated `/v1/models` catalog on
    2026-09-17. This is a small-model starting point for CI smoke evaluation;
-   catalog presence does not prove inference access or evaluation quality.
+   a small chat request to Luna through the Hub also succeeded. Catalog presence
+   and a connectivity check do not establish evaluation quality.
    These OpenAI models are accessed through NVIDIA Inference Hub, not a direct
    public OpenAI connection.
 
@@ -144,7 +159,7 @@ configured. This PR does not create credentials or change those settings.
 
    | Variable | Purpose | Default |
    | --- | --- | --- |
-   | `SKILL_EVAL_LLM_MODEL` | Chat analysis and Tier 3 grading | `azure/openai/gpt-5.4-mini` |
+   | `SKILL_EVAL_LLM_MODEL` | Chat analysis and Tier 3 grading | `azure/openai/gpt-5.6-luna` |
    | `SKILL_EVAL_EMBEDDING_MODEL` | Embeddings for context and similarity checks | `azure/openai/text-embedding-3-small` |
    | `SKILL_EVAL_AGENT_MODEL` | Tool-capable OpenCode agent model | The selected chat model |
 
@@ -168,12 +183,33 @@ configured. This PR does not create credentials or change those settings.
    an actual embedding model; a chat-only model is insufficient. If Hub
    embeddings or runner access are unavailable, the affected tier stays
    unrun/incomplete. This workflow has no public OpenAI or NVIDIA Build fallback.
-   No live Hub inference has been validated by the keyless checks.
+   Keyless checks do not validate live inference. The earlier four-case
+   `mlflow-to-atif` A/B smoke completed on `gpt-5.4-mini`; its scores should not
+   be attributed to Luna. Each report records its configured model IDs.
 5. Set the **repository** variable `SKILL_EVALUATION_LIVE_ENABLED=true` after
    setup; the job condition cannot read an environment-only variable.
-6. Dispatch **SkillEvaluator Tier 2 and 3**, initially with `run_live=false`.
-   Then dispatch one selected skill with live execution enabled. Expand to
-   `all` only after inspecting a successful small run and its cost.
+6. Inspect **SkillEvaluator Tier 2 and 3** on the next same-repository PR update
+   or `main` push. To investigate one skill, manually dispatch from `main` with
+   a selected tier/skill and `run_live=true`; omit live opt-in for a keyless plan.
+
+### Embedding alternatives
+
+The default remains `azure/openai/text-embedding-3-small`. Three other Hub models
+returned valid vectors for two synthetic inputs using the evaluator's existing
+OpenAI-compatible embedding request shape on 2026-09-17:
+
+| Hub model ID | Observed dimensions | Why compare it |
+| --- | --- | --- |
+| `azure/openai/text-embedding-3-large` | 3072 | A direct larger-model comparison against the current small embedding model |
+| `nvidia/nvidia/nemotron-3-embed-1b` | 2048 | NVIDIA's multilingual retrieval embedding model |
+| `nvidia/qwen/qwen3-embedding-8b` | 4096 | Multilingual and code-retrieval coverage |
+
+Model references: [OpenAI embedding model](https://developers.openai.com/api/docs/models/text-embedding-3-large),
+[NVIDIA embedding model](https://docs.api.nvidia.com/nim/reference/nvidia-nemotron-3-embed-1b),
+and [Qwen model card](https://huggingface.co/Qwen/Qwen3-Embedding-8B).
+These are compatibility checks, not quality benchmarks. Compare Tier 2 findings
+on the same skill collection before changing the default; similarity thresholds
+may behave differently across embedding models. Embeddings do not affect Tier 3.
 
 ### Initial Tier 3 scope
 

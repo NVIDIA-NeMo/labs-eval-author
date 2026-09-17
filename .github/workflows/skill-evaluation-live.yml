@@ -4,17 +4,21 @@
 name: SkillEvaluator Tier 2 and 3
 
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, ci/skillevaluator-reports]
   workflow_dispatch:
     inputs:
       run_live:
-        description: Authorize provider calls and Docker agent execution
+        description: Run live evaluation for this manual dispatch (automatic CI runs live)
         type: boolean
         default: false
       tier:
         description: Tiers to evaluate
         type: choice
         options: ['2', '3', both]
-        default: '2'
+        default: both
       skill:
         description: Skill directory name, or all (similarity always uses the collection)
         type: string
@@ -24,11 +28,15 @@ permissions:
   contents: read
 
 concurrency:
-  group: skill-evaluation-live
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   plan:
+    continue-on-error: true
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -37,8 +45,8 @@ jobs:
           persist-credentials: false
       - name: Report selected skills and dataset coverage without model calls
         env:
-          EVALUATION_TIER: ${{ inputs.tier }}
-          EVALUATION_SKILL: ${{ inputs.skill }}
+          EVALUATION_TIER: ${{ inputs.tier || 'both' }}
+          EVALUATION_SKILL: ${{ inputs.skill || 'all' }}
         run: |
           python tools/collect_live_skill_evaluations.py --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --output "$RUNNER_TEMP/skill-plan"
           cat "$RUNNER_TEMP/skill-plan/live-skillevaluator-summary.md" >> "$GITHUB_STEP_SUMMARY"
@@ -53,8 +61,12 @@ jobs:
   live:
     needs: plan
     if: >-
-      inputs.run_live && github.ref == 'refs/heads/main' &&
-      vars.SKILL_EVALUATION_LIVE_ENABLED == 'true'
+      vars.SKILL_EVALUATION_LIVE_ENABLED == 'true' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository) ||
+       (github.event_name == 'workflow_dispatch' && inputs.run_live &&
+        github.ref == 'refs/heads/main'))
     environment: skill-evaluator
     runs-on: ubuntu-24.04
     timeout-minutes: 120
@@ -86,8 +98,8 @@ jobs:
           uv tool install --python 3.12 'skillevaluator[tier2,tier3] @ git+https://github.com/NVIDIA/SkillEvaluator.git@7e189c6bdada8910dfa1684f25feedca87f2db85'
       - name: Run advisory evaluations
         env:
-          EVALUATION_TIER: ${{ inputs.tier }}
-          EVALUATION_SKILL: ${{ inputs.skill }}
+          EVALUATION_TIER: ${{ inputs.tier || 'both' }}
+          EVALUATION_SKILL: ${{ inputs.skill || 'all' }}
           INFERENCE_HUB_API_KEY: ${{ secrets.INFERENCE_HUB_API_KEY }}
           SKILL_EVAL_LLM_MODEL: ${{ vars.SKILL_EVAL_LLM_MODEL }}
           SKILL_EVAL_EMBEDDING_MODEL: ${{ vars.SKILL_EVAL_EMBEDDING_MODEL }}
