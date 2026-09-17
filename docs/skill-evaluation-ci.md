@@ -91,6 +91,10 @@ distinct from completed scans with duplicate-content findings.
 
 Tier 3 runs `tier3 evaluate` with OpenCode in Docker, one attempt per case,
 one concurrent case, both arms, and the native agent runtime preflight enabled.
+CI installs Docker Compose 5.5.1 with a pinned SHA-256. The Ubuntu runner's
+Compose 2.38.2 rejects Harbor's `up --wait` for these generated containers with
+`has no healthcheck configured`, even after successfully building and starting
+the container. Keep the native preflight enabled when updating this runtime.
 It validates the authored dataset first and never uses autopilot or generates
 cases during CI. Each skill is limited to four cases and thirty minutes.
 Execution is capped by these counts and timeouts, **not by a dollar budget**;
@@ -240,7 +244,10 @@ python3 tools/collect_live_skill_evaluations.py --run --tier 3 \
   --skill mlflow-to-atif --provider inference_hub --output /tmp/new-live-run
 ```
 
-Outputs must be outside the checkout in a fresh directory. Live skill inputs
+Outputs must be outside the checkout in a fresh directory. The evaluator receives
+a private `HOME` under that output directory so Docker can store client state
+without using the checkout or inheriting the operator's Docker credentials and
+agent configuration. Live skill inputs
 must be clean in Git. A keyless plan may inspect uncommitted inputs and records
 `inputs_clean=false`. Missing credentials yield `not_run`, missing datasets yield
 `skipped`, and malformed reports/timeouts yield `incomplete`; none is a pass.

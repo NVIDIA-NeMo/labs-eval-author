@@ -68,6 +68,15 @@ jobs:
           version: '0.12.3'
           python-version: '3.12'
           enable-cache: false
+      - name: Install verified Docker Compose runtime
+        env:
+          COMPOSE_VERSION: '5.5.1'
+          COMPOSE_SHA256: db1889184726840f75c4f9c001048430d4f25b3be3cb084d3ddd762bc0aed576
+        run: |
+          curl --fail --location --silent --show-error "https://github.com/docker/compose/releases/download/v${COMPOSE_VERSION}/docker-compose-linux-x86_64" --output "$RUNNER_TEMP/docker-compose"
+          echo "$COMPOSE_SHA256  $RUNNER_TEMP/docker-compose" | sha256sum --check -
+          sudo install -D -m 0755 "$RUNNER_TEMP/docker-compose" /usr/local/lib/docker/cli-plugins/docker-compose
+          test "$(docker compose version --short)" = "$COMPOSE_VERSION"
       - name: Install isolated Tier 2 and 3 runtime
         env:
           UV_TOOL_DIR: ${{ runner.temp }}/live-evaluator-tools
@@ -76,7 +85,6 @@ jobs:
           echo "$UV_TOOL_BIN_DIR" >> "$GITHUB_PATH"
           uv tool install --python 3.12 'skillevaluator[tier2,tier3] @ git+https://github.com/NVIDIA/SkillEvaluator.git@7e189c6bdada8910dfa1684f25feedca87f2db85'
       - name: Run advisory evaluations
-        if: ${{ !cancelled() }}
         env:
           EVALUATION_TIER: ${{ inputs.tier }}
           EVALUATION_SKILL: ${{ inputs.skill }}
