@@ -109,6 +109,24 @@ def test_negative_lift_is_a_completed_experiment_not_an_execution_failure(live):
     assert "PRIVATE-SENTINEL" not in json.dumps(result)
 
 
+@pytest.mark.parametrize(
+    "message,reason",
+    [
+        (
+            "opencode runtime preflight failed: Docker compose command failed: docker compose build.",
+            "docker_build_failed",
+        ),
+        ("opencode runtime preflight failed: invalid response", "agent_runtime_preflight_failed"),
+        ("unknown failure", "execution_incomplete"),
+    ],
+)
+def test_failed_execution_exports_only_fixed_diagnostic_categories(live, message, reason):
+    result = live.summarize_tier3(
+        {"execution_status": "failed", "execution_errors": [message + " PRIVATE-SENTINEL"]}, 1, 4
+    )
+    assert result == {"status": "incomplete", "reason": reason}
+
+
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), -1, 2, True, "secret"])
 def test_invalid_live_scores_cannot_be_published(live, value):
     report = tier3()
@@ -197,7 +215,7 @@ def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path
         if "evaluate" in argv:
             assert argv[argv.index("--n-attempts") + 1] == "1"
             assert argv[argv.index("--agent-model") + 1] == "opencode=openai/fixture/chat"
-            path = Path(argv[argv.index("--results-dir") + 1]) / "run/result.json"
+            path = Path(argv[argv.index("--results-dir") + 1]) / "eval-author/run/result.json"
             data = tier3()
         else:
             path = Path(argv[-1]) / "result.json"
