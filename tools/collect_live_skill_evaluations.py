@@ -356,14 +356,19 @@ def collect(
                     "--skill-workspace-mode",
                     "isolated",
                     "--agent-runtime-preflight",
-                    "--harbor-keep-jobs",
                     "--results-dir",
                     str(target / "results"),
                     "--progress",
                     "off",
                 ]
                 code, error = execute(argv, repo, env, target / "console.log", 1800)
-                paths = list((target / "results" / skill.name).glob("*/result.json"))
+                # Native runs also publish a latest -> run symlink. Read only
+                # physical run directories so this alias cannot duplicate a report.
+                paths = [
+                    path
+                    for path in (target / "results" / skill.name).glob("*/result.json")
+                    if not path.parent.is_symlink()
+                ]
             row["exit_code"] = code
             if error:
                 row.update(reason="timeout")
