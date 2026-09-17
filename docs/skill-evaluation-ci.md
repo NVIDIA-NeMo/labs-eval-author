@@ -74,9 +74,9 @@ allowlisted fields intended for fixtures ingestion.
 ## Tier 2 and Tier 3: automatic advisory workflow
 
 `skill-evaluation-live.yml` runs automatically on same-repository pull requests
-targeting `main` or the stacked base `ci/skillevaluator-reports`, and on pushes
-to `main`, matching Tier 1's triggers. Automatic runs select both tiers and all
-skills. Fork PRs are excluded. All live model roles use NVIDIA Inference Hub
+targeting `main`, and on pushes to `main`, matching Tier 1's triggers.
+Automatic runs select both tiers and all skills. Fork PRs are excluded.
+All live model roles use NVIDIA Inference Hub
 with the explicitly authorized CI-only credential in the `skill-evaluator`
 GitHub environment. The repository variable
 `SKILL_EVALUATION_LIVE_ENABLED=true` enables live work; setting it to false is
@@ -134,8 +134,7 @@ or deployment-branch restrictions were configured.
 
 1. Same-repository PRs run automatically, including this PR before merge.
    Once merged, pushes to `main` also run automatically and manual dispatch is
-   available from `main`. The ordinary CI and title workflows also accept
-   `ci/skillevaluator-reports` as a PR base so this stack receives normal checks.
+   available from `main`. The ordinary CI and title workflows also target `main`.
 2. Use the existing `skill-evaluator` environment. Optional deployment branch
    restrictions and required reviewers can be configured in GitHub settings;
    declaring an environment in YAML does not configure them. The workflow

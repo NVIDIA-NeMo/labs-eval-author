@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, ci/skillevaluator-reports]
+    branches: [main]
 
 permissions:
   contents: read
