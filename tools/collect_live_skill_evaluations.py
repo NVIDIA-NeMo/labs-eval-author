@@ -99,7 +99,7 @@ def summarize_tier3(report, code, cases):
             or count(execution["scored_attempts"]) != cases
         ):
             raise ValueError("incomplete arm")
-        scores = {key: number(agent["dimensions_" + arm][key]) for key in DIMENSIONS}
+        scores = {key: number(agent["dimensions_" + arm][key]["score"]) for key in DIMENSIONS}
         passes = agent["pass_at_k"][arm]
         passed, total = count(passes["passed_cases"]), count(passes["total_cases"])
         if total != cases or passed > total or count(passes["k"]) != 1:
