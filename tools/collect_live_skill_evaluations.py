@@ -69,6 +69,18 @@ def summarize_tier3(report, code, cases):
         reason = "execution_incomplete"
         if "Docker compose command failed" in detail and " build." in detail:
             reason = "docker_build_failed"
+        elif "OpenCode emitted error event" in detail:
+            reason = "agent_api_failed"
+        elif "NonZeroAgentExitCodeError" in detail and any(word in detail for word in ("apt-get", "nvm install")):
+            reason = "agent_install_failed"
+        elif "NonZeroAgentExitCodeError" in detail:
+            reason = "agent_command_failed"
+        elif "AgentSetupTimeoutError" in detail:
+            reason = "agent_install_timeout"
+        elif "AgentTimeoutError" in detail:
+            reason = "agent_execution_timeout"
+        elif "no agent artifacts" in detail:
+            reason = "agent_artifacts_missing"
         elif "runtime preflight failed" in detail:
             reason = "agent_runtime_preflight_failed"
         return {"status": "incomplete", "reason": reason}

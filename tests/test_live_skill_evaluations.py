@@ -117,6 +117,13 @@ def test_negative_lift_is_a_completed_experiment_not_an_execution_failure(live):
             "docker_build_failed",
         ),
         ("opencode runtime preflight failed: invalid response", "agent_runtime_preflight_failed"),
+        ("opencode runtime preflight failed: NonZeroAgentExitCodeError", "agent_command_failed"),
+        ("NonZeroAgentExitCodeError: OpenCode emitted error event(s)", "agent_api_failed"),
+        ("NonZeroAgentExitCodeError: apt-get update", "agent_install_failed"),
+        ("NonZeroAgentExitCodeError: nvm install 22", "agent_install_failed"),
+        ("opencode runtime preflight failed: AgentSetupTimeoutError", "agent_install_timeout"),
+        ("opencode runtime preflight failed: AgentTimeoutError", "agent_execution_timeout"),
+        ("opencode runtime preflight failed: no agent artifacts", "agent_artifacts_missing"),
         ("unknown failure", "execution_incomplete"),
     ],
 )
