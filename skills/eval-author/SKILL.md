@@ -108,8 +108,9 @@ The authority depends on the sub-flow:
   and a plan alone is not proof of runnability.
 - For audit-spec validation, the bundled schema and validator judge the finite
   `audit.md` coverage denominator.
-- For task creation, Harbor's Oracle judges task solvability and verifier
-  correctness; measured ATIF proves whether repeated runs close the selected gap.
+- For task creation, Oracle/NOP and discriminating controls check task correctness;
+  real-agent rewards measure performance, and measured ATIF reports coverage.
+  A useful regression can expose a failing agent without closing coverage.
 - For trace inspection, Intake establishes what happened. Local source code can
   explain behavior, but it can't replace recorded trace evidence.
 - For trace-derived environments, canonical ATIF establishes the request and
@@ -153,10 +154,13 @@ coverage denominator, measures traces against it, and aggregates deterministic
 coverage reports. `eval-author-task-create` owns the proposal step: prioritize
 dataset improvements from those findings across tools, capabilities, and failure
 cases while preserving their measured or unmeasured status. Proposal-only
-requests stop there. Its subsequent task-creation path consumes only actionable
-tool gaps and uses Harbor's native task scaffolder rather than guessing a task
-layout. For a requested full workflow, proceed from audit to proposals even when
-there are no eligible tool gaps; an audit-only request ends with the findings.
+requests stop there. Authorized continuation can create a scenario or strengthen
+an existing eval in a separate draft, including regressions on aggregate-covered
+items. Tool gaps use the existing pipeline; other targets use direct Harbor
+authoring as described in the task-creation skill. Missing evidence or intended
+behavior defers only the affected recommendation. A requested full workflow
+continues from audit to proposals even with no tool gaps; an audit-only request
+ends with findings.
 
 ## Establish Ethos before authoring
 

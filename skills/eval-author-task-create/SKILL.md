@@ -2,11 +2,10 @@
 name: eval-author-task-create
 description: >-
   Propose dataset improvements from Eval Author audit findings, then optionally
-  create one Harbor task from one actionable uncovered tool. Prove the task with
-  Harbor's Oracle, run it repeatedly
-  with the repository's real agent when authorized, and accept it only when
-  measured ATIF closes the selected gap every time. Use when the user asks to
-  suggest dataset changes, fill an eval gap, turn audit uncovered_items into a
+  create or strengthen a Harbor eval for a tool gap, capability, failure case,
+  or observed regression. Check task correctness, run the real agent when
+  authorized, and report performance and coverage separately. Use when the user
+  asks to suggest dataset changes, fill an eval gap, turn audit uncovered_items into a
   Harbor task, or add missing tool coverage. Writes proposals, drafts, and
   measurements only under `.eval-author/`.
 triggers:
@@ -41,26 +40,20 @@ Read `eval-author` for the shared evidence standard and boundaries. Read
 `eval-author-audit` for measurement and aggregation. Start with the proposal step
 to turn audit evidence into prioritized dataset improvements across tools,
 capabilities, and failure cases. For proposal-only requests, stop after Step 1.
-For task-creation requests, continue with an eligible tool gap through the
-existing execution path:
-
-```text
-actionable uncovered tool
-  → Harbor-native draft
-  → Oracle reward 1
-  → repeated real-agent ATIF
-  → target tool covered in every report
-```
-
-Create and prove one tool gap at a time. Keep every generated artifact under
-`.eval-author/`; do not edit existing tasks or customer source.
+For authorized continuation, choose a recommendation from Step 1 and implement
+one new scenario or improvement to an existing eval at a time. Tool gaps use the
+script below; non-tool recommendations use Harbor directly as described in
+Steps 2–4. Keep drafts under `.eval-author/` and preserve original tasks and
+customer source. Reuse authorization already given; model spend and source
+changes still require their applicable authorization.
 
 An existing suite without a coverage report belongs in `eval-author-discover`
 and `eval-author-audit`. A missing report alone is not a first-eval request.
 
 ## Script
 
-`scripts/task_pipeline.py` has three deterministic commands:
+`scripts/task_pipeline.py` has three deterministic commands for tool gaps only.
+Their eligibility rules do not limit the broader skill workflow:
 
 | Command | Verdict |
 |---|---|
@@ -90,8 +83,10 @@ Distinguish the basis for each recommendation:
 
 `not_covered_by_any_input_report` alone does not distinguish an absent scenario,
 an agent failure, or missing judgments. `not_measured_by_any_method` is a
-measurement limitation, not proof of a dataset deficiency. Failure-case items
-remain unmeasured in v1; manual trace observations do not change that status.
+measurement limitation, not proof of a dataset deficiency. Preserve measured
+`failure_cases` results from the audit; manual observations do not substitute
+for measurement. Inspect the rationale and trace before treating a missing
+judgment as incorrect behavior.
 
 Write recommendations to `.eval-author/proposals/dataset-recommendations.md` as
 skill-authored analysis; keep the generated coverage JSON unchanged. Rank by
@@ -108,9 +103,10 @@ For each recommendation, include:
 - **Basis and evidence:** the category above, stable audit item names, and task,
   run, trace-step, judgment, or verifier references supporting the recommendation.
   Mark proposed fixture details as proposals, not observed facts.
-- **Next action:** say whether the suggestion is eligible for automatic tool-gap
-  task creation, needs manual task design, or needs more measurement. A written
-  recommendation is not a generated, validated, or accepted Harbor task.
+- **Next action:** name the implementation route (tool-gap script or direct
+  Harbor authoring), or the missing evidence, design, or intended behavior that
+  must be resolved first. A written recommendation is not a generated, validated,
+  or accepted Harbor task.
 
 Lead the proposal response with the highest-value recommendations and enough
 scenario and expected-behavior detail to act on them. Follow with supporting
@@ -121,41 +117,62 @@ as tool gaps to pass the selector. If evidence supports no dataset change, say w
 and identify any useful measurement or agent-fix action instead of inventing
 additions. Do not scaffold or run tasks for a proposal-only request.
 
-## Step 2: select one actionable gap
+## Step 2: choose the implementation route
+
+For authorized continuation, choose the highest-value recommendation with a
+concrete scenario and an Ethos-backed outcome that can be verified. An unresolved
+recommendation does not prevent independent supported work. The Markdown
+recommendations from Step 1 are the handoff; no additional manifest is required.
+
+For an uncovered tool, use the existing selector:
 
 ```bash
 uv run <skill_dir>/scripts/task_pipeline.py select \
   --report .eval-author/audit-coverage-report.json
 ```
 
-Choose one item from `actionable_tools`. Stop task creation when the list is
-empty, and surface the dataset recommendations from Step 1. An empty selector means no eligible tool
-gaps, not that there are no useful dataset improvements. Capability and
-failure-case items are not task-generation inputs in v1, even when capability
-coverage was measured.
+Choose from `actionable_tools` and use its `task_slug` and `paths` verbatim.
+An empty list means only that there are no eligible tool gaps.
 
-Each actionable tool includes a deterministic `task_slug` of the form
-`cover-<tool-name>` and a `paths` object for the proposal, draft, and
-measurement directories. Use those paths verbatim for the rest of this flow.
-Do not invent alternate slugs or filenames.
+For a capability, failure case, or observed regression, proceed directly to task
+design. Choose an unused descriptive slug and record the target audit item,
+evidence, and intended change in the draft README. Use
+`.eval-author/proposals/<task-slug>-instruction.md`,
+`.eval-author/task-drafts/<task-slug>`, and
+`.eval-author/task-measurements/<task-slug>/` for its artifacts. Do not relabel the
+finding as a tool gap or pass it through the tool-only selector.
 
 ## Step 3: design the smallest objective task
 
-Read the selected item's `description`, `focus`, `needed_tools`, and
-`evidence_required`. Read one nearby task for domain conventions only. Do not
-copy its directory: a sibling can carry an obsolete Harbor schema, placeholder
+Read the recommendation and the selected audit item's requirements. Read one
+nearby task for domain conventions only. Do not copy its directory: a sibling can carry an obsolete Harbor schema, placeholder
 verifier, or unrelated solution.
 
-Write the instruction only to `paths.proposal` from Step 2. State the observable
+Write the instruction to the proposal path from Step 2. State the observable
 goal, paths, and constraints without naming the target tool or leaking verifier
-logic. The task should naturally require the selected tool and no unrelated
-capability.
+logic. The task should exercise the selected outcome; require a tool only when
+that outcome naturally needs it.
 
 Decide the verifier before scaffolding. Prefer deterministic shell or pytest.
 The verifier must grade the task outcome, not the tool call; ATIF measurement
-proves tool coverage separately.
+proves coverage separately.
+
+When a scenario already exposes the problem, strengthen it in a separate draft
+instead of adding a duplicate. Port the relevant fixtures and grading logic into
+a fresh Harbor skeleton, preserve existing metrics, and document changes from
+the original. For example, retain offsite feasibility grading and add checks that
+the explanation agrees with accepted reservation times and prices.
+
+For failure cases, design a check for the specific trigger before grading the
+response. An unknown-route error is not a rejected reservation; recovery needs
+an actual rejection followed by repair, with state evidence where required.
+Proposed triggers are not observed coverage. Defer source/adapter integration
+outside the authorized draft scope. If Ethos leaves successful infeasibility
+handling undefined, retain that open question rather than inventing a score.
 
 ## Step 4: scaffold with Harbor
+
+For a selected tool gap:
 
 ```bash
 uv run <skill_dir>/scripts/task_pipeline.py scaffold \
@@ -170,6 +187,19 @@ uv run <skill_dir>/scripts/task_pipeline.py scaffold \
 
 Use the Step 2 `task_slug` for `<task-slug>` in every path above. `scaffold`
 rejects mismatched draft, task-name, or proposal filenames.
+
+For non-tool recommendations, check that the chosen draft path does not already
+exist, then call Harbor's scaffolder directly:
+
+```bash
+harbor task init <org>/<task-slug> \
+  --tasks-dir .eval-author/task-drafts \
+  --description "<one-line description>" --author "<author>"
+```
+
+Install the Step 3 instruction as the new draft's `instruction.md`. Neither route
+may overwrite an existing task. A revision stays separate until adoption into the
+suite is explicitly in scope.
 
 Then complete Harbor's generated files:
 
@@ -190,8 +220,9 @@ Run Harbor's Oracle before spending model credentials:
 harbor run -p .eval-author/task-drafts/<task-slug> -a oracle
 ```
 
-Continue only when Harbor reports no exception and reward 1.0. Fix the task,
-solution, or verifier when Oracle fails; do not weaken the verifier merely to
+Check Oracle reward 1.0 without exceptions and NOP failure. For a changed grader,
+check that the observed wrong outcome fails and valid alternatives pass. Fix the
+task, solution, or verifier when Oracle fails; do not weaken the verifier merely to
 make it pass.
 
 ## Step 6: run the real agent twice
@@ -200,11 +231,9 @@ Running a model spends credentials. Do it only when the user asked for the run
 or approved it. Use the repository's proven agent configuration, point it at the
 draft, and set `n_attempts: 2`. Keep the resulting job under `.eval-author/`.
 
-Require both trials to:
-
-1. finish without an exception,
-2. receive the intended verifier reward, and
-3. contain `agent/trajectory.json` accepted as ATIF by the audit `measure.py`.
+Record both trials' rewards and exceptions. A correct eval can expose an agent
+failure; keep that regression without weakening grading or retrying until the
+agent passes. Coverage measurement requires valid ATIF for each trial.
 
 `SUPPORTS_ATIF = true` is not evidence that the emitted JSON matches Harbor's
 current schema. A `measure.py` parse failure is an agent-adapter defect, not a
@@ -231,9 +260,16 @@ uv run --with-requirements <audit_skill_dir>/requirements.txt \
   --out .eval-author/task-measurements/<task-slug>/repeat-1-report.json
 ```
 
-Repeat for trial 2.
+The example defaults to tool measurement. For a capability, add
+`--measure capabilities --capability-judgments <trace-bound-sidecar>`; for a
+failure case, use
+`--measure failure_cases --failure-case-judgments <trace-bound-sidecar>`.
+Follow the audit skill's evidence and digest checks. Tool presence alone cannot
+prove the outcome or trigger. Repeat for trial 2 with its own judgments.
 
-## Step 8: accept only deterministic closure
+## Step 8: report correctness, performance, and coverage
+
+For the tool-gap route, use the existing closure check:
 
 ```bash
 uv run <skill_dir>/scripts/task_pipeline.py verify \
@@ -243,6 +279,15 @@ uv run <skill_dir>/scripts/task_pipeline.py verify \
   --target <tool-name>
 ```
 
-Accept the draft only when `accepted` is `true`. Report Oracle reward, both
-real-agent rewards, both trial paths, and the verify JSON. If either repeat
-misses the tool, revise the task and rerun both attempts.
+The tool-only `accepted` result establishes repeated tool coverage, not task
+quality. For non-tool recommendations, inspect each trial's report from Step 7
+for the selected capability or failure case; do not use the tool-only `verify`
+command. Claim repeated coverage only if both trials satisfy the item's actual
+requirements, including any trigger. A prior aggregate-covered status does not
+erase an observed failing run.
+
+Report task correctness (Oracle/NOP and relevant grader controls), agent
+performance (both rewards and exceptions, or not run), and coverage (each trial's
+measurement, or unmeasured) separately. Keep useful regressions even when the
+agent fails and coverage remains open. Missing trigger evidence and undefined
+intended behavior remain explicit next actions.

@@ -23,7 +23,11 @@ check-in. Review of a saved Ethos can settle the Ethos stage; a source-selection
 answer can settle the evaluation starting point and allow scope planning. Reuse
 answered transitions without another readiness prompt. A broad request to get
 evals working does not waive stage conversations. Preserve existing installation
-and execution authorization under the core's boundaries.
+and execution authorization under the core's boundaries. If the user explicitly
+asks to continue through named stages without intermediate confirmations, proceed
+within that scope and report milestones without another readiness question.
+Missing intended behavior and separately unauthorized model spend or source
+changes still require resolution; continue independent authorized work.
 
 Keep tool work and instruction loading focused on the current stage. Read-only
 inspection needed to answer its question is allowed, but do not begin later-stage
