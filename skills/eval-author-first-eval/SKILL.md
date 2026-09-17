@@ -32,12 +32,13 @@ allowed-tools: [Bash, Read, Write, Grep, Glob]
 Read `eval-author` for the shared standard and boundaries. Follow
 [Milestone check-ins](../eval-author/references/milestone-checkins.md) throughout
 these ten stages; that procedure owns transitions, progress, and user check-ins.
-For a direct invocation, use the core's opening before repository work. When
-routed here after evaluation discovery, carry forward the established Ethos,
-Harbor status, discovery findings, and answered check-ins into stage 4 once the
-first three stage transitions are settled. These sections describe that shared
-onboarding; do not restart completed work or repeat the intent interview when
-entering this authoring flow.
+For a direct invocation, use the core's first-eval entry route and authoring
+opening before repository work. The user's statement that there are no evals is
+enough to select this flow. When routed here from discovery inventory, carry its
+findings and prior answers forward, then start at the earliest unfinished
+milestone; inventory alone does not establish Ethos or Harbor readiness. Enter
+stage 4 only when the first three milestones and applicable check-ins are settled.
+Do not repeat completed work or restart an existing intent interview.
 
 No evals is a normal starting state. Do not require a previous run or manufacture
 a coverage report to enter `eval-author-task-create`. The initial deliverable is
@@ -64,8 +65,10 @@ or broken installations, follow
 
 ## 3. Understand the evaluation starting point
 
-Use discovery's confirmed absence of existing evals and its agent and documentation
-findings. Explain the outcome concretely: a starter eval set of customer scenarios
+Reuse the user's stated absence of evals or discovery's confirmed starting point,
+along with available agent and documentation findings. Do not run discovery or
+ask whether evals exist again solely to complete this milestone. Explain the
+outcome concretely: a starter eval set of customer scenarios
 with criteria for scoring responses, which the user can rerun after changes to
 detect improvement or regression.
 

@@ -54,25 +54,87 @@ naming what to install.
 
 ## Before you start
 
-Read `eval-author`'s opening before beginning onboarding work, and follow
-[Milestone check-ins](../eval-author/references/milestone-checkins.md) for the
-**Early stages: Ethos, Harbor, then evals** sequence, including the Harbor
-introduction before prerequisite probes. This skill has two entry points:
+Use `eval-author`'s entry routing to distinguish inventory from authoring setup
+and readiness validation:
 
+- **Uncertain starting point:** use **Inventory an uncertain starting point**
+  below before Ethos, runtime probes, or the authoring welcome. This entry uses
+  file inspection only; do not run the readiness procedure in Steps 1–6.
 - **Harbor prerequisites:** during **Get Harbor ready**, use only the runtime
   checks and optional assistant-skills check below. Return their findings to the
   caller; do not run `discover.py`, inventory eval sources, or ask which evals to
   use at this stage.
 - **Understand the evaluation starting point:** after the Ethos and Harbor stage
   check-ins, use Steps 1–6 for full discovery and source selection, reusing
-  applicable runtime evidence. A deferred prerequisite follows the shared
-  milestone procedure.
+  applicable runtime evidence, only when the starting point remains unsettled.
+  Follow [Milestone check-ins](../eval-author/references/milestone-checkins.md)
+  for authoring transitions and deferred prerequisites.
 
-Targeted discovery-only requests and internal config validation use the relevant
-checks without adding the onboarding stages. A readiness-only request returns
-the report described in Step 5.
+Targeted inventory requests use the first entry and stop with their findings.
+Readiness-only requests and internal config validation use Steps 1–6 without
+adding authoring stages. A readiness-only request returns the report described
+in Step 5.
 
-### Runtime prerequisite checks
+## Inventory an uncertain starting point
+
+Start with the supplied locations and a bounded inspection of the repository's
+README, evaluation documentation, CI/workflow commands, and likely test or eval
+directories. Look for Harbor configs and tasks as well as scripts, datasets,
+notebooks, and written cases or grading criteria. Inspect representative
+candidates to explain what agent behavior they evaluate; ordinary helper tests
+are not automatically agent evals. Follow relevant references to separate eval
+locations and record anything inaccessible.
+
+Read the relevant README, runner, configuration, and CI invocation to explain
+how to run each identified suite. Include the working directory, documented
+command, selected config or dataset, and documented dependencies or credential
+variable names that affect that command. Do not expose credential values. Label
+these as documented or source-derived instructions, not verified readiness or
+successful execution. If a usable command cannot be established, state the
+specific missing information instead of inventing one. For multiple suites,
+describe their differences and give each supported invocation without choosing
+one silently.
+
+This entry establishes what material exists, not whether it runs. Do not require
+Ethos, install tools, probe Harbor or Docker, execute repository code, or invoke
+`discover.py`: that script also performs runtime validation when Harbor is
+available. Inspect only enough case or grader source to identify what a suite
+tests and how its runner works; assessing grading quality or coverage against
+Ethos belongs to a requested audit. Save paths, suite purposes, run instructions
+and their sources, inspected scope, and remaining uncertainty in
+`.eval-author/discovery.md` as inventory observations, preserving any existing
+provider validation evidence separately.
+
+Explain the candidates before asking a focused question to settle their use or a
+missing location. Reuse the user's explicit source selection or statement that
+they have no evals. An empty search or access failure alone does not prove absence;
+when no candidates are found, state the search limits and resolve whether the user
+keeps evals elsewhere or wants to start from scratch.
+
+Finish discovery with a user-facing summary: whether evals were found, their paths
+and purposes, how to run them, and what remains unverified or unresolved. A report
+link or a menu of possible next steps does not replace this summary. For example,
+after providing the actual suite descriptions and run commands:
+
+> These are the documented run instructions; I have not run or validated the evals.
+> Would you like me to audit these evals next?
+
+Ask that question only after the discovery summary is complete, then end the
+reply and wait. Do not start an Ethos review, coverage assessment, or audit-tool
+work in the same turn merely because the user asked for general evaluation help.
+For confirmed absence, offer to bootstrap first evals instead. If the location
+remains unresolved, ask the focused source question. An inventory-only request
+ends with findings rather than an audit question.
+
+After a requested or accepted continuation, return to the core's **Choose the
+entry route** section with the findings, run guidance, prior answers, and any
+existing Ethos or runtime evidence; inventory itself completes neither
+prerequisite. If the user already explicitly requested discovery followed by
+audit or another flow, present the discovery summary and continue that work
+without a duplicate question. Honor a more specific outcome such as readiness
+or repair without substituting an audit.
+
+## Runtime prerequisite checks
 
 Identify an interpreter that can import Harbor. Full discovery must later use
 that interpreter for Harbor's validators to judge readiness.
@@ -133,7 +195,7 @@ the calling stage. Full discovery later records its runtime mode in
 `runtime.harbor_importable` and the top-level `proven` field; prerequisite checks
 alone do not produce a suite-readiness verdict or discovery evidence JSON.
 
-### Check for optional Harbor skills
+## Check for optional Harbor skills
 
 Alongside the runtime check, look for
 [Harbor's own skills](https://github.com/harbor-framework/harbor/tree/main/skills).

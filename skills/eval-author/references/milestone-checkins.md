@@ -3,9 +3,11 @@
 
 # Check in after each milestone
 
-The core owns the immediate welcome and canonical checklist. Read this reference
-after the user starts the experience; it owns stage transitions, progress, and
-resumption. Sub-flows own the work within stages.
+The core selects the entry route before its authoring welcome and canonical
+checklist. Read this reference for first-eval or adaptation after the user starts
+that experience; it owns stage transitions, progress, and resumption. Discovery
+inventory, audits, and proposals keep their scoped entry procedures. Sub-flows
+own the work within authoring stages.
 
 ## Complete, explain, check in, wait
 
@@ -59,8 +61,10 @@ or approval records in that workflow state, not in `ETHOS.md`. This does not exc
 substantive evaluation requirements from Ethos's Evaluation Setup section.
 On return, reuse applicable answers and completed work, rechecking
 readiness when inputs changed. Do not infer an answer from an installed tool or
-saved file, or restart a completed opening or Ethos interview. Narrow inventory,
-readiness, audit, trace, and internal validation requests keep their scoped flow.
+saved file, or restart a completed opening or Ethos interview. Inventory before
+authoring may already have settled the evaluation starting point, but does not
+complete Ethos or Harbor setup. Narrow inventory, readiness, audit, proposal,
+trace, and internal validation requests keep their scoped flow.
 
 ## Early stages: Ethos, Harbor, then evals
 
@@ -109,21 +113,24 @@ incomplete. Keep interpreter versions and paths in the findings unless they help
 the user act. Follow with the optional-skills advisory when relevant and the
 shared checklist; the official skills collection is separate from Harbor's docs.
 
-Check in before **Understand the evaluation starting point**. If the user has not
-supplied evals, asking whether they have existing material can serve as this
-transition. If a source is already supplied, name the planned inspection without
-asking them to select it again. Missing Harbor can be
-deferred using the rule above; it does not prevent finding the user's eval material.
+Check in before the next unfinished stage. If the evaluation starting point is
+already settled, carry it forward and proceed to **Define the evaluation scope**
+after this check-in. Otherwise, asking about existing material can serve as the
+transition to **Understand the evaluation starting point**. If a source is already
+supplied, name the planned inspection without asking them to select it again.
+Missing Harbor can be deferred using the rule above; it does not prevent finding
+the user's eval material.
 
 ### 3. Understand the evaluation starting point
 
-After the Harbor check-in, use `eval-author-discover` for the inventory and its
-source-selection conversation. Reuse the verified runtime instead of repeating
-setup. Determine whether there is an existing Harbor suite, other eval material,
-or confirmed absence of evals. Ask about actual candidates or a missing location;
-keep this stage unchecked and current until the source is settled. The report's
-summary and examples supply findings and question wording, not a complete
-onboarding reply in place of the checklist.
+Reuse a starting point already settled by the user or discovery inventory; no
+repeat scan or source-selection question is needed. Otherwise, after the Harbor
+check-in use `eval-author-discover` for inventory and source selection, reusing
+verified runtime evidence. Determine whether there is an existing Harbor suite,
+other eval material, or confirmed absence of evals. Ask about actual candidates
+or a missing location; keep this stage unchecked and current until the source is
+settled. The report's summary and examples supply findings and question wording,
+not a complete onboarding reply in place of the checklist.
 
 A source answer identifies the material, not its scoring quality or coverage.
 Name **Define the evaluation scope** as the next stage and use the core's

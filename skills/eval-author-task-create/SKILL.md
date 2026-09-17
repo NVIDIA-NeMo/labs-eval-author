@@ -16,6 +16,7 @@ triggers:
   - close audit coverage gaps
   - turn uncovered_items into Harbor tasks
   - propose dataset improvements from audit findings
+  - suggest new evals based on this audit
 not-for:
   - eval-author-first-eval (use when the user has no evaluations yet)
   - eval-author (use for the shared standard and routing)
@@ -41,6 +42,10 @@ Read `eval-author` for the shared evidence standard and boundaries. Read
 `eval-author-audit` for measurement and aggregation. Start with the proposal step
 to turn audit evidence into prioritized dataset improvements across tools,
 capabilities, and failure cases. For proposal-only requests, stop after Step 1.
+Enter that step directly from the core's proposal route, carrying existing audit
+findings and prior answers. If required audit inputs are missing, obtain those
+inputs through the audit flow and return to proposals; do not restart first-eval
+onboarding or infer permission to create or run tasks.
 For task-creation requests, continue with an eligible tool gap through the
 existing execution path:
 
@@ -55,8 +60,10 @@ actionable uncovered tool
 Create and prove one tool gap at a time. Keep every generated artifact under
 `.eval-author/`; do not edit existing tasks or customer source.
 
-An existing suite without a coverage report belongs in `eval-author-discover`
-and `eval-author-audit`. A missing report alone is not a first-eval request.
+For an existing suite without a coverage report, preserve the requested outcome:
+audit or proposal work obtains its missing coverage inputs through
+`eval-author-audit`; readiness work belongs in `eval-author-discover`. A missing
+report alone is not a first-eval request.
 
 ## Script
 
