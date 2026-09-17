@@ -89,6 +89,26 @@ jobs:
           SKILL_EVAL_AGENT_MODEL: ${{ vars.SKILL_EVAL_AGENT_MODEL }}
         run: |
           python tools/collect_live_skill_evaluations.py --run --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --output "$RUNNER_TEMP/skill-live"
+      - name: Diagnose Docker without credentials or evaluation inputs
+        if: always()
+        run: |
+          python - <<'PY'
+          import os, subprocess, tempfile
+          from pathlib import Path
+          root = Path(tempfile.mkdtemp(prefix='docker-home-probe-'))
+          (root / 'Dockerfile').write_text('FROM scratch\nLABEL purpose="docker-home-probe"\n')
+          (root / 'compose.yaml').write_text('services:\n  main:\n    build: .\n')
+          for use_home in (False, True):
+              env = {'PATH': os.environ['PATH'], 'LANG': 'C.UTF-8'}
+              if use_home:
+                  home = root / 'home'
+                  home.mkdir()
+                  env['HOME'] = str(home)
+              result = subprocess.run(['docker', 'compose', '-f', str(root / 'compose.yaml'), 'build'], env=env, cwd=root, capture_output=True, text=True, timeout=120)
+              print('Keyless Docker probe:', {'isolated_home': use_home, 'exit_code': result.returncode})
+              if result.returncode:
+                  print((result.stdout + result.stderr)[-3000:])
+          PY
       - name: Show sanitized summary
         if: always()
         run: |
@@ -113,6 +133,7 @@ jobs:
               'unable to get image', 'failed to solve', 'failed to create',
               'out of memory', 'address already in use', 'Error response from daemon',
               'Cannot locate specified Dockerfile', 'is not set', 'ValueError',
+              '$HOME', 'not defined', 'home directory', 'credential', 'buildx',
           ]
           for path in (Path(os.environ['RUNNER_TEMP']) / 'skill-live').glob('check-*/results/**/result.json'):
               data = json.loads(path.read_text())
