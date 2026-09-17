@@ -92,6 +92,27 @@ jobs:
       - name: Show sanitized summary
         if: always()
         run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          signals = [
+              'Docker compose command failed', 'PermissionError', 'FileNotFoundError',
+              'RuntimeError', 'TypeError', 'AttributeError', 'ValidationError', 'KeyError',
+              'errored', 'invalid', 'no agent result', 'no step results', 'mixed top-level',
+              'no evaluation statistics', 'missing trial statistics', 'could not start',
+              'timed out', 'unreadable', 'did not produce', 'no agent artifacts',
+              'n_completed_trials', 'n_trials', 'n_errors', 'reward_stats',
+              'input device is not a TTY', 'stdin is not a terminal',
+              'No space left', 'Permission denied', 'Cannot connect', 'up -d',
+              'ConnectionError', 'APIError', 'ModelNotFoundError', 'Agent install failed',
+              'NonZeroAgentExitCodeError', 'OpenCode emitted error', 'NameError',
+              '401', '403', '404', '429', '500', '502', '503',
+          ]
+          for path in (Path(os.environ['RUNNER_TEMP']) / 'skill-live').glob('check-*/results/*/*/result.json'):
+              errors = json.loads(path.read_text()).get('execution_errors', [])
+              detail = ' '.join(item for item in errors if isinstance(item, str))
+              print('Preflight diagnostic flags:', json.dumps({s: s in detail for s in signals}))
+          PY
           if test -f "$RUNNER_TEMP/skill-live/live-skillevaluator-summary.md"; then
             cat "$RUNNER_TEMP/skill-live/live-skillevaluator-summary.md" >> "$GITHUB_STEP_SUMMARY"
           fi
