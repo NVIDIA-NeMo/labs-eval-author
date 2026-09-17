@@ -202,7 +202,8 @@ def test_hub_defaults_apply_to_unset_or_blank_model_variables(live, monkeypatch,
     assert env["SKILL_EVAL_LLM_BASE_URL"] == env["SKILL_EVAL_EMBEDDING_BASE_URL"] == live.HUB_BASE_URL
 
 
-def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path, monkeypatch):
+@pytest.mark.parametrize("latest_alias", [False, True])
+def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path, monkeypatch, latest_alias):
     monkeypatch.setenv("INFERENCE_HUB_API_KEY", "test-credential")
     monkeypatch.setenv("OPENAI_API_KEY", "UNRELATED-SECRET")
     monkeypatch.setenv("SKILL_EVAL_LLM_BASE_URL", "https://unintended.example")
@@ -239,6 +240,8 @@ def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path
             data = tier2("Similarity Check" if argv[1] == "similarity-check" else "Context Deduplication")
         path.parent.mkdir(parents=True)
         path.write_text(json.dumps(data))
+        if "evaluate" in argv and latest_alias:
+            (path.parent.parent / "latest").symlink_to(path.parent.name, target_is_directory=True)
         return 0, None
 
     monkeypatch.setattr(live, "execute", execute)
@@ -249,6 +252,38 @@ def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path
     assert "correctness" in (tmp_path / "live/live-skillevaluator-summary.md").read_text()
     with pytest.raises(FileExistsError):
         live.collect(repo, tmp_path / "live", run=True)
+
+
+@pytest.mark.parametrize("layout", ["two_runs", "linked_run", "linked_report"])
+def test_ambiguous_or_linked_tier3_reports_are_not_published(live, repo, tmp_path, monkeypatch, layout):
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "test-credential")
+
+    def execute(argv, cwd, env, log, timeout):
+        if "evaluate" in argv:
+            root = Path(argv[argv.index("--results-dir") + 1]) / "eval-author"
+            root.mkdir(parents=True)
+            external = tmp_path / "external"
+            external.mkdir()
+            (external / "result.json").write_text(json.dumps(tier3()))
+            if layout == "linked_run":
+                (root / "run").symlink_to(external, target_is_directory=True)
+            else:
+                run = root / "run"
+                run.mkdir()
+                if layout == "linked_report":
+                    (run / "result.json").symlink_to(external / "result.json")
+                else:
+                    (run / "result.json").write_text(json.dumps(tier3()))
+                    (root / "second-run").mkdir()
+                    (root / "second-run/result.json").write_text(json.dumps(tier3()))
+        return 0, None
+
+    monkeypatch.setattr(live, "execute", execute)
+    report = live.collect(repo, tmp_path / "live", run=True, tier="3", skill_name="eval-author")
+    row = next(row for row in report["observations"] if row["tier"] == 3 and row["skill"] == "eval-author")
+    assert row["status"] == "incomplete"
+    assert row["reason"] == "report_missing_or_ambiguous"
+    assert "arms" not in row
 
 
 def test_timeouts_and_bad_reports_are_incomplete_and_do_not_stop_collection(live, repo, tmp_path, monkeypatch):
