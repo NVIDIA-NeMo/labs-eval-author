@@ -1,0 +1,261 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+"""Check credential isolation, incomplete evidence, and paired live metrics without APIs."""
+
+import importlib
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture
+def live(monkeypatch):
+    monkeypatch.syspath_prepend(str(ROOT / "tools"))
+    return importlib.import_module("collect_live_skill_evaluations")
+
+
+@pytest.fixture
+def repo(tmp_path):
+    repo = tmp_path / "repo"
+    for name in ("eval-author", "another-skill"):
+        path = repo / "skills" / name
+        path.mkdir(parents=True)
+        (path / "SKILL.md").write_text("# Fixture\n")
+    evals = repo / "skills/eval-author/evals"
+    evals.mkdir()
+    (evals / "evals.json").write_text(
+        json.dumps(
+            {"skill_name": "eval-author", "evals": [{"id": "one", "prompt": "Task", "expected_output": "Answer"}]}
+        )
+    )
+    for args in (
+        ["init", "-b", "test"],
+        ["add", "."],
+        ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "fixture"],
+    ):
+        subprocess.run(["git", *args], cwd=repo, capture_output=True, check=True)
+    return repo
+
+
+def tier2(validator="Context Deduplication"):
+    return {
+        "results": [
+            {
+                "validator": validator,
+                "status": "passed",
+                "passed": True,
+                "incomplete_scans": [],
+                "summary": {"errors": 0, "critical_count": 0, "high_count": 0, "medium_count": 0, "low_count": 0},
+                "findings": [],
+                "legacy": {"messages": ["PRIVATE-SENTINEL"]},
+            }
+        ]
+    }
+
+
+def tier3():
+    arm = {"execution_status": "succeeded", "execution_errors": [], "expected_attempts": 1, "scored_attempts": 1}
+    return {
+        "execution_status": "succeeded",
+        "execution_errors": [],
+        "agents": {
+            "opencode": {
+                "execution_status": "succeeded",
+                "conditions": {"with_skill": arm.copy(), "without_skill": arm.copy()},
+                "dimensions_with_skill": dict.fromkeys(
+                    ("security", "correctness", "discoverability", "effectiveness", "efficiency"), 0.8
+                ),
+                "dimensions_without_skill": dict.fromkeys(
+                    ("security", "correctness", "discoverability", "effectiveness", "efficiency"), 0.9
+                ),
+                "pass_at_k": {
+                    "with_skill": {"passed_cases": 0, "total_cases": 1, "k": 1},
+                    "without_skill": {"passed_cases": 1, "total_cases": 1, "k": 1},
+                },
+                "trajectory": "PRIVATE-SENTINEL",
+            }
+        },
+    }
+
+
+def test_tier2_distinguishes_duplicate_findings_from_missing_provider_evidence(live):
+    report = tier2()
+    row = report["results"][0]
+    row.update(passed=False, status="failed", findings=[{"check_name": "duplicate"}])
+    row["summary"].update(high_count=1, errors=1)
+    assert live.summarize_tier2(report, 1, "Context Deduplication")["status"] == "failed"
+    row["findings"][0]["check_name"] = "llm_error"
+    assert live.summarize_tier2(report, 1, "Context Deduplication")["status"] == "incomplete"
+    row["findings"] = []
+    row["summary"]["high_count"] = 0
+    assert live.summarize_tier2(report, 1, "Context Deduplication")["status"] == "incomplete"
+
+
+def test_negative_lift_is_a_completed_experiment_not_an_execution_failure(live):
+    result = live.summarize_tier3(tier3(), 0, 1)
+    assert result["status"] == "completed"
+    assert result["pass_rate_lift"] == -1
+    assert result["dimension_lift"]["correctness"] == pytest.approx(-0.1)
+    assert "PRIVATE-SENTINEL" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), -1, 2, True, "secret"])
+def test_invalid_live_scores_cannot_be_published(live, value):
+    report = tier3()
+    report["agents"]["opencode"]["dimensions_with_skill"]["security"] = value
+    with pytest.raises(ValueError):
+        live.summarize_tier3(report, 0, 1)
+
+
+def test_missing_baseline_and_changed_denominator_do_not_produce_lift(live):
+    with pytest.raises(ValueError):
+        live.summarize_tier3(tier3(), 0, 2)
+    report = tier3()
+    report["agents"]["opencode"]["conditions"]["without_skill"]["scored_attempts"] = 0
+    with pytest.raises(ValueError):
+        live.summarize_tier3(report, 0, 1)
+    assert live.summarize_tier3(tier3(), 1, 1)["status"] == "incomplete"
+
+
+def test_plan_and_missing_key_never_execute(live, repo, tmp_path, monkeypatch):
+    def no_execute(*args, **kwargs):
+        pytest.fail("plan or missing credentials launched a process")
+
+    monkeypatch.setattr(live, "execute", no_execute)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    report = live.collect(repo, tmp_path / "missing", run=True)
+    assert sum(r["reason"] == "missing_dataset" for r in report["observations"]) == 1
+    assert sum(r["reason"] == "missing_provider_key" for r in report["observations"]) == 4
+    monkeypatch.setenv("NVIDIA_API_KEY", "PRIVATE-SENTINEL")
+    report = live.collect(repo, tmp_path / "plan")
+    assert report["mode"] == "plan"
+    assert "PRIVATE-SENTINEL" not in (tmp_path / "plan/live-skillevaluator-summary.json").read_text()
+
+
+def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path, monkeypatch):
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-credential")
+    monkeypatch.setenv("OPENAI_API_KEY", "UNRELATED-SECRET")
+    monkeypatch.setenv("SKILL_EVAL_LLM_BASE_URL", "https://unintended.example")
+    calls = []
+
+    def execute(argv, cwd, env, log, timeout):
+        calls.append(argv)
+        assert "OPENAI_API_KEY" not in env and "SKILL_EVAL_LLM_BASE_URL" not in env
+        assert env["NVIDIA_API_KEY"] == "test-credential"
+        assert "--autopilot" not in argv and "--skip-baseline" not in argv and "--copy-repo" not in argv
+        if argv[1:3] == ["tier3", "validate"]:
+            return 0, None
+        if "evaluate" in argv:
+            assert argv[argv.index("--n-attempts") + 1] == "1"
+            path = Path(argv[argv.index("--results-dir") + 1]) / "run/result.json"
+            data = tier3()
+        else:
+            path = Path(argv[-1]) / "result.json"
+            data = tier2("Similarity Check" if argv[1] == "similarity-check" else "Context Deduplication")
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(data))
+        return 0, None
+
+    monkeypatch.setattr(live, "execute", execute)
+    report = live.collect(repo, tmp_path / "live", run=True)
+    assert report["counts"] == {"passed": 3, "skipped": 1, "completed": 1}
+    assert len(calls) == 5
+    assert "PRIVATE-SENTINEL" not in (tmp_path / "live/live-skillevaluator-summary.json").read_text()
+    assert "correctness" in (tmp_path / "live/live-skillevaluator-summary.md").read_text()
+    with pytest.raises(FileExistsError):
+        live.collect(repo, tmp_path / "live", run=True)
+
+
+def test_timeouts_and_bad_reports_are_incomplete_and_do_not_stop_collection(live, repo, tmp_path, monkeypatch):
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-credential")
+
+    def execute(argv, cwd, env, log, timeout):
+        if argv[1] == "similarity-check":
+            path = Path(argv[-1]) / "result.json"
+            path.parent.mkdir(parents=True)
+            path.write_text('{"results": [null]}')
+            return 0, None
+        return -9, "timeout"
+
+    monkeypatch.setattr(live, "execute", execute)
+    report = live.collect(repo, tmp_path / "broken", run=True, tier="2")
+    assert report["counts"] == {"incomplete": 3, "skipped": 2}
+
+
+def test_input_mutation_invalidates_evidence_and_stops_further_calls(live, repo, tmp_path, monkeypatch):
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-credential")
+    calls = []
+
+    def execute(*args):
+        calls.append(args)
+        (repo / "skills/eval-author/SKILL.md").write_text("changed")
+        return -9, "timeout"
+
+    monkeypatch.setattr(live, "execute", execute)
+    report = live.collect(repo, tmp_path / "mutated", run=True)
+    assert len(calls) == 1
+    assert all(r["reason"] in ("skill_changed_during_run", "missing_dataset") for r in report["observations"])
+    with pytest.raises(ValueError, match="clean"):
+        live.collect(repo, tmp_path / "dirty", run=True)
+
+
+def test_manual_workflow_keeps_credentials_off_pull_requests():
+    workflow = yaml.safe_load((ROOT / ".github/workflows/skill-evaluation-live.yml").read_text())
+    assert set(workflow[True]) == {"workflow_dispatch"}
+    assert workflow[True]["workflow_dispatch"]["inputs"]["run_live"]["default"] is False
+    job = workflow["jobs"]["live"]
+    assert "refs/heads/main" in job["if"] and "SKILL_EVALUATION_LIVE_ENABLED" in job["if"]
+    assert job["environment"] == "skill-evaluation-live" and job["continue-on-error"]
+    upload = job["steps"][-1]
+    assert upload["if"] == "always()" and upload["with"]["path"].endswith("live-skillevaluator-summary.*")
+    assert workflow["permissions"] == {"contents": "read"}
+
+
+def test_seed_datasets_are_bounded_and_have_negative_cases(live):
+    for name in ("eval-author", "mlflow-to-atif"):
+        skill = ROOT / "skills" / name
+        assert live.dataset_cases(skill) == 4
+        cases = json.loads((skill / "evals/evals.json").read_text())["evals"]
+        assert sum(c["expected_skill"] is None for c in cases) == 1
+        for case in cases:
+            for filename in case["files"]:
+                assert (skill / "evals" / filename).is_file()
+
+
+@pytest.mark.parametrize("fixture,exit_code", [("valid.json", 0), ("missing-instruction.json", 1)])
+def test_converter_seed_evidence_matches_expected_behavior(tmp_path, fixture, exit_code):
+    skill = ROOT / "skills/mlflow-to-atif"
+    output = tmp_path / "converted"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(skill / "scripts/convert_mlflow_to_atif.py"),
+            "--input",
+            str(skill / "evals/files" / fixture),
+            "--output-dir",
+            str(output),
+            "--agent-name",
+            "fixture-agent",
+            "--agent-version",
+            "1.0",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == exit_code, result.stderr
+    trajectories = list(output.glob("*.atif.json"))
+    if exit_code:
+        assert not trajectories
+    else:
+        assert len(trajectories) == 1
+        assert json.loads(trajectories[0].read_text())["schema_version"] == "ATIF-v1.7"
+        assert output.stat().st_mode & 0o777 == 0o700
+        assert trajectories[0].stat().st_mode & 0o777 == 0o600
