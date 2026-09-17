@@ -63,7 +63,15 @@ def summarize_tier2(report, code, validator):
 def summarize_tier3(report, code, cases):
     """A completed A/B experiment may have poor scores; completion is not quality."""
     if code != 0 or report.get("execution_status") != "succeeded":
-        return {"status": "incomplete", "reason": "execution_incomplete"}
+        # Export fixed categories, never the provider/agent error payload.
+        errors = report.get("execution_errors", [])
+        detail = "\n".join(item for item in errors if isinstance(item, str)) if isinstance(errors, list) else ""
+        reason = "execution_incomplete"
+        if "Docker compose command failed" in detail and " build." in detail:
+            reason = "docker_build_failed"
+        elif "runtime preflight failed" in detail:
+            reason = "agent_runtime_preflight_failed"
+        return {"status": "incomplete", "reason": reason}
     agent = report["agents"]["opencode"]
     if agent["execution_status"] != "succeeded" or report.get("execution_errors") or agent.get("execution_errors"):
         raise ValueError("inconsistent Tier 3 execution")
@@ -335,7 +343,7 @@ def collect(
                     "off",
                 ]
                 code, error = execute(argv, repo, env, target / "console.log", 1800)
-                paths = list((target / "results").glob("*/result.json"))
+                paths = list((target / "results" / skill.name).glob("*/result.json"))
             row["exit_code"] = code
             if error:
                 row.update(reason="timeout")
