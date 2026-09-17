@@ -4,14 +4,27 @@
 # Trace sources and normalization
 
 One task per trace. Do not merge unrelated traces. Preserve the source's trace
-and span identifiers in `extra`, order steps by recorded time, and record every
-missing or lossy field under `extra.normalization.uncertainties` or
+and span identifiers in `extra`, order steps by recorded time where available
+(otherwise retain source item order), and record every missing or lossy field under `extra.normalization.uncertainties` or
 `extra.normalization.losses`. Never invent an instruction, tool result, file,
 or final answer.
 
 ## Existing ATIF
 
 Use the trajectory as the canonical input. Do not relabel its ATIF version.
+
+## Gym
+
+Read [Gym Responses traces](gym.md). Gym-native records use Responses-style
+messages and tools, not ATIF. Use `scripts/gym_to_atif.py` for one bounded record
+or an explicitly selected JSONL line. Retain the raw Gym record and conversion
+receipt privately; pass its derived ATIF to `prepare --source-kind gym`.
+
+For Gym's Harbor bridge, prefer the explicitly supplied original ATIF instead
+of a lossy reverse conversion. Its bytes/version remain unchanged; prepare it
+with `--source-kind atif`. Never automatically follow the source paths recorded
+inside Gym metadata. Image serialization, unknown fields, and incomplete
+history must remain explicit—not silently treated as equivalent text evidence.
 
 ## MLflow
 
