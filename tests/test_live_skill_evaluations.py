@@ -251,7 +251,8 @@ def test_input_mutation_invalidates_evidence_and_stops_further_calls(live, repo,
 
 def test_manual_workflow_keeps_credentials_off_pull_requests():
     workflow = yaml.safe_load((ROOT / ".github/workflows/skill-evaluation-live.yml").read_text())
-    assert set(workflow[True]) == {"workflow_dispatch"}
+    assert set(workflow[True]) == {"workflow_dispatch", "push"}
+    assert workflow[True]["push"]["branches"] == ["ci/skillevaluator-pr11-smoke"]
     assert workflow[True]["workflow_dispatch"]["inputs"]["run_live"]["default"] is False
     job = workflow["jobs"]["live"]
     assert "refs/heads/main" in job["if"] and "SKILL_EVALUATION_LIVE_ENABLED" in job["if"]
