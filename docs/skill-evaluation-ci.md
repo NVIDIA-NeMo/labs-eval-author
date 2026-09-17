@@ -74,10 +74,12 @@ allowlisted fields intended for fixtures ingestion.
 ## Tier 2 and Tier 3: explicit live workflow
 
 `skill-evaluation-live.yml` adds a separate manual workflow. PR checks remain
-credential-free Tier 1 checks. The new workflow always produces a keyless plan;
+credential-free Tier 1 checks. All live model roles use NVIDIA Inference Hub.
+The new workflow always produces a keyless plan (without environment secrets
+or environment-scoped model variables);
 live work requires `run_live: true`, the repository variable
 `SKILL_EVALUATION_LIVE_ENABLED=true`, and dispatch from `main`. The live job uses
-the `skill-evaluation-live` GitHub environment and is advisory. No schedule or
+the `skill-evaluator` GitHub environment and is advisory. No schedule or
 automatic PR model calls are added.
 
 Tier 2 runs `context-optimization-check` for selected skills (embeddings plus
@@ -108,36 +110,61 @@ and base images are not fully locked by this workflow.
 
 ### Setup needed
 
-Repository settings inspected on 2026-09-17 had no Actions secrets, variables,
-or environments. This PR does not create credentials or change those settings.
+Repository settings inspected on 2026-09-17 include the `skill-evaluator`
+environment and its `INFERENCE_HUB_API_KEY` secret. No repository enable
+variable, environment model overrides, or environment protection rules were
+configured. This PR does not create credentials or change those settings.
 
 1. Merge the parent PR #9 and this stacked PR before dispatching live CI; the
    live workflow deliberately refuses non-`main` refs. The ordinary CI and title
    workflows also accept `ci/skillevaluator-reports` as a PR base so this stack
    receives normal checks.
-2. Create the `skill-evaluation-live` environment. Restrict deployments to
-   `main`, add the team's required reviewer, and review the cases and current
-   workflow before releasing model credentials. Environment protections are
-   configured in GitHub settings; declaring an environment in YAML does not
-   configure them. If this repository's plan cannot enforce these protections,
-   leave live CI disabled and use the local command on a reviewed checkout.
-3. Add one environment secret: `NVIDIA_API_KEY` for `nv_build` (default), or
-   `OPENAI_API_KEY` for `openai`. That provider must supply chat, embeddings,
-   and the selected OpenCode model. No credentials belong in `evals/config.yml`.
-4. Optionally configure environment variables `SKILL_EVAL_LLM_MODEL`,
-   `SKILL_EVAL_EMBEDDING_MODEL`, and `SKILL_EVAL_AGENT_MODEL`. Set all three when
-   changing providers if overrides were previously configured. The defaults are:
+2. Use the existing `skill-evaluator` environment. Optional deployment branch
+   restrictions and required reviewers can be configured in GitHub settings;
+   declaring an environment in YAML does not configure them. The workflow
+   itself requires a manual dispatch from `main` and the repository enable flag.
+3. The environment secret **`INFERENCE_HUB_API_KEY`** must contain your NVIDIA
+   Inference Hub **inference** key from
+   [Hub key management](https://inference.nvidia.com/key-management). The Hub
+   metadata key and NVIDIA Build key are not used by this workflow. Do not put
+   credentials in `evals/config.yml`.
+4. The default chat/grader/agent model is **`azure/openai/gpt-5.4-mini`** and
+   the default embedding model is **`azure/openai/text-embedding-3-small`**.
+   Both IDs were listed by the Hub's authenticated `/v1/models` catalog on
+   2026-09-17. This is a small-model starting point for CI smoke evaluation;
+   catalog presence does not prove inference access or evaluation quality.
+   These OpenAI models are accessed through NVIDIA Inference Hub, not a direct
+   public OpenAI connection.
 
-   | Provider | Chat / grader | Embeddings | OpenCode model |
-   | --- | --- | --- | --- |
-   | `nv_build` | `nvidia/nemotron-3-nano-30b-a3b` | `nvidia/nv-embed-v1` | `nvidia/nvidia/nemotron-3-nano-30b-a3b` |
-   | `openai` | `gpt-5.4-mini` | `text-embedding-3-small` | `openai/gpt-5.4-mini` |
+   Optional environment variables override the defaults:
 
-   Model availability and inference permissions must be verified with the
-   chosen account. An internal OpenAI-compatible service is not wired in this
-   initial workflow: it additionally needs reachable endpoints, embedding
-   support, TLS trust, and verified OpenCode routing. Do not treat a chat-only
-   endpoint as sufficient for Tier 2.
+   | Variable | Purpose | Default |
+   | --- | --- | --- |
+   | `SKILL_EVAL_LLM_MODEL` | Chat analysis and Tier 3 grading | `azure/openai/gpt-5.4-mini` |
+   | `SKILL_EVAL_EMBEDDING_MODEL` | Embeddings for context and similarity checks | `azure/openai/text-embedding-3-small` |
+   | `SKILL_EVAL_AGENT_MODEL` | Tool-capable OpenCode agent model | The selected chat model |
+
+   All three accept **raw Hub model IDs**, including any namespace shown in the
+   Hub catalog. The collector adds the `openai/` adapter prefix for OpenCode;
+   do not add an extra adapter prefix yourself. A raw Hub ID that already starts
+   with `openai/` retains that namespace after the adapter prefix is added.
+   Unset or blank variables use the defaults above. Tier 3 does not use embeddings.
+
+   Chat, embedding, and agent requests use the fixed endpoint
+   **`https://inference-api.nvidia.com/v1`**. The collector maps the one inference
+   key to SkillEvaluator's `SKILL_EVAL_LLM_API_KEY` and
+   `SKILL_EVAL_EMBEDDING_API_KEY`, selecting `openai-compatible` for both.
+   SkillEvaluator passes the same key and endpoint to OpenCode using
+   `OPENAI_API_KEY` / `OPENAI_BASE_URL`; these are SDK variable names, not a route
+   to public OpenAI. The pinned Harbor adapter registers the selected model and
+   writes the Hub URL into OpenCode's provider configuration.
+
+   Verify the key has chat/tool-calling and embedding access, and that the
+   GitHub runner and its Docker containers can reach the Hub. Tier 2 requires
+   an actual embedding model; a chat-only model is insufficient. If Hub
+   embeddings or runner access are unavailable, the affected tier stays
+   unrun/incomplete. This workflow has no public OpenAI or NVIDIA Build fallback.
+   No live Hub inference has been validated by the keyless checks.
 5. Set the **repository** variable `SKILL_EVALUATION_LIVE_ENABLED=true` after
    setup; the job condition cannot read an environment-only variable.
 6. Dispatch **SkillEvaluator Tier 2 and 3**, initially with `run_live=false`.
@@ -176,7 +203,7 @@ The separate `nemo.eval_author.live_skill_evaluations.v1` JSON preserves the
 Tier 1 artifact contract. It records the exact source revision, skill-tree
 digests (including eval inputs), configured evaluator pin, provider/models,
 selection, bounded run policy, timestamps, report digests, and every skill's
-selected or skipped status. Tier 2 exports severity counts. Completed Tier 3
+selected or skipped status, and the fixed Hub endpoint. Tier 2 exports severity counts. Completed Tier 3
 exports both arms' five dimension scores, pass counts/denominators, and signed
 lift. Negative lift is a completed experiment, not an execution error. Missing
 or incomplete baseline evidence cannot produce lift. No blended tier score is
@@ -204,12 +231,13 @@ skillevaluator tier3 validate skills/eval-author --json
 skillevaluator tier3 validate skills/mlflow-to-atif --json
 ```
 
-After reviewing the checkout and configuring the selected provider in the host
-environment, this command explicitly authorizes live calls:
+After reviewing the checkout and setting `INFERENCE_HUB_API_KEY` in the host
+environment (plus any optional model overrides), this command explicitly
+authorizes live calls:
 
 ```bash
 python3 tools/collect_live_skill_evaluations.py --run --tier 3 \
-  --skill mlflow-to-atif --provider nv_build --output /tmp/new-live-run
+  --skill mlflow-to-atif --provider inference_hub --output /tmp/new-live-run
 ```
 
 Outputs must be outside the checkout in a fresh directory. Live skill inputs

@@ -19,11 +19,6 @@ on:
         description: Skill directory name, or all (similarity always uses the collection)
         type: string
         default: all
-      provider:
-        description: Hosted provider for embeddings, grading, and OpenCode
-        type: choice
-        options: [nv_build, openai]
-        default: nv_build
 
 permissions:
   contents: read
@@ -44,9 +39,8 @@ jobs:
         env:
           EVALUATION_TIER: ${{ inputs.tier }}
           EVALUATION_SKILL: ${{ inputs.skill }}
-          EVALUATION_PROVIDER: ${{ inputs.provider }}
         run: |
-          python tools/collect_live_skill_evaluations.py --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --provider "$EVALUATION_PROVIDER" --output "$RUNNER_TEMP/skill-plan"
+          python tools/collect_live_skill_evaluations.py --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --output "$RUNNER_TEMP/skill-plan"
           cat "$RUNNER_TEMP/skill-plan/live-skillevaluator-summary.md" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -61,7 +55,7 @@ jobs:
     if: >-
       inputs.run_live && github.ref == 'refs/heads/main' &&
       vars.SKILL_EVALUATION_LIVE_ENABLED == 'true'
-    environment: skill-evaluation-live
+    environment: skill-evaluator
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     continue-on-error: true
@@ -86,14 +80,12 @@ jobs:
         env:
           EVALUATION_TIER: ${{ inputs.tier }}
           EVALUATION_SKILL: ${{ inputs.skill }}
-          EVALUATION_PROVIDER: ${{ inputs.provider }}
-          NVIDIA_API_KEY: ${{ inputs.provider == 'nv_build' && secrets.NVIDIA_API_KEY || '' }}
-          OPENAI_API_KEY: ${{ inputs.provider == 'openai' && secrets.OPENAI_API_KEY || '' }}
+          INFERENCE_HUB_API_KEY: ${{ secrets.INFERENCE_HUB_API_KEY }}
           SKILL_EVAL_LLM_MODEL: ${{ vars.SKILL_EVAL_LLM_MODEL }}
           SKILL_EVAL_EMBEDDING_MODEL: ${{ vars.SKILL_EVAL_EMBEDDING_MODEL }}
           SKILL_EVAL_AGENT_MODEL: ${{ vars.SKILL_EVAL_AGENT_MODEL }}
         run: |
-          python tools/collect_live_skill_evaluations.py --run --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --provider "$EVALUATION_PROVIDER" --output "$RUNNER_TEMP/skill-live"
+          python tools/collect_live_skill_evaluations.py --run --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --output "$RUNNER_TEMP/skill-live"
       - name: Show sanitized summary
         if: always()
         run: |

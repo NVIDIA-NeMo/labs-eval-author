@@ -18,6 +18,9 @@ ROOT = Path(__file__).resolve().parents[1]
 @pytest.fixture
 def live(monkeypatch):
     monkeypatch.syspath_prepend(str(ROOT / "tools"))
+    monkeypatch.setenv("SKILL_EVAL_LLM_MODEL", "fixture/chat")
+    monkeypatch.setenv("SKILL_EVAL_EMBEDDING_MODEL", "fixture/embedding")
+    monkeypatch.delenv("SKILL_EVAL_AGENT_MODEL", raising=False)
     return importlib.import_module("collect_live_skill_evaluations")
 
 
@@ -129,31 +132,71 @@ def test_plan_and_missing_key_never_execute(live, repo, tmp_path, monkeypatch):
         pytest.fail("plan or missing credentials launched a process")
 
     monkeypatch.setattr(live, "execute", no_execute)
-    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    monkeypatch.delenv("INFERENCE_HUB_API_KEY", raising=False)
     report = live.collect(repo, tmp_path / "missing", run=True)
     assert sum(r["reason"] == "missing_dataset" for r in report["observations"]) == 1
     assert sum(r["reason"] == "missing_provider_key" for r in report["observations"]) == 4
-    monkeypatch.setenv("NVIDIA_API_KEY", "PRIVATE-SENTINEL")
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "PRIVATE-SENTINEL")
     report = live.collect(repo, tmp_path / "plan")
     assert report["mode"] == "plan"
     assert "PRIVATE-SENTINEL" not in (tmp_path / "plan/live-skillevaluator-summary.json").read_text()
 
 
+def test_hub_configuration_ignores_ambient_providers_and_preserves_model_namespaces(live, monkeypatch):
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "hub-fixture-key")
+    for key in ("OPENAI_API_KEY", "NVIDIA_API_KEY", "HUB_METADATA_API_KEY", "SKILL_EVAL_LLM_API_KEY"):
+        monkeypatch.setenv(key, "UNRELATED-SECRET")
+    for key in ("OPENAI_BASE_URL", "SKILL_EVAL_LLM_BASE_URL", "SKILL_EVAL_EMBEDDING_BASE_URL"):
+        monkeypatch.setenv(key, "https://api.openai.com/v1")
+    monkeypatch.setenv("SKILL_EVAL_AGENT_MODEL", "openai/hub-model")
+    models, env, missing = live.configuration("inference_hub")
+    assert not missing
+    assert models["agent"] == "openai/openai/hub-model"
+    assert env["SKILL_EVAL_LLM_BASE_URL"] == env["SKILL_EVAL_EMBEDDING_BASE_URL"] == live.HUB_BASE_URL
+    assert env["SKILL_EVAL_LLM_API_KEY"] == env["SKILL_EVAL_EMBEDDING_API_KEY"] == "hub-fixture-key"
+    assert "UNRELATED-SECRET" not in json.dumps(env)
+    for provider in ("openai", "nv_build"):
+        with pytest.raises(ValueError, match="only NVIDIA Inference Hub"):
+            live.configuration(provider)
+
+
+@pytest.mark.parametrize("value", [None, "", "   "])
+def test_hub_defaults_apply_to_unset_or_blank_model_variables(live, monkeypatch, value):
+    for key in ("SKILL_EVAL_LLM_MODEL", "SKILL_EVAL_EMBEDDING_MODEL", "SKILL_EVAL_AGENT_MODEL"):
+        if value is None:
+            monkeypatch.delenv(key, raising=False)
+        else:
+            monkeypatch.setenv(key, value)
+    models, env, _ = live.configuration("inference_hub")
+    assert models == {
+        "chat": "azure/openai/gpt-5.4-mini",
+        "embedding": "azure/openai/text-embedding-3-small",
+        "agent": "openai/azure/openai/gpt-5.4-mini",
+    }
+    assert env["SKILL_EVAL_LLM_BASE_URL"] == env["SKILL_EVAL_EMBEDDING_BASE_URL"] == live.HUB_BASE_URL
+
+
 def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path, monkeypatch):
-    monkeypatch.setenv("NVIDIA_API_KEY", "test-credential")
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "test-credential")
     monkeypatch.setenv("OPENAI_API_KEY", "UNRELATED-SECRET")
     monkeypatch.setenv("SKILL_EVAL_LLM_BASE_URL", "https://unintended.example")
     calls = []
 
     def execute(argv, cwd, env, log, timeout):
         calls.append(argv)
-        assert "OPENAI_API_KEY" not in env and "SKILL_EVAL_LLM_BASE_URL" not in env
-        assert env["NVIDIA_API_KEY"] == "test-credential"
+        assert "OPENAI_API_KEY" not in env and "NVIDIA_API_KEY" not in env
+        assert env["SKILL_EVAL_LLM_BASE_URL"] == live.HUB_BASE_URL
+        assert env["SKILL_EVAL_EMBEDDING_BASE_URL"] == live.HUB_BASE_URL
+        assert env["SKILL_EVAL_LLM_API_KEY"] == "test-credential"
+        assert env["SKILL_EVAL_EMBEDDING_API_KEY"] == "test-credential"
+        assert env["SKILL_EVAL_LLM_PROVIDER"] == "openai-compatible"
+        assert env["SKILL_EVAL_EMBEDDING_PROVIDER"] == "openai-compatible"
         assert "--autopilot" not in argv and "--skip-baseline" not in argv and "--copy-repo" not in argv
         if argv[1:3] == ["tier3", "validate"]:
             return 0, None
         if "evaluate" in argv:
             assert argv[argv.index("--n-attempts") + 1] == "1"
+            assert argv[argv.index("--agent-model") + 1] == "opencode=openai/fixture/chat"
             path = Path(argv[argv.index("--results-dir") + 1]) / "run/result.json"
             data = tier3()
         else:
@@ -174,7 +217,7 @@ def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path
 
 
 def test_timeouts_and_bad_reports_are_incomplete_and_do_not_stop_collection(live, repo, tmp_path, monkeypatch):
-    monkeypatch.setenv("NVIDIA_API_KEY", "test-credential")
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "test-credential")
 
     def execute(argv, cwd, env, log, timeout):
         if argv[1] == "similarity-check":
@@ -190,7 +233,7 @@ def test_timeouts_and_bad_reports_are_incomplete_and_do_not_stop_collection(live
 
 
 def test_input_mutation_invalidates_evidence_and_stops_further_calls(live, repo, tmp_path, monkeypatch):
-    monkeypatch.setenv("NVIDIA_API_KEY", "test-credential")
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "test-credential")
     calls = []
 
     def execute(*args):
@@ -212,10 +255,14 @@ def test_manual_workflow_keeps_credentials_off_pull_requests():
     assert workflow[True]["workflow_dispatch"]["inputs"]["run_live"]["default"] is False
     job = workflow["jobs"]["live"]
     assert "refs/heads/main" in job["if"] and "SKILL_EVALUATION_LIVE_ENABLED" in job["if"]
-    assert job["environment"] == "skill-evaluation-live" and job["continue-on-error"]
+    assert job["environment"] == "skill-evaluator" and job["continue-on-error"]
     upload = job["steps"][-1]
     assert upload["if"] == "always()" and upload["with"]["path"].endswith("live-skillevaluator-summary.*")
     assert workflow["permissions"] == {"contents": "read"}
+    assert "provider" not in workflow[True]["workflow_dispatch"]["inputs"]
+    evaluation = next(step for step in job["steps"] if step.get("name") == "Run advisory evaluations")
+    assert evaluation["env"]["INFERENCE_HUB_API_KEY"] == "${{ secrets.INFERENCE_HUB_API_KEY }}"
+    assert not {"OPENAI_API_KEY", "NVIDIA_API_KEY", "HUB_METADATA_API_KEY"}.intersection(evaluation["env"])
 
 
 def test_seed_datasets_are_bounded_and_have_negative_cases(live):

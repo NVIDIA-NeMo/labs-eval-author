@@ -17,20 +17,10 @@ from pathlib import Path
 
 from collect_skill_evaluations import EVALUATOR_REVISION, execute, now, sha, tree_digest
 
-PROFILES = {
-    "nv_build": {
-        "key": "NVIDIA_API_KEY",
-        "chat": "nvidia/nemotron-3-nano-30b-a3b",
-        "embedding": "nvidia/nv-embed-v1",
-        "agent": "nvidia/nvidia/nemotron-3-nano-30b-a3b",
-    },
-    "openai": {
-        "key": "OPENAI_API_KEY",
-        "chat": "gpt-5.4-mini",
-        "embedding": "text-embedding-3-small",
-        "agent": "openai/gpt-5.4-mini",
-    },
-}
+HUB_BASE_URL = "https://inference-api.nvidia.com/v1"
+HUB_KEY = "INFERENCE_HUB_API_KEY"
+DEFAULT_CHAT_MODEL = "azure/openai/gpt-5.4-mini"
+DEFAULT_EMBEDDING_MODEL = "azure/openai/text-embedding-3-small"
 DIMENSIONS = ("security", "correctness", "discoverability", "effectiveness", "efficiency")
 FINDINGS = {"duplicate", "EXACT_DUPLICATE", "HIGH_SIMILARITY", "SIMILAR", "LOOSELY_RELATED", "DISTINCT"}
 
@@ -105,23 +95,30 @@ def summarize_tier3(report, code, cases):
 
 
 def configuration(provider):
-    profile = PROFILES[provider]
+    if provider != "inference_hub":
+        raise ValueError("only NVIDIA Inference Hub is supported")
+    chat = os.environ.get("SKILL_EVAL_LLM_MODEL", "").strip() or DEFAULT_CHAT_MODEL
+    agent = os.environ.get("SKILL_EVAL_AGENT_MODEL", "").strip() or chat
     models = {
-        "chat": os.environ.get("SKILL_EVAL_LLM_MODEL") or profile["chat"],
-        "embedding": os.environ.get("SKILL_EVAL_EMBEDDING_MODEL") or profile["embedding"],
-        "agent": os.environ.get("SKILL_EVAL_AGENT_MODEL") or profile["agent"],
+        "chat": chat,
+        "embedding": os.environ.get("SKILL_EVAL_EMBEDDING_MODEL", "").strip() or DEFAULT_EMBEDDING_MODEL,
+        "agent": "openai/" + agent,
     }
     # Do not forward unrelated host credentials, agent config, or routing overrides.
     env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"}
     env.update(
-        SKILL_EVAL_LLM_PROVIDER=provider,
-        SKILL_EVAL_EMBEDDING_PROVIDER=provider,
+        SKILL_EVAL_LLM_PROVIDER="openai-compatible",
+        SKILL_EVAL_EMBEDDING_PROVIDER="openai-compatible",
+        SKILL_EVAL_LLM_BASE_URL=HUB_BASE_URL,
+        SKILL_EVAL_EMBEDDING_BASE_URL=HUB_BASE_URL,
         SKILL_EVAL_LLM_MODEL=models["chat"],
         SKILL_EVAL_EMBEDDING_MODEL=models["embedding"],
     )
-    if os.environ.get(profile["key"]):
-        env[profile["key"]] = os.environ[profile["key"]]
-    return models, env, profile["key"] not in env
+    key = os.environ.get(HUB_KEY, "").strip()
+    if key:
+        env["SKILL_EVAL_LLM_API_KEY"] = key
+        env["SKILL_EVAL_EMBEDDING_API_KEY"] = key
+    return models, env, not bool(key)
 
 
 def dataset_cases(skill):
@@ -149,7 +146,9 @@ def unchanged(skills, digests):
         return False
 
 
-def collect(repo, output, *, tier="both", skill_name="all", provider="nv_build", run=False, evaluator="skillevaluator"):
+def collect(
+    repo, output, *, tier="both", skill_name="all", provider="inference_hub", run=False, evaluator="skillevaluator"
+):
     repo, output = repo.resolve(), output.resolve()
     if output.is_relative_to(repo):
         raise ValueError("live output must be outside the repository")
@@ -181,6 +180,8 @@ def collect(repo, output, *, tier="both", skill_name="all", provider="nv_build",
             "requested_tier": tier,
             "requested_skill": skill_name,
             "provider": provider,
+            "api_base_url": HUB_BASE_URL,
+            "evaluator_provider": "openai-compatible",
             "models": models,
             "agent": "opencode",
             "environment": "docker",
@@ -373,7 +374,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--tier", choices=("2", "3", "both"), default="both")
     parser.add_argument("--skill", default="all")
-    parser.add_argument("--provider", choices=tuple(PROFILES), default="nv_build")
+    parser.add_argument("--provider", choices=("inference_hub",), default="inference_hub")
     parser.add_argument("--evaluator", default="skillevaluator")
     parser.add_argument("--run", action="store_true", help="Authorize provider calls and Docker agent execution")
     args = parser.parse_args()
