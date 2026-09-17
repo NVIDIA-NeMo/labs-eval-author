@@ -107,11 +107,22 @@ jobs:
               'ConnectionError', 'APIError', 'ModelNotFoundError', 'Agent install failed',
               'NonZeroAgentExitCodeError', 'OpenCode emitted error', 'NameError',
               '401', '403', '404', '429', '500', '502', '503',
+              ' build', ' exec', ' down', ' up', 'chmod', 'chown',
+              'read-only file system', 'no such file or directory',
+              'permission denied', 'invalid mount', 'not a directory',
+              'unable to get image', 'failed to solve', 'failed to create',
+              'out of memory', 'address already in use', 'Error response from daemon',
+              'Cannot locate specified Dockerfile', 'is not set', 'ValueError',
           ]
-          for path in (Path(os.environ['RUNNER_TEMP']) / 'skill-live').glob('check-*/results/*/*/result.json'):
-              errors = json.loads(path.read_text()).get('execution_errors', [])
+          for path in (Path(os.environ['RUNNER_TEMP']) / 'skill-live').glob('check-*/results/**/result.json'):
+              data = json.loads(path.read_text())
+              errors = data.get('execution_errors', [])
+              exception = data.get('exception_info')
+              if isinstance(exception, dict):
+                  errors = [*errors, exception.get('exception_message', '')]
               detail = ' '.join(item for item in errors if isinstance(item, str))
-              print('Preflight diagnostic flags:', json.dumps({s: s in detail for s in signals}))
+              if detail:
+                  print('Preflight diagnostic flags:', json.dumps({s: s.lower() in detail.lower() for s in signals}))
           PY
           if test -f "$RUNNER_TEMP/skill-live/live-skillevaluator-summary.md"; then
             cat "$RUNNER_TEMP/skill-live/live-skillevaluator-summary.md" >> "$GITHUB_STEP_SUMMARY"

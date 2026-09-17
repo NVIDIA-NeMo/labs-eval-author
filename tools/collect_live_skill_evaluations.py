@@ -349,6 +349,7 @@ def collect(
                     "--skill-workspace-mode",
                     "isolated",
                     "--agent-runtime-preflight",
+                    "--harbor-keep-jobs",
                     "--results-dir",
                     str(target / "results"),
                     "--progress",
