@@ -15,10 +15,11 @@ Use the trajectory as the canonical input. Do not relabel its ATIF version.
 
 ## Gym
 
-Read [Gym Responses traces](gym.md). Gym-native records use Responses-style
-messages and tools, not ATIF. Use `scripts/gym_to_atif.py` for one bounded record
-or an explicitly selected JSONL line. Retain the raw Gym record and conversion
-receipt privately; pass its derived ATIF to `prepare --source-kind gym`.
+Read and follow the `gym-to-atif` skill. Gym-native records use Responses-style
+messages and tools, not ATIF. Its adapter converts one bounded record or an
+explicitly selected JSONL line. Retain the raw Gym record and conversion
+receipt privately under the task workspace; pass the derived ATIF to
+`prepare --source-kind gym`.
 
 For Gym's Harbor bridge, prefer the explicitly supplied original ATIF instead
 of a lossy reverse conversion. Its bytes/version remain unchanged; prepare it

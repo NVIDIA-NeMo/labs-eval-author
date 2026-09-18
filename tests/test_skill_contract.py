@@ -63,6 +63,7 @@ _TASK_CREATE_DIR = _SKILLS_DIR / "eval-author-task-create"
 _FIRST_EVAL_DIR = _SKILLS_DIR / "eval-author-first-eval"
 _INSPECT_DIR = _SKILLS_DIR / "eval-author-inspect-trace"
 _MLFLOW_TO_ATIF_DIR = _SKILLS_DIR / "mlflow-to-atif"
+_GYM_TO_ATIF_DIR = _SKILLS_DIR / "gym-to-atif"
 _TRACE_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-trace-environment"
 _SKILL_DIRS = (
     _CORE_DIR,
@@ -73,6 +74,7 @@ _SKILL_DIRS = (
     _FIRST_EVAL_DIR,
     _INSPECT_DIR,
     _MLFLOW_TO_ATIF_DIR,
+    _GYM_TO_ATIF_DIR,
     _TRACE_ENVIRONMENT_DIR,
 )
 _SUB_FLOW_DIRS = (
@@ -88,12 +90,14 @@ _DISCOVER_SCRIPTS_DIR = _DISCOVER_DIR / "scripts"
 _AUDIT_SPEC_DIR = _AUDIT_DIR / "scripts" / "audit_spec"
 _TASK_CREATE_SCRIPTS_DIR = _TASK_CREATE_DIR / "scripts"
 _MLFLOW_TO_ATIF_SCRIPTS_DIR = _MLFLOW_TO_ATIF_DIR / "scripts"
+_GYM_TO_ATIF_SCRIPTS_DIR = _GYM_TO_ATIF_DIR / "scripts"
 _TRACE_ENVIRONMENT_SCRIPTS_DIR = _TRACE_ENVIRONMENT_DIR / "scripts"
 _SCRIPT_DIRS = (
     _DISCOVER_SCRIPTS_DIR,
     _AUDIT_SPEC_DIR,
     _TASK_CREATE_SCRIPTS_DIR,
     _MLFLOW_TO_ATIF_SCRIPTS_DIR,
+    _GYM_TO_ATIF_SCRIPTS_DIR,
     _TRACE_ENVIRONMENT_SCRIPTS_DIR,
 )
 _DISCOVER = _DISCOVER_SCRIPTS_DIR / "discover.py"
@@ -1227,6 +1231,13 @@ def test_mlflow_to_atif_script_the_skill_names_exists() -> None:
     relative = "scripts/convert_mlflow_to_atif.py"
     assert relative in body
     assert (_MLFLOW_TO_ATIF_DIR / relative).is_file()
+
+
+def test_gym_to_atif_script_the_skill_names_exists() -> None:
+    _, body = _frontmatter_and_body(_GYM_TO_ATIF_DIR)
+    for relative in ("scripts/gym_to_atif.py", "references/trace-intel-ingest.md"):
+        assert relative in body
+        assert (_GYM_TO_ATIF_DIR / relative).is_file()
 
 
 def test_trace_environment_script_the_skill_names_exists() -> None:

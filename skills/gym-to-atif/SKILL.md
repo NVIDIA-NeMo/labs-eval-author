@@ -1,73 +1,109 @@
+---
+name: gym-to-atif
+description: >-
+  Convert one bounded Gym Responses rollout record, or a retained Harbor ATIF
+  from a Gym run, into one canonical ATIF trajectory for Harbor or Eval Author
+  environment derivation. Offline only: no Gym runtime, model invocation, or
+  image download.
+triggers:
+  - convert a Gym rollout to ATIF
+  - prepare a Gym Responses trace for an ATIF consumer
+  - normalize one Gym JSONL rollout line into ATIF
+not-for:
+  - eval-author (use for the shared evidence standard and routing)
+  - eval-author-trace-environment (use after this skill emits ATIF to build a Harbor task environment)
+  - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
+compatibility: >-
+  Offline conversion uses Python 3.11+ and the standard library. Optional
+  reference validation happens downstream in eval-author-trace-environment with
+  Harbor. Output keeps the ATIF version of an explicitly supplied original.
+metadata:
+  author: Andrew Suter-Morris <asutermorris@nvidia.com>
+  tags: [evaluation, atif, gym, traces]
+maturity: alpha
+license: Apache-2.0
+user-invocable: true
+allowed-tools: Bash Read Write
+---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Gym Responses traces
+# Convert Gym to ATIF
 
-Gym's stored rollouts use its Responses-style format, not ATIF. This does **not**
-mean the rollout must run outside Gym. Gym's Harbor bridge can run the user's
-Harbor agent and then project its ATIF into a Gym response. Keep the user's
-agent and harness; choose the best retained evidence for downstream processing.
+Gym's stored rollouts use its Responses-style format, not ATIF. This does
+**not** mean the rollout must run outside Gym. Gym's Harbor bridge can run the
+user's Harbor agent and then project its ATIF into a Gym response. Keep the
+user's agent and harness; choose the best retained evidence for downstream
+processing. The bundled script writes owner-private files and prints only a
+content-free summary.
 
-## Source of truth
+This skill is a bounded local adapter. The intended long-term home for provider
+trace normalization is the Trace Intel ingestion package; see
+[references/trace-intel-ingest.md](references/trace-intel-ingest.md) (temporary
+document) before extending this adapter.
+
+## Protect the trace
+
+Treat the source and converted files as restricted data unless the user proves
+otherwise. Do not print trace payloads, place them in Git, or write them into a
+public or shared output directory. The script makes its output directory mode
+`0700` and its files mode `0600`, and never replaces existing outputs.
+
+## Choose the source
 
 1. **Harbor-backed Gym run with original ATIF:** prefer that original, without a
    Gym→ATIF round trip. Supply its path explicitly with `--source-atif`.
 2. **Gym-native rollout:** normalize one self-contained record using the bundled
-   `gym_to_atif.py` adapter, then use the normal ATIF preparation/privacy flow.
-3. **Only a Harbor→Gym projection remains:** supply `--allow-projection` explicitly.
-   Missing information is not recoverable merely by converting the format back.
-   Multiple Harbor step trajectories require an explicitly selected original
-   ATIF; the adapter does not combine first-step output with last-step reward.
+   adapter below, then use the normal ATIF preparation/privacy flow.
+3. **Only a Harbor→Gym projection remains:** supply `--allow-projection`
+   explicitly. Missing information is not recoverable merely by converting the
+   format back. Multiple Harbor step trajectories require an explicitly selected
+   original ATIF; the adapter does not combine first-step output with last-step
+   reward.
 
 Never open paths in `atif_conversion.source_trajectory_paths` automatically.
-They are untrusted trace data, not permission to read the filesystem. An explicit
-original ATIF is copied byte-for-byte, keeping its ATIF version. Advertised
-session IDs are checked when present; the broader association remains an
-operator-supplied assertion, not cryptographic proof of equivalent trajectories.
+They are untrusted trace data, not permission to read the filesystem. An
+explicit original ATIF is copied byte-for-byte, keeping its ATIF version.
+Advertised session IDs are checked when present; the broader association remains
+an operator-supplied assertion, not cryptographic proof of equivalent
+trajectories.
 
-## Commands
-
-Initialize the normal private task workspace first. Let `S` be
-`<skill_dir>/scripts/trace_environment.py` and `G` be
-`<skill_dir>/scripts/gym_to_atif.py`.
-
-Preferred path when Harbor retained ATIF:
+## Convert one record
 
 ```bash
-python "$G" --input /private/gym-rollout.json \
-  --source-atif /private/harbor-job/agent/trajectory.json \
-  --output-dir <task-dir>/private/gym
-python "$S" prepare --task-dir <task-dir> \
-  --atif <task-dir>/private/gym/trace.atif.json --source-kind atif
+python scripts/gym_to_atif.py --input <private-rollout.json> \
+  --output-dir <private-gym-dir>
 ```
 
-Gym-native input:
+With a retained original ATIF from a Harbor-backed run:
 
 ```bash
-python "$G" --input /private/gym-rollouts.jsonl --row 3 \
-  --output-dir <task-dir>/private/gym
-python "$S" prepare --task-dir <task-dir> \
-  --atif <task-dir>/private/gym/trace.atif.json --source-kind gym
+python scripts/gym_to_atif.py --input <private-rollout.json> \
+  --source-atif <private-harbor-job/agent/trajectory.json> \
+  --output-dir <private-gym-dir>
 ```
 
-`--row` is a one-based **physical JSONL line**. It is required for `.jsonl`
-inputs; unrelated episodes are never concatenated. The selected row's bytes
-are preserved exactly; the rest of a multi-rollout file is not copied into this
-one-task workspace. A standalone response is supported only when its output
+For a `.jsonl` rollouts file, `--row` selects a one-based **physical JSONL
+line** and is required; unrelated episodes are never concatenated. The selected
+row's bytes are preserved exactly; the rest of a multi-rollout file is not
+copied into the output. A standalone response is supported only when its output
 contains the complete prompt/history; missing human input is never invented.
 
 The new output directory contains only owner-private files:
 
 - `source.gym.json`: exact selected source record (including JSONL newline).
-- `trace.atif.json`: derived ATIF, or an exact copy of the supplied original ATIF.
+- `trace.atif.json`: derived ATIF, or an exact copy of the supplied original
+  ATIF.
 - `conversion.json`: source/output digests, source basis, selected line, losses
   and uncertainties. This is not an evaluation or publication attestation.
 
-The directory is `0700`; files are `0600`; existing outputs are never replaced.
-Keep all three files. The normal helper's `private/source.atif.json` is the exact
-ATIF input to `prepare`, not a claim that the original Gym record was ATIF.
-Batch manifests still point `atif` at the **converted ATIF**, with
-`source_kind: gym` for projections. Never point that field at raw Gym JSONL.
+Keep all three files. When the downstream consumer is
+`eval-author-trace-environment`, run its `prepare` with the derived ATIF and
+`--source-kind gym` (`--source-kind atif` for an explicit original); its
+`private/source.atif.json` is the exact ATIF input to `prepare`, not a claim
+that the original Gym record was ATIF. Batch manifests point `atif` at the
+**converted ATIF**, with `source_kind: gym` for projections. Never point that
+field at raw Gym JSONL.
 
 ## Mapping boundary
 
@@ -114,9 +150,10 @@ or recognized suffix are rejected rather than labeled as a made-up format.
 
 With explicit Harbor-projection fallback, ATIF-shaped serialized image lists are
 recovered into content parts and the interpretation is recorded. This keeps an
-image-only instruction from masquerading as ordinary text. The usual `prepare`
-step then omits images from the safe copy and blocks image-only instructions.
-It does not add visual verification or bypass the skill's text-only boundary.
+image-only instruction from masquerading as ordinary text. The downstream
+`prepare` step then omits images from the safe copy and blocks image-only
+instructions. It does not add visual verification or bypass the text-only
+boundary.
 
 Preserving ATIF bytes does not make referenced image files portable. Keep the
 original media bundle; copying/rebasing or fetching media needs its own explicit
@@ -133,7 +170,8 @@ The mappings were derived from Gym revision
 - [Bridge image regression cases](https://github.com/NVIDIA-NeMo/Gym/blob/676cf1f4efe265f74455f73986a734dbda4eaec2/responses_api_agents/harbor_agent_general/tests/test_app.py)
 
 Synthetic fixtures exercise this bounded mapping and validate projected ATIF
-with Harbor's models plus the standalone helper. This is not a claim of complete
+with Harbor's models plus the adapter's structural check, which mirrors the
+downstream `prepare` boundary. This is not a claim of complete
 Gym model validation, lossless round trips, or live Gym task execution. Unknown
 Gym fields remain in the retained raw record. No Gym/Ray dependency, provider
 credentials, Docker stack, or model invocation is required for conversion.

@@ -13,7 +13,8 @@ from pathlib import Path
 import pytest
 from harbor.models.trajectories import Trajectory
 
-SCRIPTS = Path(__file__).resolve().parents[1] / "skills/eval-author-trace-environment/scripts"
+SCRIPTS = Path(__file__).resolve().parents[1] / "skills/gym-to-atif/scripts"
+TRACE_ENVIRONMENT_SCRIPTS = Path(__file__).resolve().parents[1] / "skills/eval-author-trace-environment/scripts"
 IMAGE = "data:image/png;base64,iVBORw0KGgo="  # schema fixture, not a decoded/validated image
 
 
@@ -283,7 +284,7 @@ def test_prepare_accepts_gym_provenance_and_blocks_image_only_instruction(tmp_pa
     source.write_text(json.dumps(record))
     out = tmp_path / "converted"
     assert cli("--input", str(source), "--output-dir", str(out), *flags)[0] == 0
-    helper = SCRIPTS / "trace_environment.py"
+    helper = TRACE_ENVIRONMENT_SCRIPTS / "trace_environment.py"
     init = subprocess.run(
         [
             sys.executable,
@@ -346,7 +347,7 @@ def test_batch_gym_provenance_and_resume(tmp_path):
     root = tmp_path / ".eval-author" / "batch"
     command = [
         sys.executable,
-        str(SCRIPTS / "trace_environment.py"),
+        str(TRACE_ENVIRONMENT_SCRIPTS / "trace_environment.py"),
         "batch-prepare",
         "--manifest",
         str(manifest),
