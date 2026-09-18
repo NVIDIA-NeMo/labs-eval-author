@@ -351,7 +351,17 @@ def test_live_workflow_runs_automatically_and_is_advisory():
     # Installation/checksum failures must prevent secret-bearing execution.
     assert "if" not in evaluation  # GitHub's default success() gate.
     assert evaluation["env"]["INFERENCE_HUB_API_KEY"] == "${{ secrets.INFERENCE_HUB_API_KEY }}"
-    assert evaluation["env"]["EVALUATION_TIER"] == "${{ inputs.tier || 'both' }}"
+    assert workflow["env"]["EVALUATION_TIER"] == (
+        "${{ github.event_name == 'pull_request' && '2' || inputs.tier || 'both' }}"
+    )
+    # Plan and execution must inherit the same policy; no step/job override may
+    # accidentally re-enable Tier 3 on PRs.
+    for configured_job in workflow["jobs"].values():
+        assert "EVALUATION_TIER" not in configured_job.get("env", {})
+        for step in configured_job["steps"]:
+            assert "EVALUATION_TIER" not in step.get("env", {})
+    compose = next(step for step in job["steps"] if step.get("name") == "Install verified Docker Compose runtime")
+    assert compose["if"] == "env.EVALUATION_TIER != '2'"
     assert evaluation["env"]["EVALUATION_SKILL"] == "${{ inputs.skill || 'all' }}"
     assert not {"OPENAI_API_KEY", "NVIDIA_API_KEY", "HUB_METADATA_API_KEY"}.intersection(evaluation["env"])
 

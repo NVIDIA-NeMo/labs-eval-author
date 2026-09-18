@@ -75,7 +75,11 @@ allowlisted fields intended for fixtures ingestion.
 
 `skill-evaluation-live.yml` runs automatically on same-repository pull requests
 targeting `main`, and on pushes to `main`, matching Tier 1's triggers.
-Automatic runs select both tiers and all skills. Fork PRs are excluded.
+Pull requests select **Tier 2 only**. Pushes to `main` (including merges) select
+**both tiers**, so the longer Tier 3 agent A/B runs are outside PR CI.
+Automatic runs select all skills. Fork PRs are excluded. The keyless plan and
+live execution share the same tier selection; Tier 2-only runs skip Docker
+Compose installation.
 All live model roles use NVIDIA Inference Hub
 with the explicitly authorized CI-only credential in the `skill-evaluator`
 GitHub environment. The repository variable
@@ -188,7 +192,8 @@ or deployment-branch restrictions were configured.
 5. Set the **repository** variable `SKILL_EVALUATION_LIVE_ENABLED=true` after
    setup; the job condition cannot read an environment-only variable.
 6. Inspect **SkillEvaluator Tier 2 and 3** on the next same-repository PR update
-   or `main` push. To investigate one skill, manually dispatch from `main` with
+   for Tier 2 results, or after a `main` push for Tier 2 and Tier 3 results.
+   To investigate one skill, manually dispatch from `main` with
    a selected tier/skill and `run_live=true`; omit live opt-in for a keyless plan.
 
 ### Embedding alternatives

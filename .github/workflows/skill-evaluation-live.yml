@@ -27,6 +27,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # PR feedback stays fast; full agent A/B evaluations run after merge.
+  EVALUATION_TIER: ${{ github.event_name == 'pull_request' && '2' || inputs.tier || 'both' }}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -45,7 +49,6 @@ jobs:
           persist-credentials: false
       - name: Report selected skills and dataset coverage without model calls
         env:
-          EVALUATION_TIER: ${{ inputs.tier || 'both' }}
           EVALUATION_SKILL: ${{ inputs.skill || 'all' }}
         run: |
           python tools/collect_live_skill_evaluations.py --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --output "$RUNNER_TEMP/skill-plan"
@@ -81,6 +84,7 @@ jobs:
           python-version: '3.12'
           enable-cache: false
       - name: Install verified Docker Compose runtime
+        if: env.EVALUATION_TIER != '2'
         env:
           COMPOSE_VERSION: '5.5.1'
           COMPOSE_SHA256: db1889184726840f75c4f9c001048430d4f25b3be3cb084d3ddd762bc0aed576
@@ -98,7 +102,6 @@ jobs:
           uv tool install --python 3.12 'skillevaluator[tier2,tier3] @ git+https://github.com/NVIDIA/SkillEvaluator.git@7e189c6bdada8910dfa1684f25feedca87f2db85'
       - name: Run advisory evaluations
         env:
-          EVALUATION_TIER: ${{ inputs.tier || 'both' }}
           EVALUATION_SKILL: ${{ inputs.skill || 'all' }}
           INFERENCE_HUB_API_KEY: ${{ secrets.INFERENCE_HUB_API_KEY }}
           SKILL_EVAL_LLM_MODEL: ${{ vars.SKILL_EVAL_LLM_MODEL }}
