@@ -9,6 +9,7 @@ description: >-
   a coverage audit after adapting existing evals. Changes
   none of the user's source, and saves audit artifacts under `.eval-author/`.
 triggers:
+  - audit my existing evals
   - generate audit.md from ETHOS.md
   - validate audit.md coverage schema
   - measure audit.md coverage against a harbor trace
@@ -36,6 +37,11 @@ allowed-tools: [Bash, Read, Write, Grep, Glob]
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 ## Ethos Pre-flight
+
+For an existing-evals audit, enter here directly with the selected eval paths,
+available run evidence, and prior findings. Reuse established Ethos and review
+state. The core's authoring welcome and Harbor setup milestones are not audit
+prerequisites; this procedure owns the intent needed for coverage work.
 
 Before drafting audit items or generating `audit.md`, require the selected agent's
 established Ethos to define what the audit should cover. An explicit

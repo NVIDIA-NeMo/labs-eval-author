@@ -41,23 +41,33 @@ source monorepo. No NeMo Platform checkout is required.
 | [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md) | Sub-flow. Plans and builds a small working starter suite while explaining how to run and extend it. |
 | [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Sub-flow. Records whether a repository's Harbor evals are ready to run. |
 | [`eval-author-adapt`](skills/eval-author-adapt/SKILL.md) | Sub-flow. Converts non-Harbor evals while preserving their cases and scoring rules. |
-| [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Sub-flow. Validates an existing finite `audit.md` coverage denominator. |
+| [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Sub-flow. Defines, validates, and measures intended behavior coverage against available trace evidence. |
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Sub-flow. Not user-invocable. Explains one Intake trace after `eval-author` selects it. |
-| [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Sub-flow. Creates and proves one Harbor task from an actionable audit gap. |
+| [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Sub-flow. Proposes eval improvements from audit findings; when requested, creates and proves one eligible tool-gap task. |
 | [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | Sub-flow. Converts one canonicalized trace into a private candidate, inventories ground truth and software constraints, and builds a reproducible Harbor task environment when supported. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Utility. Normalizes bounded MLflow exports to canonical ATIF. |
 
 Discovery also reports availability of the optional
 [Harbor assistant skills](https://github.com/harbor-framework/harbor/tree/main/skills).
 
-## Where findings go
+## Getting started
 
-Repository onboarding opens with the plan, then establishes Ethos, introduces and
-checks Harbor, and discovers the evaluation starting point. It then routes to
-first-eval creation or adaptation according to the selected material. The core owns the
-[shared checklist](skills/eval-author/SKILL.md#show-the-path-ahead), with
-[stage check-ins](skills/eval-author/references/milestone-checkins.md) for discussing
-progress before advancing.
+Eval Author selects the entry route from the user's starting situation and request:
+
+| Starting situation | Entry route |
+| --- | --- |
+| No evals; help me bootstrap some | First-eval authoring, with a plan and guided milestones |
+| Existing evals; audit them | Audit's own intent and coverage workflow |
+| Unsure whether or where evals exist | Report what exists and how to run it from the inspected docs and source, then ask whether the user wants an audit |
+| An audit is available; propose new evals | Ranked proposals, stopping before task creation or execution unless requested |
+
+Readiness-only and other scoped requests keep their own routes. Authoring uses
+the core's [shared checklist](skills/eval-author/SKILL.md#show-the-path-ahead) and
+[stage check-ins](skills/eval-author/references/milestone-checkins.md). A starting
+point already settled by the user or inventory is reused without another scan.
+Discovery's run instructions are labeled as documented or source-derived until
+readiness is validated. General evaluation help does not automatically continue
+from discovery into an audit.
 
 For a local skill tree, invoke the entrypoint and load supporting instructions as
 each stage needs them:
@@ -68,6 +78,8 @@ in this repository. Show me the plan first. Load sub-flows and references from
 that same local skill tree as needed for the current stage.
 ```
 
+## Where findings go
+
 First-eval saves its plan in `.eval-author/first-eval.md`, drafts under
 `.eval-author/task-drafts/`, and a run config in `.eval-author/first-eval.yaml`.
 Adaptation saves its source mapping in `.eval-author/adaptation.md` and drafts
@@ -75,9 +87,11 @@ under `.eval-author/adapted-tasks/`, preserving the source cases and scoring rul
 Coverage auditing is an optional follow-up; see the
 [adaptation handoff](skills/eval-author-adapt/SKILL.md#11-offer-a-coverage-audit-when-the-user-finishes-adaptation).
 
-`eval-author-discover` leaves a report at `.eval-author/discovery.md`, carrying the
-JSON in an evidence section so a later model reads the verdict without Harbor. It is
-visible and worth committing: a teammate who reads it skips the discovery pass.
+`eval-author-discover` leaves a report at `.eval-author/discovery.md`. Inventory
+reports explain what evals exist, their purposes, and documented run instructions.
+Readiness reports also carry provider JSON in an evidence section so a later model
+can read the verdict without Harbor. A teammate can reuse either report's findings
+and their stated limits.
 
 `eval-author-inspect-trace` leaves one report per trace under
 `.eval-author/traces/`. The front matter carries Intake source metadata and the

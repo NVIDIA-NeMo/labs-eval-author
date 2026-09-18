@@ -7,12 +7,17 @@ description: >-
   standard that every Eval Author sub-flow
   follows. Use when the user asks "help me with my evals",
   "what's the state of the eval suite here?", "what happened in this trace?", or
-  when you need to pick between the Eval Author sub-flows. Establishes local
-  Ethos before routing, without changing the agent's implementation. The selected
-  sub-flow uses the provider's supported tools and saves findings under `.eval-author/`.
+  when you need to pick between bootstrapping evals, auditing existing evals,
+  finding out whether evals exist, or proposing improvements from an audit.
+  Establishes local Ethos when the selected flow needs it, without changing the
+  agent's implementation. The selected sub-flow uses the provider's supported
+  tools and saves findings under `.eval-author/`.
 triggers:
   - help me build evals for my agent
   - my agent has no evals yet
+  - audit my existing evals
+  - I am not sure whether this repo has evals
+  - suggest new evals based on this audit
   - help me with the evals in this repo
   - what is the state of the eval suite here
   - I inherited a repo with Harbor tasks in it
@@ -52,18 +57,59 @@ allowed-tools: [Read, Write, Grep, Glob]
 Work on repository-owned evaluation suites and understand agent traces. Route
 each request to the narrow sub-flow that owns it.
 
+## Choose the entry route
+
+Choose the route before showing the onboarding checklist, gathering Ethos, or
+checking Harbor. Use the requested outcome, prior answers, and supplied material;
+do not ask the user to repeat a known starting point. These are alternative entry
+routes, not four stages everyone must complete:
+
+| Starting situation and request | Route | First action and deliverable |
+|---|---|---|
+| The user has no evals and wants to bootstrap them | [First eval](../eval-author-first-eval/SKILL.md) | Use the authoring welcome below, then build a small working suite through the shared milestones. The user's statement settles the starting point; no discovery pass is required to prove absence. |
+| The user has evals and wants them audited | [Audit](../eval-author-audit/SKILL.md) | Carry the selected eval paths and available evidence directly into the audit's own pre-flight and coverage workflow. Explain what that evidence can establish; do not substitute a readiness report for the requested audit. |
+| The user is unsure whether or where evals exist | [Discovery inventory](../eval-author-discover/SKILL.md#inventory-an-uncertain-starting-point) | Report what evals exist, what they test, and their documented run instructions before Ethos or runtime setup. Finish discovery, then ask whether the user wants an audit; do not infer that next step from a general request for help. |
+| The user wants new eval recommendations based on an audit | [Dataset proposals](../eval-author-task-create/SKILL.md#step-1-propose-dataset-improvements) | Reuse the audit and its evidence for ranked proposals. A proposal-only request stops before scaffolding or execution. |
+
+An explicit audit or proposal request keeps that purpose even when an input is
+missing: locate the missing source or follow the selected sub-flow's prerequisite
+guidance, then resume that request. A missing report does not mean the user has no
+evals. A generic request such as “help me with my evals” with no established
+starting point uses discovery inventory first. If the material is known but the
+desired outcome is unclear, ask one focused question about that outcome.
+
+Discovery inventory ends with its findings and run guidance before offering
+another flow. When evals exist, ask whether the user wants them audited and wait;
+“help me with my evals” alone does not select audit. With confirmed absence,
+offer first-eval; with an unresolved location, explain the search limits and ask
+the next source question. An inventory-only request ends with the findings.
+
+After the user requests or accepts a next step, carry source paths, run guidance,
+search limits, prior answers, and existing intent or setup evidence into that
+route. First-eval starts at its earliest unfinished milestone. Reuse an explicit
+request for discovery followed by audit or another flow: present the discovery
+summary first, then continue the already-requested work without asking again.
+
+Explicit readiness, repair, adaptation, trace, and other narrow requests keep
+their existing sub-flow and scope. On return visits, resume the requested flow
+and reuse its completed work. Never turn an audit or recommendation request into
+the full authoring experience merely because it is the user's first visit.
+
 ## Show the path ahead
 
-For a fresh request to get repository evals working, give the opening reply from
-this section immediately after reading this file. No other skill, reference,
-repository inspection, Harbor probe, or discovery result is needed to show the
-plan. A request to read the whole local skill tree does not require doing so before
-this welcome; defer that reading until after the opening answer. Otherwise load
-only the instructions needed for the current stage, from this same local tree.
+Use this opening for a fresh authoring request after selecting first-eval or
+adaptation. Audit, discovery inventory, and proposal routes use their own entry
+instructions. Once authoring is selected, give the opening immediately; no further
+skill, reference, repository inspection, or Harbor probe is needed to show the
+plan. Load supporting instructions only as the current stage needs them, from
+this same local tree.
 
 Briefly acknowledge the experience, then render this checklist with literal
-`- [ ]` checkboxes, all unchecked, marking the first stage **We're here**. Plain
-bullets are not the checklist. Shorten descriptions as useful, but retain the labels:
+`- [ ]` checkboxes. For a fresh start, mark the first stage **We're here** and leave
+all stages unchecked except a starting point already settled by the user or
+discovery inventory. Preserve completed stages on a handoff and mark the earliest
+unfinished stage **We're here**. Plain bullets are not the checklist. Shorten
+descriptions as useful, but retain the labels:
 
 - [ ] **Establish the agent’s Ethos** — understand the agent's purpose, boundaries, and success criteria; reuse or create and review its Ethos.
 - [ ] **Get Harbor ready** — introduce the required framework, then verify its installation and check optional assistant skills.
@@ -79,8 +125,8 @@ bullets are not the checklist. Shorten descriptions as useful, but retain the la
 End with “Ready to get started?” and wait. Do not follow the opening with tool
 calls in the same turn. After acceptance, read
 [Milestone check-ins](references/milestone-checkins.md) for stage transitions,
-progress, and resumption; begin with Ethos. The opening answer does not complete
-that stage or waive its check-in.
+progress, and resumption; begin at the earliest unfinished milestone, normally
+Ethos. The opening answer does not complete that stage or waive its check-in.
 
 On return visits, reuse an answered opening and resume the saved stage. Narrow
 inventory, readiness, audit, and trace requests use their scoped sub-flow instead
@@ -195,13 +241,15 @@ that sub-flow's reporting boundaries.
 
 ## Route after the evaluation starting point
 
-The shared milestone procedure leads onboarding through Ethos, Harbor, then
-`eval-author-discover`. Discovery owns the evaluation inventory, source selection,
-and saved findings; its runtime probes can be used separately during the Harbor
-stage. Reuse completed checks and answers when their inputs are unchanged.
+The entry routes above own discovery performed before authoring. Within an
+authoring flow, the shared milestone procedure establishes Ethos and Harbor,
+then reuses the settled starting point or calls `eval-author-discover` if source
+selection is still needed. Its runtime probes can be used separately during the
+Harbor stage. Reuse completed checks and answers when their inputs are unchanged.
 
-Follow discovery's **When no Harbor evals were found** conversation before routing
-candidate material; an empty Harbor scan does not establish that no evals exist.
+When a discovery scan found no Harbor evals, follow its **When no Harbor evals
+were found** conversation before routing candidate material; an empty Harbor
+scan does not establish that no evals exist.
 An explicitly supplied source already answers source selection. Once the evaluation
 starting point is settled, carry the established Ethos, Harbor invocation, findings,
 and answered check-ins into the selected path:
@@ -215,8 +263,9 @@ and answered check-ins into the selected path:
   the optional audit handoff.
 - **Confirmed absence of evals:** read
   [`eval-author-first-eval`](../eval-author-first-eval/SKILL.md) and continue at
-  **Define the evaluation scope**. A missing config does not block this starter
-  flow; do not substitute audit-gap task creation.
+  **Define the evaluation scope** once the authoring prerequisites above are
+  complete. A missing config does not block this starter flow; do not substitute
+  audit-gap task creation.
 - **Unknown or inaccessible evals:** ask for the location or an accessible
   representative case and its scoring. An access failure does not prove absence.
 
