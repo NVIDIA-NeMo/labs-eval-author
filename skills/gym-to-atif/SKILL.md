@@ -105,6 +105,20 @@ that the original Gym record was ATIF. Batch manifests point `atif` at the
 **converted ATIF**, with `source_kind: gym` for projections. Never point that
 field at raw Gym JSONL.
 
+## ng_trajectory attachments are out of scope
+
+Some Gym rollout records carry an `ng_trajectory` observability attachment
+(with `ng_model_call_capture` / `ng_agent_observations` sources); many do not.
+Emission is producer- and path-dependent: it requires `observability_enabled`
+and model calls routed through the rollout-prefixed Gym Model Server, while
+direct-provider calls bypass capture and aggregate exports omit the attachment
+entirely. This adapter converts only the Responses record
+(`responses_create_params`/`response`) and ignores the attachment, so its
+presence or absence does not change conversion. When present, keep it in the
+retained raw record: its per-call token counts, timing, tool durations, and
+invocation-scoped histories are the plausible source for closing this adapter's
+recorded per-step timestamp, token-cost, and LLM-call-grouping losses.
+
 ## Mapping boundary
 
 The adapter supports Gym rollout envelopes (`responses_create_params` and
@@ -169,6 +183,7 @@ The mappings were derived from Gym revision
 - [Rollout envelope](https://github.com/NVIDIA-NeMo/Gym/blob/676cf1f4efe265f74455f73986a734dbda4eaec2/nemo_gym/base_resources_server.py)
 - [Bridge image regression cases](https://github.com/NVIDIA-NeMo/Gym/blob/676cf1f4efe265f74455f73986a734dbda4eaec2/responses_api_agents/harbor_agent_general/tests/test_app.py)
 
+Attachment semantics were checked against the [trajectory capability matrix](https://github.com/NVIDIA-NeMo/Gym/blob/main/fern/versions/latest/pages/reference/trajectory-capabilities.mdx).
 Synthetic fixtures exercise this bounded mapping and validate projected ATIF
 with Harbor's models plus the adapter's structural check, which mirrors the
 downstream `prepare` boundary. This is not a claim of complete

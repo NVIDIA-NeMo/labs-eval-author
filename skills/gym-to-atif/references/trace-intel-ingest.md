@@ -49,6 +49,11 @@ uv add "git+https://github.com/NVIDIA-NeMo/labs-trace-intel#subdirectory=package
   projection fallback), the never-fetch-paths/URLs rule, the JSONL `--row`
   selection semantics, the content-free error boundary, and the loss/uncertainty
   recording. The fixtures in `tests/test_gym_to_atif.py` encode that contract.
+- A Gym loader should also consume `ng_trajectory`
+  (`ng_model_call_capture`/`ng_agent_observations`) attachments where present:
+  they carry the per-call token counts, timing, and invocation-scoped histories
+  the local adapter records as losses. Their absence is producer-dependent and
+  must not weaken the Responses-record contract.
 
 ## Boundaries that survive any migration
 
