@@ -54,6 +54,13 @@ uv add "git+https://github.com/NVIDIA-NeMo/labs-trace-intel#subdirectory=package
   they carry the per-call token counts, timing, and invocation-scoped histories
   the local adapter records as losses. Their absence is producer-dependent and
   must not weaken the Responses-record contract.
+- Reuse Gym's own ATIF code where it fits instead of duplicating it
+  (checked 2026-09-18, all newer than this adapter's pinned evidence revision):
+  `nemo_gym/atif_v1_7.py` (ATIF v1.7 Pydantic models), `nemo_gym/atif_json.py`
+  (strict JSON helpers), and `nemo_gym/atif_reverification.py` plus the Harbor
+  bridge's `convert_atif_to_gym_responses` (both ATIF→Responses only). Gym has
+  no Responses→ATIF or `ng_trajectory`→ATIF exporter; that direction is the
+  gap this skill fills.
 
 ## Boundaries that survive any migration
 
