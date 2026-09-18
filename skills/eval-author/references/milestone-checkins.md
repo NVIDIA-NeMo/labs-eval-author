@@ -4,10 +4,12 @@
 # Check in after each milestone
 
 The core selects the entry route before its authoring welcome and canonical
-checklist. Read this reference for first-eval or adaptation after the user starts
+checklist. Read this reference for first-eval after the user starts
 that experience; it owns stage transitions, progress, and resumption. Discovery
 inventory, audits, and proposals keep their scoped entry procedures. Sub-flows
-own the work within authoring stages.
+own the work within authoring stages. Throughout this procedure, a stage means
+one of the ten internal stages. The core's five visible checklist steps group
+their progress without combining stages or changing their check-ins.
 
 ## Complete, explain, check in, wait
 
@@ -33,18 +35,23 @@ scans, probes, interviews, artifact creation, integration, or runs while its
 check-in is unanswered. Within the current stage, complete independent authorized
 work. If a prerequisite prevents completion, explain the limitation and ask whether
 to defer it and move to a named independent stage. Wait for that choice, keep the
-deferred stage unchecked, and return when its prerequisite is available.
+deferred stage incomplete and its visible step unchecked, and return when its
+prerequisite is available.
 
 ## Progress and resumption
 
-Use the core's same checklist labels and checkbox syntax throughout the sub-flows.
+Use the core's five visible checklist labels, stage grouping, and checkbox syntax
+throughout the sub-flows; do not render the ten internal stages as another checklist.
 Render it in source-selection replies, stage check-ins, and return visits, rather
 than after every tool call. A saved report, link, findings list, or promise to show
 it later does not replace the visible checklist. Put findings and the checklist
-before the closing question. Mark the current focus **We're here** and use `[x]`
-only for work actually completed; an answered check-in is separate from technical
-completion. Leave future and partial stages unchecked, naming their remaining
-work. Ordinary intent or source questions do not need a blocked status.
+before the closing question. Mark the visible step containing the current internal
+stage **We're here**, including when an earlier prerequisite was explicitly
+deferred. Use `[x]` only when every internal stage in that step is complete; an
+answered check-in is separate from technical completion. Leave future and partial
+steps unchecked, naming their remaining work. Continue the same check-ins between
+internal stages even when the visible step does not change. Ordinary intent or
+source questions do not need a blocked status.
 
 Track case/grader preparation, environment availability, and agent configuration
 separately. A first case is partial progress when the agreed scope is a larger
@@ -53,8 +60,8 @@ of the actual agent. Keep validation open when required checks fail or remain
 unrun. A completed evaluation can have low scores without being incomplete.
 The owning sub-flow defines the evidence needed to complete each stage.
 
-Save the stage, evidence, pending question or answered transition, and next action
-in the existing findings or task README. Before those exist, retain early-stage
+Save the internal stage, evidence, pending question or answered transition, and
+next action in the existing findings or task README. Before those exist, retain early-stage
 state in the conversation or existing intent notes; do not run discovery just to
 obtain a report. Keep Harbor probe evidence, local interpreter paths, and milestone
 or approval records in that workflow state, not in `ETHOS.md`. This does not exclude
@@ -135,8 +142,8 @@ not a complete onboarding reply in place of the checklist.
 A source answer identifies the material, not its scoring quality or coverage.
 Name **Define the evaluation scope** as the next stage and use the core's
 **Route after the evaluation starting point** handoff. Carry forward Ethos,
-setup evidence, and answered transitions; do not restart them when first-eval
-or adaptation takes over. Any conflict between discovered criteria and Ethos is
+setup evidence, and answered transitions; do not restart them when authoring
+continues. Any conflict between discovered criteria and Ethos is
 resolved during scope planning, not by silently changing either one.
 
 ## Scope checkpoint

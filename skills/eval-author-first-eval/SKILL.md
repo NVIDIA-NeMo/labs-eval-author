@@ -31,7 +31,8 @@ allowed-tools: [Bash, Read, Write, Grep, Glob]
 
 Read `eval-author` for the shared standard and boundaries. Follow
 [Milestone check-ins](../eval-author/references/milestone-checkins.md) throughout
-these ten stages; that procedure owns transitions, progress, and user check-ins.
+these ten internal stages; that procedure owns transitions, progress, and user
+check-ins. Display progress using the core's five-step checklist.
 For a direct invocation, use the core's first-eval entry route and authoring
 opening before repository work. The user's statement that there are no evals is
 enough to select this flow. When routed here from discovery inventory, carry its

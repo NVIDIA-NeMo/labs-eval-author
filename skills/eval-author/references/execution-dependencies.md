@@ -3,7 +3,7 @@
 
 # Execution dependencies
 
-Use this in first-eval or adaptation when evidence points to software or state
+Use this in first-eval when evidence points to software or state
 outside the agent process: desktop applications, licensed tools, hardware, or
 external services. A tool name alone does not establish where it executes.
 Stage timing follows [Milestone check-ins](milestone-checkins.md): learn the

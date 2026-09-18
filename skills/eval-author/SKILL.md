@@ -1,7 +1,7 @@
 ---
 name: eval-author
 description: >-
-  Build first evals or adapt non-Harbor evals from a required Ethos, work on existing
+  Build first evals from a required Ethos, work on existing
   evaluation suites in a user's repository, or derive an environment from
   trace evidence, or understand an agent run from NeMo Intake. Owns the evidence
   standard that every Eval Author sub-flow
@@ -29,7 +29,6 @@ triggers:
 not-for:
   - eval-author-first-eval (use to establish Ethos and build first evals without prior coverage or traces)
   - eval-author-discover (use to run the discovery pass and get a runnable verdict)
-  - eval-author-adapt (use to adapt existing non-Harbor evaluations after discovery)
   - eval-author-audit (use to generate, validate, measure, or aggregate audit.md coverage)
   - eval-author-task-create (use to propose dataset improvements; when task creation is requested, create and prove an eligible Harbor task)
   - eval-author-inspect-trace (use after this skill selects the trace sub-flow)
@@ -71,6 +70,11 @@ routes, not four stages everyone must complete:
 | The user is unsure whether or where evals exist | [Discovery inventory](../eval-author-discover/SKILL.md#inventory-an-uncertain-starting-point) | Report what evals exist, what they test, and their documented run instructions before Ethos or runtime setup. Finish discovery, then ask whether the user wants an audit; do not infer that next step from a general request for help. |
 | The user wants new eval recommendations based on an audit | [Dataset proposals](../eval-author-task-create/SKILL.md#step-1-propose-dataset-improvements) | Reuse the audit and its evidence for ranked proposals. A proposal-only request stops before scaffolding or execution. |
 
+Adaptation is temporarily disabled. Do not route to `eval-author-adapt` or load
+its archived instructions. For an explicit request to convert existing evals to
+Harbor, explain that conversion is currently unavailable. Do not silently treat
+that request as first-eval authoring or treat existing material as absent.
+
 An explicit audit or proposal request keeps that purpose even when an input is
 missing: locate the missing source or follow the selected sub-flow's prerequisite
 guidance, then resume that request. A missing report does not mean the user has no
@@ -90,37 +94,49 @@ route. First-eval starts at its earliest unfinished milestone. Reuse an explicit
 request for discovery followed by audit or another flow: present the discovery
 summary first, then continue the already-requested work without asking again.
 
-Explicit readiness, repair, adaptation, trace, and other narrow requests keep
+Explicit readiness, repair, trace, and other supported narrow requests keep
 their existing sub-flow and scope. On return visits, resume the requested flow
 and reuse its completed work. Never turn an audit or recommendation request into
 the full authoring experience merely because it is the user's first visit.
 
 ## Show the path ahead
 
-Use this opening for a fresh authoring request after selecting first-eval or
-adaptation. Audit, discovery inventory, and proposal routes use their own entry
+Use this opening for a fresh authoring request after selecting first-eval.
+Audit, discovery inventory, and proposal routes use their own entry
 instructions. Once authoring is selected, give the opening immediately; no further
 skill, reference, repository inspection, or Harbor probe is needed to show the
 plan. Load supporting instructions only as the current stage needs them, from
 this same local tree.
 
 Briefly acknowledge the experience, then render this checklist with literal
-`- [ ]` checkboxes. For a fresh start, mark the first stage **We're here** and leave
-all stages unchecked except a starting point already settled by the user or
-discovery inventory. Preserve completed stages on a handoff and mark the earliest
-unfinished stage **We're here**. Plain bullets are not the checklist. Shorten
-descriptions as useful, but retain the labels:
+`- [ ]` checkboxes. For a fresh start, mark **Understand your agent** as
+**We're here** and leave all five steps unchecked. On a handoff, preserve completed
+internal stages and map the current stage to its visible step using the grouping
+below. Plain bullets are not the checklist. Shorten descriptions as useful, but
+retain the labels:
 
-- [ ] **Establish the agent’s Ethos** — understand the agent's purpose, boundaries, and success criteria; reuse or create and review its Ethos.
-- [ ] **Get Harbor ready** — introduce the required framework, then verify its installation and check optional assistant skills.
-- [ ] **Understand the evaluation starting point** — find existing evals and confirm the material to use, or establish that we are starting from scratch.
-- [ ] **Define the evaluation scope** — select behaviors and cases, establish success criteria, and resolve conflicts between Ethos and existing evals.
-- [ ] **Prepare cases and grading** — create task instructions, expected outcomes, and scoring checks; preserve existing scoring when adapting.
-- [ ] **Prepare the execution environment** — set up dependencies, fixtures, application access, starting conditions, and reset behavior.
-- [ ] **Connect the agent** — configure how tasks reach the agent and how its responses and actions reach the grader.
-- [ ] **Validate the evals** — check task validity, environment behavior, and whether graders distinguish correct and incorrect outcomes.
-- [ ] **Evaluate the agent** — execute the selected cases and capture fresh evidence and scores.
-- [ ] **Review results and explain reruns** — explain outcomes, limitations, remaining gaps, and how to repeat the evaluation.
+- [ ] **Understand your agent** — establish its purpose, boundaries, and what success looks like.
+- [ ] **Get Harbor ready** — explain the evaluation framework and verify the tooling.
+- [ ] **Draft your first evals** — choose a few meaningful cases, expected outcomes, and grading criteria.
+- [ ] **Get the evals running** — prepare the environment, connect the agent, and validate the setup.
+- [ ] **Run and review** — evaluate the agent, explain results, and show how to rerun.
+
+The five visible steps group the existing ten internal stages:
+
+| Visible step | Internal stages, in their existing order |
+| --- | --- |
+| Understand your agent | 1. Establish the agent’s Ethos |
+| Get Harbor ready | 2. Get Harbor ready |
+| Draft your first evals | 3. Understand the evaluation starting point → 4. Define the evaluation scope → 5. Prepare cases and grading |
+| Get the evals running | 6. Prepare the execution environment → 7. Connect the agent → 8. Validate the evals |
+| Run and review | 9. Evaluate the agent → 10. Review results and explain reruns |
+
+Render only the five visible steps in the user checklist. This grouping changes
+presentation only: preserve every internal stage's order, work, check-ins, and
+authorization requirements. Mark a visible step `[x]` only when all its internal
+stages are complete; mark the step containing the current internal stage
+**We're here**. A starting point already settled by the user or discovery completes that
+internal stage, but does not complete **Draft your first evals**.
 
 End with “Ready to get started?” and wait. Do not follow the opening with tool
 calls in the same turn. After acceptance, read
@@ -144,10 +160,6 @@ The authority depends on the sub-flow:
 
 - For suite discovery, Harbor's validators judge runnability. A file's presence
   doesn't prove that Harbor accepts it.
-- For adapting existing evals, Ethos establishes intended agent behavior; the
-  original cases, fixtures, and scoring rules establish what to preserve.
-  Resolve conflicts with the user before changing scoring. Harbor validation and
-  controlled task runs prove the new wiring, not scoring equivalence by themselves.
 - For first evals, Ethos establishes intended behavior. NOP and Oracle check
   basic task wiring and verifier behavior; the user's agent run establishes
   a baseline. Working setup does not establish evaluation quality or coverage,
@@ -188,7 +200,6 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 |---|---|
 | `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and set up a small working suite while teaching the user how to run and extend it |
 | `eval-author-discover` | Establish whether a repository's evaluations run, name the rung that fails, and get the exact command to run them |
-| `eval-author-adapt` | Establish required Ethos, convert existing non-Harbor material into task files, preserve scoring, and guide validation and execution |
 | `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Harbor task and prove it with Oracle and repeated measured runs |
 | `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
@@ -206,7 +217,7 @@ there are no eligible tool gaps; an audit-only request ends with the findings.
 
 ## Establish Ethos before authoring
 
-Both first-eval and adaptation require an applicable `ETHOS.md` before case design,
+First-eval requires an applicable `ETHOS.md` before case design,
 new scoring decisions, or task authoring. Read [Local Ethos](references/local-ethos.md)
 for the shared locate, reuse, intent, creation, validation, and review procedure.
 Agent documentation can inform Ethos before any evaluation inventory. Existing
@@ -236,7 +247,7 @@ pending while task files and independent checks proceed.
 Keep the gathered requirements, progress, and next action in the selected
 sub-flow's existing human-readable findings or task README under `.eval-author/`.
 Do not overwrite generated evidence reports or require a new intake document
-before conversion. For read-only requests, explain findings in the reply within
+before authoring. For read-only requests, explain findings in the reply within
 that sub-flow's reporting boundaries.
 
 ## Route after the evaluation starting point
@@ -256,11 +267,11 @@ and answered check-ins into the selected path:
 
 - **Existing Harbor suite or tasks:** continue discovery and resolve configuration
   or readiness failures. Broken evals are not a reason to start over.
-- **Existing non-Harbor material:** read
-  [`eval-author-adapt`](../eval-author-adapt/SKILL.md) and continue at **Define the
-  evaluation scope**. When Harbor and non-Harbor evals coexist, follow the user's
-  chosen suite. Adaptation owns mapping, scoring preservation, task delivery, and
-  the optional audit handoff.
+- **Existing non-Harbor material:** report what exists and its documented run
+  instructions or missing execution details. Preserve the user's selected source
+  and requested outcome. Conversion is currently unavailable; do not enter the
+  disabled adaptation flow. If the desired outcome is unclear, ask one focused
+  question before continuing with a supported flow.
 - **Confirmed absence of evals:** read
   [`eval-author-first-eval`](../eval-author-first-eval/SKILL.md) and continue at
   **Define the evaluation scope** once the authoring prerequisites above are
@@ -271,13 +282,6 @@ and answered check-ins into the selected path:
 
 An inventory-only request ends with findings and an offered next step. Discovery
 alone does not authorize creating or running evals.
-
-## Continue from adaptation to coverage auditing
-
-Follow `eval-author-adapt`'s optional coverage-audit handoff. An accepted audit goes
-directly to `eval-author-audit`, which owns its prerequisites and reports. An
-audit-only request ends with those findings; further tasks require a requested
-continuation.
 
 ## Boundaries
 
@@ -295,10 +299,8 @@ user, not to you.
   requested audit artifacts; `eval-author-task-create` writes only drafts,
   proposals, job outputs, and measurements there; `eval-author-trace-environment`
   writes only private, gitignored task workspaces there.
-  `eval-author-adapt` writes its mapping, task copies, configs, and job outputs
-  under `.eval-author/`; the original evals remain the source for preserved cases
-  and scoring. `eval-author-first-eval` writes plans, drafts, configs, and jobs there.
-  Both authoring flows use the narrow local Ethos write exception above.
+  `eval-author-first-eval` writes plans, drafts, configs, and jobs there and uses
+  the narrow local Ethos write exception above.
 - **A missing tool is a finding, not a task.** When the provider is not installed,
   say so and stop short of proving anything. Report what you found regardless, and
   do not install the provider automatically. Use discovery's Harbor setup guidance
@@ -307,7 +309,7 @@ user, not to you.
 - **Do not run without approval.** Discovery proves an existing suite can run and
   hands over the command. Task creation may run Oracle locally, then starts
   real-agent jobs only when the user explicitly asked for or approved that spend.
-  Adapting evals may run local task sanity checks when task creation is requested;
+  First-eval authoring may run local task sanity checks when task creation is requested;
   real-agent or paid-judge runs require authorization for that execution and spend.
 - **Trusted repositories only.** Validating a config can execute repository code,
   because an agent named by import path gets imported. If the repository is not
@@ -318,6 +320,11 @@ user, not to you.
   changes a remote resource.
 
 ## Communicating with the user
+
+Do not append a footer that names or links a skill, quotes its instructions, or
+explains that a skill requires you to ask or wait, unless the host explicitly
+requires that disclosure. Keep the questions, check-ins, waits, and authorization
+requirements unchanged.
 
 ### Explain the eval pieces as they become relevant
 
@@ -367,8 +374,8 @@ In validation and execution reports, state whether findings are proven, whether
 the suite is ready, and the checks that failed. Never describe a suite as ready while a required check
 fails, and never present an observation as proof. When a sub-flow could not reach
 its provider, its validation report must state that readiness was not proven.
-This does not block the empty-scan conversation, source-grounded adaptation
-planning, or first-eval Ethos and case planning within their prerequisite rules.
+This does not block the empty-scan conversation or first-eval Ethos and case
+planning within their prerequisite rules.
 
 For a trace, use `success`, `failure`, or `unknown`. Tie key moments and findings
 to span IDs, evaluator result IDs, or source symbols. A healthy trace doesn't

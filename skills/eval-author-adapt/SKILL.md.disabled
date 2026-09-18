@@ -35,8 +35,9 @@ allowed-tools: [Bash, Read, Write, Grep, Glob]
 
 Read `eval-author` for the shared standard, checklist, and boundaries. Apply
 [Milestone check-ins](../eval-author/references/milestone-checkins.md) for the ten
-checklist stages below; it owns stage order and handoff. For a direct
-invocation, use the core's opening before repository work. When routed here after
+internal stages below; it owns stage order and handoff. Display progress using
+the core's five-step checklist. For a direct invocation, use the core's opening
+before repository work. When routed here after
 evaluation discovery, carry forward the established Ethos, Harbor status,
 confirmed source, and answered check-ins into stage 4 once the first three stage
 transitions are settled. These sections describe that shared onboarding; do not
