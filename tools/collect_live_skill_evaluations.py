@@ -2,20 +2,24 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Plan or explicitly run advisory Tier 2/3 checks; export only bounded metrics."""
+"""Run advisory Tier 2/3 checks with bounded metrics and redacted diagnostics."""
 
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import math
 import os
 import re
 import subprocess
+import threading
+import time
 from collections import Counter
 from pathlib import Path
 
 from collect_skill_evaluations import EVALUATOR_REVISION, execute, now, sha, tree_digest
+from live_evaluation_diagnostics import diagnostics
 
 HUB_BASE_URL = "https://inference-api.nvidia.com/v1"
 HUB_KEY = "INFERENCE_HUB_API_KEY"
@@ -23,6 +27,27 @@ DEFAULT_CHAT_MODEL = "azure/openai/gpt-5.6-luna"
 DEFAULT_EMBEDDING_MODEL = "azure/openai/text-embedding-3-small"
 DIMENSIONS = ("security", "correctness", "discoverability", "effectiveness", "efficiency")
 FINDINGS = {"duplicate", "EXACT_DUPLICATE", "HIGH_SIMILARITY", "SIMILAR", "LOOSELY_RELATED", "DISTINCT"}
+
+
+def execute_with_progress(argv, repo, env, log, timeout):
+    """Keep CI responsive without streaming unredacted subprocess output."""
+    label = f"{log.parent.name}/{log.name}"
+    started = time.monotonic()
+    stopped = threading.Event()
+
+    def heartbeat():
+        while not stopped.wait(30):
+            print(f"{now()} {label}: running ({int(time.monotonic() - started)}s; limit {timeout}s)", flush=True)
+
+    worker = threading.Thread(target=heartbeat, daemon=True)
+    print(f"{now()} {label}: starting (limit {timeout}s)", flush=True)
+    worker.start()
+    try:
+        return execute(argv, repo, env, log, timeout)
+    finally:
+        stopped.set()
+        worker.join()
+        print(f"{now()} {label}: finished after {int(time.monotonic() - started)}s", flush=True)
 
 
 def number(value, minimum=0, maximum=1):
@@ -243,6 +268,15 @@ def collect(
                 f"| {row['tier']} | {row['skill']} | {row['check']} | {row['status']} | {row['reason'] or ''} |"
             )
         for row in report["observations"]:
+            if row.get("diagnostics"):
+                lines.extend(
+                    [
+                        "",
+                        f"## Tier {row['tier']} {row['skill']} diagnostics",
+                        "",
+                        "<pre>" + html.escape(row["diagnostics"]) + "</pre>",
+                    ]
+                )
             if row["status"] == "completed":
                 lines.extend(
                     [
@@ -318,21 +352,23 @@ def collect(
         target.mkdir(mode=0o700)
         skill = repo / "skills" / row["skill"]
         row.update(status="incomplete", reason="interrupted", started_at=now())
+        print(f"{now()} check-{index}: Tier {row['tier']} {row['skill']} {row['check']}", flush=True)
         persist()
+        data = {}
         try:
             if row["tier"] == 2:
                 command = "context-optimization-check" if row["check"] == "context" else "similarity-check"
                 scope = skill if row["check"] == "context" else repo / "skills"
                 argv = [evaluator, command, str(scope), "-r", "json", "-o", str(target / "reports")]
-                code, error = execute(argv, repo, env, target / "console.log", 300)
+                code, error = execute_with_progress(argv, repo, env, target / "console.log", 300)
                 paths = list((target / "reports").glob("*.json"))
             else:
                 # Native contract validation is keyless; no generation or autopilot.
-                code, error = execute(
+                code, error = execute_with_progress(
                     [evaluator, "tier3", "validate", str(skill), "--json"], repo, env, target / "validate.log", 60
                 )
                 if code != 0 or error:
-                    row.update(reason="dataset_validation_failed")
+                    row.update(reason="dataset_validation_failed", exit_code=code)
                     continue
                 argv = [
                     evaluator,
@@ -361,7 +397,7 @@ def collect(
                     "--progress",
                     "off",
                 ]
-                code, error = execute(argv, repo, env, target / "console.log", 1800)
+                code, error = execute_with_progress(argv, repo, env, target / "console.log", 1800)
                 # Native runs also publish a latest -> run symlink. Read only
                 # physical run directories so this alias cannot duplicate a report.
                 paths = [
@@ -387,15 +423,30 @@ def collect(
                 else summarize_tier3(data, code, row["cases"])
             )
             row.update(result)
-        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
             row.update(status="incomplete", reason="tool_or_report_error")
+            data = {"execution_errors": [f"Collector {type(exc).__name__}: {exc}"], "results": [data]}
         finally:
+            if row["status"] in ("failed", "incomplete") or any(row.get("severity_counts", {}).values()):
+                row["diagnostics"] = diagnostics(data, target if row["status"] == "incomplete" else None)
             if not unchanged(skills, digests):
                 row.update(status="incomplete", reason="skill_changed_during_run")
-                for key in ("arms", "dimension_lift", "pass_rate_lift", "severity_counts"):
+                for key in ("arms", "dimension_lift", "pass_rate_lift", "severity_counts", "diagnostics"):
                     row.pop(key, None)
             row["finished_at"] = now()
             persist()
+            print(
+                json.dumps(
+                    {
+                        "check": index,
+                        "skill": row["skill"],
+                        "status": row["status"],
+                        "reason": row["reason"],
+                        "diagnostics": row.get("diagnostics", ""),
+                    }
+                ),
+                flush=True,
+            )
     report["finished_at"] = now()
     persist()
     return report

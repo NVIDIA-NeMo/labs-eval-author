@@ -250,8 +250,17 @@ computed. Configured pins/models describe intent, not independent runtime
 attestation.
 
 GitHub receives only `live-skillevaluator-summary.json` and its Markdown view,
-retained for 30 days. Raw reports, prompts, trajectories, provider errors, and
-logs remain outside artifacts. A checkpoint is written before execution and
+retained for 30 days. The summaries include bounded, redacted diagnostics:
+Tier 2 finding descriptions and locations, nested Tier 3 execution errors and
+attempt counts, and log tails for incomplete checks (including validation,
+timeouts, and missing reports). Each check retains at most 12,000 characters
+plus a truncation marker. Known environment credentials, authorization values,
+credential assignments, and URLs are redacted before publication. Raw reports
+and full logs/trajectories remain outside artifacts; excerpts may contain task
+text, so use the reviewed synthetic datasets intended for this workflow.
+Diagnostics appear in both the JSON artifact and the Markdown job summary.
+The job log prints each check's start and result immediately, with a heartbeat
+every 30 seconds during subprocess execution. A checkpoint is written before execution and
 after every check so later failures retain earlier results. Hard runner failure
 or cancellation can still prevent upload; consumers must distinguish absent
 artifacts from successful runs. These artifacts are ready for ingestion, but

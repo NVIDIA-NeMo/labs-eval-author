@@ -367,6 +367,123 @@ def test_seed_datasets_are_bounded_and_have_negative_cases(live):
                 assert (skill / "evals" / filename).is_file()
 
 
+@pytest.mark.parametrize("failure", ["findings", "nested_execution", "timeout", "validation", "missing_report"])
+def test_failure_details_survive_in_artifact_summary_and_console(live, repo, tmp_path, monkeypatch, capsys, failure):
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "fixture-secret-123")
+
+    def execute(argv, cwd, env, log, timeout):
+        log.write_text("Actionable failure: connection reset; Bearer fixture-secret-123\n")
+        if "validate" in argv:
+            return (1 if failure == "validation" else 0), None
+        if failure == "timeout":
+            return -9, "timeout"
+        if failure == "missing_report":
+            return 1, None
+        if failure == "findings":
+            data = tier2()
+            row = data["results"][0]
+            row.update(status="failed", passed=False)
+            row["summary"].update(errors=1, high_count=1)
+            row["findings"] = [
+                {
+                    "check_name": "duplicate",
+                    "severity": "high",
+                    "file_path": "SKILL.md",
+                    "line_number": 42,
+                    "message": "Repeated routing instructions <script>bad</script>",
+                    "details": "Authorization: Bearer fixture-secret-123",
+                    "unrelated_payload": "DO-NOT-EXPORT",
+                }
+            ]
+            path = Path(argv[-1]) / "result.json"
+        else:
+            data = tier3()
+            data["execution_status"] = "failed"
+            arm = data["agents"]["opencode"]["conditions"]["without_skill"]
+            arm.update(
+                execution_status="failed",
+                scored_attempts=0,
+                execution_errors=["GraderTimeoutError: case one; token=other-secret"],
+            )
+            path = Path(argv[argv.index("--results-dir") + 1]) / "eval-author/run/result.json"
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(data))
+        return 1, None
+
+    monkeypatch.setattr(live, "execute", execute)
+    output = tmp_path / "diagnostics"
+    report = live.collect(repo, output, run=True, tier="2" if failure == "findings" else "3", skill_name="eval-author")
+    row = next(r for r in report["observations"] if r["skill"] == "eval-author" and r["status"] != "skipped")
+    published = (output / "live-skillevaluator-summary.json").read_text()
+    markdown = (output / "live-skillevaluator-summary.md").read_text()
+    console = capsys.readouterr().out
+    for text in (published, markdown, console):
+        assert "fixture-secret-123" not in text and "other-secret" not in text
+        assert "DO-NOT-EXPORT" not in text
+        assert "PRIVATE-SENTINEL" not in text
+        assert "diagnostics" in text
+    if failure == "findings":
+        assert "Repeated routing instructions" in published and "SKILL.md" in published
+        assert "<script>" not in markdown
+        assert row["status"] == "failed"
+    elif failure == "nested_execution":
+        assert "GraderTimeoutError" in published and "without_skill" in published
+        assert "scored_attempts: 0" in published
+    else:
+        assert "connection reset" in published
+        assert row["status"] == "incomplete"
+
+
+def test_diagnostics_redact_before_truncation_and_ignore_linked_logs(live, tmp_path, monkeypatch):
+    import live_evaluation_diagnostics as diagnostic
+
+    secret = 'fixture-secret-"unicode-\u2603'
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", secret)
+    report = {"execution_errors": ["x" * 11995 + secret + " trailing error"]}
+    result = diagnostic.diagnostics(report, None)
+    assert "fixture-secret" not in result and "[diagnostics truncated]" in result
+    outside = tmp_path / "outside.log"
+    outside.write_text("DO-NOT-EXPORT")
+    target = tmp_path / "check"
+    target.mkdir()
+    (target / "console.log").symlink_to(outside)
+    assert "DO-NOT-EXPORT" not in diagnostic.diagnostics({}, target)
+    text = diagnostic.redact('password="unknown secret" https://user:pass@example.com/?key=xyz Bearer unknown-token')
+    assert all(value not in text for value in ("unknown secret", "user:pass", "xyz", "unknown-token"))
+
+
+def test_progress_heartbeat_does_not_stream_raw_logs(live, tmp_path, monkeypatch, capsys):
+    class Event:
+        calls = 0
+
+        def wait(self, seconds):
+            assert seconds == 30
+            self.calls += 1
+            return self.calls > 1
+
+        def set(self):
+            pass
+
+    monkeypatch.setattr(live.threading, "Event", Event)
+
+    # Use a synchronous thread double to make the heartbeat deterministic.
+    class Thread:
+        def __init__(self, target, daemon):
+            self.target = target
+
+        def start(self):
+            self.target()
+
+        def join(self):
+            pass
+
+    monkeypatch.setattr(live.threading, "Thread", Thread)
+    monkeypatch.setattr(live, "execute", lambda *args: (1, None))
+    assert live.execute_with_progress([], tmp_path, {}, tmp_path / "console.log", 1800) == (1, None)
+    text = capsys.readouterr().out
+    assert "starting" in text and "running" in text and "finished" in text and "1800s" in text
+
+
 @pytest.mark.parametrize("fixture,exit_code", [("valid.json", 0), ("missing-instruction.json", 1)])
 def test_converter_seed_evidence_matches_expected_behavior(tmp_path, fixture, exit_code):
     skill = ROOT / "skills/mlflow-to-atif"
