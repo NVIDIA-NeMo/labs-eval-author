@@ -26,9 +26,10 @@ The job uploads `skillevaluator-summary.json` in the artifact named
 `skill-evaluations-<run-id>-<attempt>`, retained for 30 days, including on collection
 failure when a summary could be produced. After an installation failure, the
 collector still runs unless the job was cancelled, recording missing tools or
-reports as incomplete evidence. Raw scanner reports, console logs and
-scanner home directories are not uploaded because they may include source text
-or findings. They remain available in a local invocation's output directory.
+reports as incomplete evidence. Complete native JSON scanner reports are retained separately in
+`skill-evaluation-reports-<run-id>-<attempt>` for 30 days, only when the
+repository is private. They preserve full findings and source locations.
+Console logs and scanner home directories are not uploaded.
 
 The versioned `nemo.eval_author.skill_evaluations.v1` summary contains:
 
@@ -254,15 +255,17 @@ or incomplete baseline evidence cannot produce lift. No blended tier score is
 computed. Configured pins/models describe intent, not independent runtime
 attestation.
 
-GitHub receives only `live-skillevaluator-summary.json` and its Markdown view,
+The summary artifact contains `live-skillevaluator-summary.json` and its Markdown view,
 retained for 30 days. The summaries include bounded, redacted diagnostics:
 Tier 2 finding descriptions and locations, nested Tier 3 execution errors and
 attempt counts, and log tails for incomplete checks (including validation,
 timeouts, and missing reports). Each check retains at most 12,000 characters
 plus a truncation marker. Known environment credentials, authorization values,
-credential assignments, and URLs are redacted before publication. Raw reports
-and full logs/trajectories remain outside artifacts; excerpts may contain task
-text, so use the reviewed synthetic datasets intended for this workflow.
+credential assignments, and URLs are redacted before publication. Complete native Tier 2 JSON reports and Tier 3 `result.json` files are also
+retained in `skill-evaluation-live-reports-<run-id>-<attempt>` for 30 days,
+only when the repository is private. Full logs and trajectories remain outside
+artifacts; reports may contain task text, so use the reviewed synthetic datasets
+intended for this workflow.
 Diagnostics appear in both the JSON artifact and the Markdown job summary.
 The job log prints each check's start and result immediately, with a heartbeat
 every 30 seconds during subprocess execution. A checkpoint is written before execution and
@@ -303,3 +306,25 @@ must be clean in Git. A keyless plan may inspect uncommitted inputs and records
 Live collection returns nonzero for incomplete or unrun selected work, while
 completed findings remain advisory. No live execution is needed for the repo's
 normal unit tests, lint, or commit checks.
+
+## Full report access and integrity
+
+Full-report artifacts inherit the private repository's GitHub Actions access
+controls; they are not individually restricted beyond repository access. Both
+staging and upload are disabled if the repository is public. Reports are native,
+unredacted JSON, separate from the bounded summaries and never dashboard inputs.
+Download them from the workflow run's Artifacts section, or with `gh run download
+<run-id> -R NVIDIA-NeMo/labs-eval-author -n <artifact-name>`.
+
+`tools/stage_skill_reports.py` selects only `*/reports/*.json` and
+`check-*/results/*/*/result.json`, preserving paths and bytes and recording SHA-256
+hashes in `manifest.json`. Match these against the summary's `report_digest`.
+Linked files/directories (including the native `latest` alias), runtime homes,
+configuration, logs and trajectories are excluded. These artifacts provide full
+native report contents, not a complete agent-execution archive.
+
+Staging and upload use `always()` so completed reports survive later failures or
+cancellation when the runner can still execute cleanup steps. No report is
+invented after installation failure; missing files produce an upload warning.
+Abrupt runner loss can still prevent upload. This change applies to future runs
+and cannot restore the raw reports from earlier runs.

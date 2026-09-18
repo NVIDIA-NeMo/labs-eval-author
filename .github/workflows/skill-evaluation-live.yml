@@ -109,6 +109,17 @@ jobs:
           SKILL_EVAL_AGENT_MODEL: ${{ vars.SKILL_EVAL_AGENT_MODEL }}
         run: |
           python tools/collect_live_skill_evaluations.py --run --tier "$EVALUATION_TIER" --skill "$EVALUATION_SKILL" --output "$RUNNER_TEMP/skill-live"
+      - name: Stage full native reports for private retention
+        if: ${{ always() && github.event.repository.private == true }}
+        run: python tools/stage_skill_reports.py --source "$RUNNER_TEMP/skill-live" --output "$RUNNER_TEMP/skill-live-reports"
+      - name: Retain full native reports (repository access only)
+        if: ${{ always() && github.event.repository.private == true }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: skill-evaluation-live-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/skill-live-reports/
+          retention-days: 30
+          if-no-files-found: warn
       - name: Show sanitized summary
         if: always()
         run: |

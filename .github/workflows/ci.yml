@@ -52,6 +52,17 @@ jobs:
       - name: Scan main skill and all sub-skills
         if: ${{ !cancelled() }}
         run: python tools/collect_skill_evaluations.py --output "$RUNNER_TEMP/skill-evaluations"
+      - name: Stage full native reports for private retention
+        if: ${{ always() && github.event.repository.private == true }}
+        run: python tools/stage_skill_reports.py --source "$RUNNER_TEMP/skill-evaluations" --output "$RUNNER_TEMP/skill-evaluations-reports"
+      - name: Retain full native reports (repository access only)
+        if: ${{ always() && github.event.repository.private == true }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: skill-evaluation-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/skill-evaluations-reports/
+          retention-days: 30
+          if-no-files-found: warn
       - name: Upload metrics for future fixtures ingestion
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
