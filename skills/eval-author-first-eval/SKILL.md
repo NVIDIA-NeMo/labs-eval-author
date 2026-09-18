@@ -255,6 +255,6 @@ full commands in the saved report unless useful in the explanation.
 Traces and improvement are optional follow-up work. Explain that traces reveal
 steps and tool calls that can expose failure patterns, missing coverage, and weak
 checks. Link actual trace artifacts when emitted; otherwise identify the adapter
-or instrumentation needed to produce them. For requested coverage accounting,
-hand the established Ethos and actual ATIF to `eval-author-audit`, then use
-`eval-author-task-create` for measured actionable gaps.
+or instrumentation needed to produce them. Use the shared
+[post-evaluation handoff](../eval-author/references/milestone-checkins.md#after-a-successful-evaluation)
+for the next-step offer and audit routing.

@@ -34,6 +34,7 @@ not-for:
   - eval-author-task-create (use to propose dataset improvements; when task creation is requested, create and prove an eligible Harbor task)
   - eval-author-inspect-trace (use after this skill selects the trace sub-flow)
   - eval-author-trace-environment (use to derive a Harbor environment from canonical ATIF evidence)
+  - eval-author-report (use only when explicitly asked for a retrospective of the user's workflow difficulties)
   - nemo-intake (use to instrument agents, ingest telemetry, or query Intake outside Eval Author)
   - mlflow-to-atif (use to convert MLflow traces into canonical ATIF files)
   - nemo-experimentalist (use to run insight-driven optimization end to end, which drives the Eval Author agent itself)
@@ -194,6 +195,12 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 | `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
 | `eval-author-trace-environment` | Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor task when evidence supports it |
 
+The optional [`eval-author-report`](../eval-author-report/SKILL.md) creates a PDF
+retrospective from the user's available workflow history. Select it only when
+the user explicitly invokes it or asks for that retrospective. Do not run it
+because a user encounters an error, asks for ordinary evaluation results, or
+finishes a workflow; it is not an automatic sub-flow or completion step.
+
 `eval-author-audit` works one level above tasks: it generates and validates the
 coverage denominator, measures traces against it, and aggregates deterministic
 coverage reports. `eval-author-task-create` owns the proposal step: prioritize
@@ -259,8 +266,7 @@ and answered check-ins into the selected path:
 - **Existing non-Harbor material:** read
   [`eval-author-adapt`](../eval-author-adapt/SKILL.md) and continue at **Define the
   evaluation scope**. When Harbor and non-Harbor evals coexist, follow the user's
-  chosen suite. Adaptation owns mapping, scoring preservation, task delivery, and
-  the optional audit handoff.
+  chosen suite. Adaptation owns mapping, scoring preservation, and task delivery.
 - **Confirmed absence of evals:** read
   [`eval-author-first-eval`](../eval-author-first-eval/SKILL.md) and continue at
   **Define the evaluation scope** once the authoring prerequisites above are
@@ -272,12 +278,12 @@ and answered check-ins into the selected path:
 An inventory-only request ends with findings and an offered next step. Discovery
 alone does not authorize creating or running evals.
 
-## Continue from adaptation to coverage auditing
+## Continue after a successful evaluation
 
-Follow `eval-author-adapt`'s optional coverage-audit handoff. An accepted audit goes
-directly to `eval-author-audit`, which owns its prerequisites and reports. An
-audit-only request ends with those findings; further tasks require a requested
-continuation.
+Follow the shared [post-evaluation handoff](references/milestone-checkins.md#after-a-successful-evaluation)
+to offer help creating more evals through a repository and coverage audit.
+That procedure owns the trigger, question, and accepted handoff to
+`eval-author-audit` for both first-eval and adaptation.
 
 ## Boundaries
 

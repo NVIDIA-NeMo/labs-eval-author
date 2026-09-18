@@ -18,7 +18,8 @@ own the work within authoring stages.
 3. Name the next stage and ask one focused question about the result or that next
    step. End the reply and wait for the answer before starting the next stage.
    Address questions or corrections within the current stage first. At the final
-   results stage, ask whether anything needs explanation or revisiting and stop.
+   results stage, use [After a successful evaluation](#after-a-successful-evaluation)
+   for the next-step offer; otherwise focus the check-in on unresolved results.
 
 A question requesting the next stage's first needed input can serve as this
 check-in. Review of a saved Ethos can settle the Ethos stage; a source-selection
@@ -165,3 +166,35 @@ Use the existing stage check-in to settle the next affected decision or confirm
 the scope. Reuse established answers; missing inputs for one check need not hold
 up independent case preparation. This checkpoint explains the selected scope,
 without requiring a coverage audit or a new intake document.
+
+## After a successful evaluation
+
+When the actual agent completes the agreed eval run across the selected cases
+and records usable results, finish the results explanation and rerun guidance.
+Refresh the checklist, then offer help creating more evals through a repository
+and coverage audit. A low
+agent score can still be a successfully completed evaluation; it does not need
+to pass every case before this offer. Task creation, NOP/Oracle checks, replay of
+saved responses, or a run blocked by execution or grading errors do not establish
+this milestone. Do not wait for the user to say they are done with the evals.
+
+For example, close the results reply with:
+
+> Would you like to create more evals? I can audit your repository and eval
+> coverage against your agent's Ethos to identify useful cases to add.
+
+Wait for the answer. An affirmative answer starts
+[`eval-author-audit`](../../eval-author-audit/SKILL.md) directly; do not ask again
+whether to audit or restart onboarding. Follow its pre-flight and workflow with
+the established Ethos path, selected eval paths and IDs, existing findings, and
+run artifacts, including traces when available. Preserve artifact provenance
+and known grading or runtime limitations; missing traces limit measured coverage
+and must not be replaced with invented evidence. The audit flow owns coverage
+findings and its subsequent proposal handoff; carry forward the user's request
+for more evals.
+
+Record acceptance, deferral, or decline in the existing workflow findings. Honor
+the answer on return visits without repeating a settled offer. If the user
+already requested this audit, reuse that answer and proceed. Declining ends the
+flow after the results handoff; the audit remains optional, and accepting it does
+not by itself authorize new agent runs or paid judgments.

@@ -64,6 +64,7 @@ _FIRST_EVAL_DIR = _SKILLS_DIR / "eval-author-first-eval"
 _INSPECT_DIR = _SKILLS_DIR / "eval-author-inspect-trace"
 _MLFLOW_TO_ATIF_DIR = _SKILLS_DIR / "mlflow-to-atif"
 _TRACE_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-trace-environment"
+_REPORT_DIR = _SKILLS_DIR / "eval-author-report"
 _SKILL_DIRS = (
     _CORE_DIR,
     _DISCOVER_DIR,
@@ -74,6 +75,7 @@ _SKILL_DIRS = (
     _INSPECT_DIR,
     _MLFLOW_TO_ATIF_DIR,
     _TRACE_ENVIRONMENT_DIR,
+    _REPORT_DIR,
 )
 _SUB_FLOW_DIRS = (
     _DISCOVER_DIR,
@@ -715,6 +717,16 @@ def test_the_core_names_every_sub_flow() -> None:
     _, body = _frontmatter_and_body(_CORE_DIR)
     for skill_dir in _SUB_FLOW_DIRS:
         assert skill_dir.name in body, f"the core does not route to {skill_dir.name}"
+
+
+def test_workflow_report_requires_explicit_invocation() -> None:
+    """Both host policies must keep history reporting out of implicit selection."""
+    frontmatter, _ = _frontmatter_and_body(_REPORT_DIR)
+    config = yaml.safe_load((_REPORT_DIR / "agents" / "openai.yaml").read_text(encoding="utf-8"))
+
+    assert frontmatter["user-invocable"] is True
+    assert frontmatter["disable-model-invocation"] is True
+    assert config["policy"]["allow_implicit_invocation"] is False
 
 
 def test_inspect_flow_is_reached_only_through_eval_author() -> None:

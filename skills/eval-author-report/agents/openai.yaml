@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+interface:
+  display_name: "Eval Author Workflow Report"
+  short_description: "Create a PDF retrospective from workflow history"
+  default_prompt: "Use $eval-author-report to create a PDF report of where I struggled in my Eval Author workflow, including the recorded models and key prompt exchanges from the available history."
+
+policy:
+  allow_implicit_invocation: false
