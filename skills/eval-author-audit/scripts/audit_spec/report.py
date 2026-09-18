@@ -369,8 +369,8 @@ def _validate_json(
 ) -> None:
     """Validate JSON with a bundled schema, preserving environment failures."""
     try:
-        from jsonschema import Draft202012Validator  # ty: ignore[unresolved-import]
-        from jsonschema.exceptions import SchemaError  # ty: ignore[unresolved-import]
+        from jsonschema import Draft202012Validator
+        from jsonschema.exceptions import SchemaError
     except ImportError as exc:
         raise AuditEnvironmentError(f"jsonschema is required to validate {label}") from exc
 

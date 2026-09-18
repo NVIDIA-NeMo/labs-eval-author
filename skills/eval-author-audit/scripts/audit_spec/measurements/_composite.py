@@ -13,7 +13,7 @@ from typing import Any, TypeAlias
 from measurements.trace_tools import collect_tool_calls, tool_call_counts
 
 try:
-    from harbor.models.trajectories import Trajectory  # ty: ignore[unresolved-import]
+    from harbor.models.trajectories import Trajectory
 except ImportError:
     Trajectory = Any  # type: ignore[assignment,misc]
 
