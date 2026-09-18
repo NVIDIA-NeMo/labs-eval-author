@@ -125,7 +125,7 @@ the contextual reviewer owns that judgment.
 
 ### Resolve tool-call access
 
-For traces with tool calls, read `../../docs/trace-derived-fixtures.md`, then
+For traces with tool calls, read `references/tool-call-fixtures.md`, then
 run `inventory-tool-calls`, `plan-tool-call-access`, and
 `resolve-tool-call-access --decisions <decisions.json> --reviewer-kind <agent|human>`.
 After privacy review, when at least one decision is mock, run

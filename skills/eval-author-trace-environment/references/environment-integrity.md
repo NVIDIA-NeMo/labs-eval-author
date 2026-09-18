@@ -18,7 +18,7 @@ python <skill_dir>/scripts/trace_environment.py check-runtime --task-dir <task-d
 
 For mock tool-call access, optionally add `--mock-agent <harbor-agent-name-or-module:Class>`
 to inspect the selected trusted harness's registration; no agent-name allowlist
-applies. Read `../../../docs/trace-derived-fixtures.md` for the independent
+applies. Read `tool-call-fixtures.md` for the independent
 registration and native execution statuses. Unknown writers are unverified, not
 unsupported. Neither a valid preflight nor NOP/Oracle proves native mock access;
 retain the selected harness's actual discovery/call evidence before claiming it.
