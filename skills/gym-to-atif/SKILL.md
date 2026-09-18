@@ -183,7 +183,7 @@ The mappings were derived from Gym revision
 - [Rollout envelope](https://github.com/NVIDIA-NeMo/Gym/blob/676cf1f4efe265f74455f73986a734dbda4eaec2/nemo_gym/base_resources_server.py)
 - [Bridge image regression cases](https://github.com/NVIDIA-NeMo/Gym/blob/676cf1f4efe265f74455f73986a734dbda4eaec2/responses_api_agents/harbor_agent_general/tests/test_app.py)
 
-Attachment semantics were checked against the [trajectory capability matrix](https://github.com/NVIDIA-NeMo/Gym/blob/main/fern/versions/latest/pages/reference/trajectory-capabilities.mdx).
+Attachment semantics were checked against the [trajectory capability matrix](https://docs.nvidia.com/nemo/gym/reference/trajectory-capabilities/) and [model-call capture](https://docs.nvidia.com/nemo/gym/model-server/model-call-capture) docs.
 Synthetic fixtures exercise this bounded mapping and validate projected ATIF
 with Harbor's models plus the adapter's structural check, which mirrors the
 downstream `prepare` boundary. This is not a claim of complete
