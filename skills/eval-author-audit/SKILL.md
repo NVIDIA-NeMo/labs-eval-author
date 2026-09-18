@@ -6,7 +6,7 @@ description: >-
   from Ethos, needs schema enforcement for declared tools, capabilities, failure
   cases, evidence, and references, wants to measure which audit items one ATIF
   trace covers, wants to aggregate coverage across measured traces, or accepts
-  a coverage audit after adapting existing evals. Changes
+  a coverage audit of existing evals. Changes
   none of the user's source, and saves audit artifacts under `.eval-author/`.
 triggers:
   - audit my existing evals
@@ -17,7 +17,7 @@ triggers:
   - check audit.md coverage denominator
   - what should my evals cover from the agent ethos
   - review the audit coverage denominator
-  - audit coverage of my adapted evals against the ethos
+  - audit coverage of my evals against the ethos
 not-for:
   - eval-author (use for the standard, the boundaries, and to pick a sub-flow)
   - eval-author-discover (use to prove whether a Harbor suite is runnable)
@@ -46,7 +46,7 @@ prerequisites; this procedure owns the intent needed for coverage work.
 Before drafting audit items or generating `audit.md`, require the selected agent's
 established Ethos to define what the audit should cover. An explicit
 `--ethos <path>` overrides any prior handoff path; otherwise pass the established
-path supplied by first-eval or adaptation when available.
+path supplied by first-eval when available.
 
 Follow [Local Ethos](../eval-author/references/local-ethos.md) to locate, check,
 reuse, or create and review the document. That procedure owns the document

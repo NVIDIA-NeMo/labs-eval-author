@@ -358,8 +358,7 @@ Preserve its verdict, ready config choices, and next actions. Do not add interna
 check names, raw exceptions, `proven=true`, or git status to the reply. Mention the
 saved report after the verdict and next action. Do not run evals during discovery.
 If multiple configs are ready and the user has not selected one, ask which one
-they want; do not choose a run configuration by filename. This selection rule
-does not govern which non-Harbor case to adapt first.
+they want; do not choose a run configuration by filename.
 Before asking, read each listed configuration and add one short description beside
 its path in the reply. Describe the differences that help someone choose: the
 dataset or task selection, configured agent and model, and explicit task limits
@@ -389,7 +388,7 @@ on the existing-suite path. The inventory's depth and excluded directories limit
 what was inspected; a user-supplied location takes precedence over scan absence.
 The scanner also picks up configs by `tasks` or `datasets` keys. If source or
 documentation shows that a candidate belongs to another framework, explain that
-finding and use the source-selection conversation before adaptation; do not try
+finding and use the source-selection conversation below; do not try
 to repair it as Harbor merely because Harbor rejected it. A schema failure alone
 does not identify its format.
 

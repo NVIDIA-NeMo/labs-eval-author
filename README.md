@@ -18,7 +18,7 @@ copied skill tree, not published as a package API.
 
 Harbor is required to create, validate, and run eval tasks; see the
 [setup guide](skills/eval-author-discover/references/harbor-setup.md) for missing
-or broken installations. First-eval creation and non-Harbor adaptation also require
+or broken installations. First-eval creation also requires
 an applicable local Ethos before evaluation design. The bundled
 [Local Ethos procedure](skills/eval-author/references/local-ethos.md) supports
 reuse and creation without a NeMo service, account, or upload.
@@ -40,12 +40,16 @@ source monorepo. No NeMo Platform checkout is required.
 | [`eval-author`](skills/eval-author/SKILL.md) | Core. Owns the standard every sub-flow follows and routes to one. |
 | [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md) | Sub-flow. Plans and builds a small working starter suite while explaining how to run and extend it. |
 | [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Sub-flow. Records whether a repository's Harbor evals are ready to run. |
-| [`eval-author-adapt`](skills/eval-author-adapt/SKILL.md) | Sub-flow. Converts non-Harbor evals while preserving their cases and scoring rules. |
 | [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Sub-flow. Defines, validates, and measures intended behavior coverage against available trace evidence. |
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Sub-flow. Not user-invocable. Explains one Intake trace after `eval-author` selects it. |
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Sub-flow. Proposes eval improvements from audit findings; when requested, creates and proves one eligible tool-gap task. |
 | [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | Sub-flow. Converts one canonicalized trace into a private candidate, inventories ground truth and software constraints, and builds a reproducible Harbor task environment when supported. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Utility. Normalizes bounded MLflow exports to canonical ATIF. |
+
+Adaptation is temporarily disabled and is not an available route. Its instructions
+are retained in `skills/eval-author-adapt/SKILL.md.disabled` for possible restoration;
+the directory has no active `SKILL.md`. Discovery can still inventory existing
+non-Harbor material, but does not convert it into Harbor tasks.
 
 Discovery also reports availability of the optional
 [Harbor assistant skills](https://github.com/harbor-framework/harbor/tree/main/skills).
@@ -62,7 +66,8 @@ Eval Author selects the entry route from the user's starting situation and reque
 | An audit is available; propose new evals | Ranked proposals, stopping before task creation or execution unless requested |
 
 Readiness-only and other scoped requests keep their own routes. Authoring uses
-the core's [shared checklist](skills/eval-author/SKILL.md#show-the-path-ahead) and
+the core's [five-step checklist](skills/eval-author/SKILL.md#show-the-path-ahead),
+which groups the ten internal stages while preserving their
 [stage check-ins](skills/eval-author/references/milestone-checkins.md). A starting
 point already settled by the user or inventory is reused without another scan.
 Discovery's run instructions are labeled as documented or source-derived until
@@ -82,10 +87,6 @@ that same local skill tree as needed for the current stage.
 
 First-eval saves its plan in `.eval-author/first-eval.md`, drafts under
 `.eval-author/task-drafts/`, and a run config in `.eval-author/first-eval.yaml`.
-Adaptation saves its source mapping in `.eval-author/adaptation.md` and drafts
-under `.eval-author/adapted-tasks/`, preserving the source cases and scoring rules.
-Coverage auditing is an optional follow-up; see the
-[adaptation handoff](skills/eval-author-adapt/SKILL.md#11-offer-a-coverage-audit-when-the-user-finishes-adaptation).
 
 `eval-author-discover` leaves a report at `.eval-author/discovery.md`. Inventory
 reports explain what evals exist, their purposes, and documented run instructions.

@@ -57,7 +57,6 @@ import yaml
 _SKILLS_DIR = Path(__file__).resolve().parents[1] / "skills"
 _CORE_DIR = _SKILLS_DIR / "eval-author"
 _DISCOVER_DIR = _SKILLS_DIR / "eval-author-discover"
-_ADAPT_DIR = _SKILLS_DIR / "eval-author-adapt"
 _AUDIT_DIR = _SKILLS_DIR / "eval-author-audit"
 _TASK_CREATE_DIR = _SKILLS_DIR / "eval-author-task-create"
 _FIRST_EVAL_DIR = _SKILLS_DIR / "eval-author-first-eval"
@@ -67,7 +66,6 @@ _TRACE_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-trace-environment"
 _SKILL_DIRS = (
     _CORE_DIR,
     _DISCOVER_DIR,
-    _ADAPT_DIR,
     _AUDIT_DIR,
     _TASK_CREATE_DIR,
     _FIRST_EVAL_DIR,
@@ -77,7 +75,6 @@ _SKILL_DIRS = (
 )
 _SUB_FLOW_DIRS = (
     _DISCOVER_DIR,
-    _ADAPT_DIR,
     _AUDIT_DIR,
     _TASK_CREATE_DIR,
     _FIRST_EVAL_DIR,
@@ -640,6 +637,11 @@ def _named(report: dict, name: str) -> dict:
     return found
 
 
+def test_discoverable_skills_match_the_active_catalog() -> None:
+    """Only active skill entry points may be exposed to skill discovery."""
+    assert {path.parent for path in _SKILLS_DIR.glob("*/SKILL.md")} == set(_SKILL_DIRS)
+
+
 @pytest.mark.parametrize("skill_dir", _SKILL_DIRS, ids=lambda path: path.name)
 def test_frontmatter_carries_every_required_field(skill_dir: Path) -> None:
     frontmatter, _ = _frontmatter_and_body(skill_dir)
@@ -682,7 +684,6 @@ def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
     """Ethos can be saved before routing; executable work belongs to sub-flows."""
     core_tools = _allowed_tools(_frontmatter_and_body(_CORE_DIR)[0])
     discover_tools = _allowed_tools(_frontmatter_and_body(_DISCOVER_DIR)[0])
-    adapt_tools = _allowed_tools(_frontmatter_and_body(_ADAPT_DIR)[0])
     audit_tools = _allowed_tools(_frontmatter_and_body(_AUDIT_DIR)[0])
     task_create_tools = _allowed_tools(_frontmatter_and_body(_TASK_CREATE_DIR)[0])
     inspect_tools = _allowed_tools(_frontmatter_and_body(_INSPECT_DIR)[0])
@@ -692,9 +693,6 @@ def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
     assert "Bash" not in core_tools, "the core delegates executable work to a sub-flow"
     assert {"Bash", "Write"} <= discover_tools, (
         f"{_DISCOVER_DIR.name} runs a script and saves a report; it has {sorted(discover_tools)}"
-    )
-    assert {"Bash", "Write"} <= adapt_tools, (
-        f"{_ADAPT_DIR.name} scaffolds and validates task files; it has {sorted(adapt_tools)}"
     )
     assert {"Bash", "Write"} <= audit_tools, (
         f"{_AUDIT_DIR.name} generates and validates audit files; it has {sorted(audit_tools)}"
@@ -1200,19 +1198,6 @@ def test_discover_report_renderer_cli_summary_and_evidence(tmp_path: Path) -> No
     assert report["run_command"] in summary
     assert "Evidence JSON" not in summary
     assert source in saved
-
-
-def test_adapt_references_are_bundled() -> None:
-    """The copied adaptation skill must retain its linked workflow guidance."""
-    skill_dir = _ADAPT_DIR
-    _, body = _frontmatter_and_body(skill_dir)
-    references = re.findall(r"\]\((references/[^)]+)\)", body)
-    assert references, f"{skill_dir.name} must link its supporting workflow guidance"
-    for reference in references:
-        target = (skill_dir / reference).resolve()
-        assert target.is_relative_to(skill_dir.resolve())
-        assert target.is_file(), f"{skill_dir.name} references an unbundled file: {reference}"
-        assert target.read_text(encoding="utf-8").strip()
 
 
 def test_task_create_script_the_skill_names_exists() -> None:
@@ -1770,12 +1755,12 @@ def test_local_ethos_handoff_resources_are_self_contained() -> None:
     template = _CORE_DIR / "templates" / "ETHOS.md"
     checkins = reference.parent / "milestone-checkins.md"
     assert checkins.is_file()
-    for skill_dir in (_CORE_DIR, _FIRST_EVAL_DIR, _ADAPT_DIR):
+    for skill_dir in (_CORE_DIR, _FIRST_EVAL_DIR):
         _, body = _frontmatter_and_body(skill_dir)
         links = re.findall(r"\]\(([^)]+milestone-checkins\.md)\)", body)
         assert links, f"{skill_dir.name} has no shared milestone handoff"
         assert all((skill_dir / link).resolve() == checkins.resolve() for link in links)
-    for skill_dir in (_CORE_DIR, _FIRST_EVAL_DIR, _ADAPT_DIR, _AUDIT_DIR):
+    for skill_dir in (_CORE_DIR, _FIRST_EVAL_DIR, _AUDIT_DIR):
         _, body = _frontmatter_and_body(skill_dir)
         links = re.findall(r"\[Local Ethos\]\(([^)]+)\)", body)
         assert links, f"{skill_dir.name} has no local Ethos handoff"
