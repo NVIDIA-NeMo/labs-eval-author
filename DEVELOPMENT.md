@@ -5,6 +5,20 @@
 
 ## Validation
 
+CI runs copyright headers, OSV-backed third-party license disclosure checks,
+Ruff lint, and formatting once in the **Quality** job, following the
+[`labs-trace-intel` CI](https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/main/.github/workflows/ci.yaml)
+layout. Tests run separately on Python 3.12 and 3.13. Quality and test failures
+fail CI; skill evaluation remains advisory.
+
+OSV-Scanner is pinned to version 2.3.3 and verified by SHA-256 before execution.
+The license check compares the runtime dependency inventory and collected
+upstream notices against the committed files. It is not a vulnerability gate:
+scanner vulnerability findings do not currently fail the license generator.
+Eval Author distributes standalone skills (`tool.uv.package = false`), so the
+reference repository's wheel/sdist builds and distribution-license checks do
+not apply here.
+
 Run `uv sync --locked` and `make hooks` to install the DCO commit-message hook.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for sign-off and PR-title conventions.
 Before committing, check a prepared message with
