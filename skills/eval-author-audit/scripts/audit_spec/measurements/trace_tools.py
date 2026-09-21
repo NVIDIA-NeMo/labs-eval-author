@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any, TypeAlias
 
 try:
-    from harbor.models.trajectories import Trajectory  # ty: ignore[unresolved-import]
+    from harbor.models.trajectories import Trajectory
 except ImportError:
     Trajectory = Any  # type: ignore[assignment,misc]
 

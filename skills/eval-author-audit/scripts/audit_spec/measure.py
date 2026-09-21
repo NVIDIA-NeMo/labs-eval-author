@@ -17,7 +17,7 @@ from typing import Any, TypeAlias
 from urllib.parse import quote
 
 try:
-    from harbor.models.trajectories import Trajectory  # ty: ignore[unresolved-import]
+    from harbor.models.trajectories import Trajectory
 except ImportError as exc:
     HARBOR_IMPORT_ERROR: ImportError | None = exc
     Trajectory = Any  # type: ignore[assignment,misc]
@@ -555,8 +555,8 @@ def _details_schema_path(details: JsonObject) -> Path:
 def _validate_report(report: JsonObject, *, schema_path: Path, label: str, generated: bool = True) -> None:
     """Validate JSON against a schema committed with the skill."""
     try:
-        from jsonschema import Draft202012Validator  # ty: ignore[unresolved-import]
-        from jsonschema.exceptions import SchemaError  # ty: ignore[unresolved-import]
+        from jsonschema import Draft202012Validator
+        from jsonschema.exceptions import SchemaError
     except ImportError as exc:
         raise AuditEnvironmentError(f"jsonschema is required to validate {label} reports") from exc
 
