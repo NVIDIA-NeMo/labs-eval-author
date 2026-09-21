@@ -11,10 +11,11 @@ triggers:
 not-for:
   - eval-author (use for the shared standard and routing)
   - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
+  - gym-to-atif (use only to normalize Gym Responses traces into ATIF)
   - eval-author-task-create (use to close an actionable audit coverage gap)
   - eval-author-inspect-trace (use to explain an Intake trace without creating an environment)
 compatibility: >-
-  Python 3.11+, jsonschema 4.23+, referencing 0.28.4+; mlflow-to-atif for MLflow; nemo CLI for Intake; Harbor and
+  Python 3.11+, jsonschema 4.23+, referencing 0.28.4+; mlflow-to-atif for MLflow; gym-to-atif for Gym; nemo CLI for Intake; Harbor and
   Docker for proof. Use Harbor's Python environment. NOP/Oracle need no model;
   native-agent checks use the agent's configured provider.
 metadata:
@@ -88,8 +89,8 @@ Read and follow `references/sources.md`. One task per trace; never merge
 unrelated traces, and never invent an instruction, tool result, file, or final
 answer. Existing ATIF is used as-is; MLflow goes through `mlflow-to-atif`;
 Intake reads one exact trace plus every detailed span; bounded JSON OTLP
-exports map spans directly. For Gym, follow `references/gym.md`: prefer a
-retained Harbor ATIF, otherwise use the offline `gym_to_atif.py` adapter.
+exports map spans directly. For Gym, read and follow the `gym-to-atif` skill:
+prefer a retained Harbor ATIF, otherwise use its offline adapter.
 Record every missing or lossy field under
 `extra.normalization.uncertainties` or `extra.normalization.losses`. If no
 complete human instruction exists, record no_candidate instead of guessing.
@@ -323,10 +324,9 @@ for transcription controls, use
 
 Invoke the helper as `python <skill_dir>/scripts/trace_environment.py
 <command>`; there is no `run_script()` wrapper. Every command prints one JSON
-object and exits nonzero on contract errors. Gym's standalone adapter is
-`python <skill_dir>/scripts/gym_to_atif.py --input <record> --output-dir
-<task-dir>/private/gym [--row N] [--source-atif <original>]`; see
-`references/gym.md` for scope selection and explicit projection fallback.
+object and exits nonzero on contract errors. Gym's standalone adapter lives in
+the sibling `gym-to-atif` skill; put its owner-private output under
+`<task-dir>/private/gym` before `prepare`.
 
 | Command | Purpose | Key arguments |
 |---|---|---|
@@ -350,7 +350,8 @@ object and exits nonzero on contract errors. Gym's standalone adapter is
 ## Prerequisites
 
 Python 3.11+ with jsonschema 4.23+ and referencing 0.28.4+ for the helper; the
-sibling `mlflow-to-atif` skill for MLflow sources; the `nemo` CLI for Intake
+sibling `mlflow-to-atif` skill for MLflow sources; the sibling `gym-to-atif`
+skill for Gym sources; the `nemo` CLI for Intake
 sources; an existing Harbor installation plus Docker for probes and proof.
 
 ## Limitations

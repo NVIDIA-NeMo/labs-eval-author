@@ -17,6 +17,7 @@ import threading
 import time
 from collections import Counter
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
 from collect_skill_evaluations import EVALUATOR_REVISION, execute, now, sha, tree_digest
 from live_evaluation_diagnostics import diagnostics
@@ -27,6 +28,51 @@ DEFAULT_CHAT_MODEL = "azure/openai/gpt-5.6-luna"
 DEFAULT_EMBEDDING_MODEL = "azure/openai/text-embedding-3-small"
 DIMENSIONS = ("security", "correctness", "discoverability", "effectiveness", "efficiency")
 FINDINGS = {"duplicate", "EXACT_DUPLICATE", "HIGH_SIMILARITY", "SIMILAR", "LOOSELY_RELATED", "DISTINCT"}
+
+
+class ArmMetrics(TypedDict):
+    dimensions: dict[str, float]
+    passed_cases: int
+    total_cases: int
+    pass_rate: float
+
+
+class EvaluationSummary(TypedDict):
+    status: str
+    reason: str | None
+    severity_counts: NotRequired[dict[str, int]]
+    arms: NotRequired[dict[str, ArmMetrics]]
+    dimension_lift: NotRequired[dict[str, float]]
+    pass_rate_lift: NotRequired[float]
+
+
+class Observation(EvaluationSummary):
+    tier: int
+    skill: str
+    check: str
+    tree_digest: str
+    cases: int | None
+    started_at: NotRequired[str]
+    finished_at: NotRequired[str]
+    exit_code: NotRequired[int | None]
+    report_digest: NotRequired[str]
+    diagnostics: NotRequired[str]
+
+
+class LiveReport(TypedDict):
+    schema: str
+    repository: str
+    source_revision: str
+    inputs_clean: bool
+    configured_evaluator_revision: str
+    started_at: str
+    mode: str
+    ci: dict[str, str | None]
+    policy: dict[str, object]
+    observations: list[Observation]
+    updated_at: NotRequired[str]
+    finished_at: NotRequired[str]
+    counts: NotRequired[dict[str, int]]
 
 
 def execute_with_progress(argv, repo, env, log, timeout):
@@ -50,19 +96,19 @@ def execute_with_progress(argv, repo, env, log, timeout):
         print(f"{now()} {label}: finished after {int(time.monotonic() - started)}s", flush=True)
 
 
-def number(value, minimum=0, maximum=1):
+def number(value, minimum=0, maximum=1) -> float:
     if type(value) not in (int, float) or not math.isfinite(value) or not minimum <= value <= maximum:
         raise ValueError("invalid metric")
     return value
 
 
-def count(value):
+def count(value) -> int:
     if type(value) is not int or value < 0:
         raise ValueError("invalid count")
     return value
 
 
-def summarize_tier2(report, code, validator):
+def summarize_tier2(report, code, validator) -> EvaluationSummary:
     """Findings are distinct from provider/analysis errors, even when both exit 1."""
     rows = report["results"]
     if len(rows) != 1 or rows[0]["validator"] != validator or code not in (0, 1):
@@ -85,7 +131,7 @@ def summarize_tier2(report, code, validator):
     return {"status": row["status"], "reason": None, "severity_counts": counts}
 
 
-def summarize_tier3(report, code, cases):
+def summarize_tier3(report, code, cases) -> EvaluationSummary:
     """A completed A/B experiment may have poor scores; completion is not quality."""
     if code != 0 or report.get("execution_status") != "succeeded":
         # Export fixed categories, never the provider/agent error payload.
@@ -114,7 +160,7 @@ def summarize_tier3(report, code, cases):
     agent = report["agents"]["opencode"]
     if agent["execution_status"] != "succeeded" or report.get("execution_errors") or agent.get("execution_errors"):
         raise ValueError("inconsistent Tier 3 execution")
-    arms = {}
+    arms: dict[str, ArmMetrics] = {}
     for arm in ("with_skill", "without_skill"):
         execution = agent["conditions"][arm]
         if (
@@ -219,7 +265,7 @@ def collect(
     runtime_home = output / "runtime-home"
     runtime_home.mkdir(mode=0o700)
     env["HOME"] = str(runtime_home)
-    report = {
+    report: LiveReport = {
         "schema": "nemo.eval_author.live_skill_evaluations.v1",
         "repository": "NVIDIA-NeMo/labs-eval-author",
         "source_revision": revision,
@@ -303,7 +349,7 @@ def collect(
     for skill in skills:
         selected = skill_name in ("all", skill.name)
         for level, check in (("2", "context"), ("3", "live")):
-            row = {
+            row: Observation = {
                 "tier": int(level),
                 "skill": skill.name,
                 "check": check,

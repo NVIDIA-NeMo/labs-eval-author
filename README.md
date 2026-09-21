@@ -45,6 +45,7 @@ source monorepo. No NeMo Platform checkout is required.
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Sub-flow. Proposes eval improvements from audit findings; when requested, creates and proves one eligible tool-gap task. |
 | [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | Sub-flow. Converts one canonicalized trace into a private candidate, inventories ground truth and software constraints, and builds a reproducible Harbor task environment when supported. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Utility. Normalizes bounded MLflow exports to canonical ATIF. |
+| [`gym-to-atif`](skills/gym-to-atif/SKILL.md) | Utility. Normalizes one bounded Gym Responses record, or a retained Harbor ATIF from a Gym run, to canonical ATIF. |
 
 Adaptation is temporarily disabled and is not an available route. Its instructions
 are retained in `skills/eval-author-adapt/SKILL.md.disabled` for possible restoration;
@@ -102,9 +103,9 @@ exact read commands. Findings use `behavior`, `issue`, `recovery`, and
 `eval-author-trace-environment` creates one owner-private, gitignored workspace
 per task under `.eval-author/trace-environments/`. Each finalized workspace has
 a `candidate` or `no_candidate` summary and keeps restricted source evidence
-separate from its text-only scrubbed ATIF copy. It also accepts
-[Gym Responses traces](skills/eval-author-trace-environment/references/gym.md)
-through a bounded offline adapter. For Harbor-backed Gym rollouts, retain and
+separate from its text-only scrubbed ATIF copy. It also accepts Gym Responses
+traces through the sibling [`gym-to-atif`](skills/gym-to-atif/SKILL.md)
+utility's bounded offline adapter. For Harbor-backed Gym rollouts, retain and
 prefer the original ATIF rather than round-tripping through Gym's projection.
 No Gym runtime, model invocation, or image download is needed for normalization.
 

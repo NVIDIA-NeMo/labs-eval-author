@@ -14,6 +14,7 @@ import yaml
 spec = importlib.util.spec_from_file_location(
     "skill_evaluations", Path(__file__).resolve().parents[1] / "tools/collect_skill_evaluations.py"
 )
+assert spec is not None and spec.loader is not None
 collector = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(collector)
 
