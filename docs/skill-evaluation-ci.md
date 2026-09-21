@@ -113,7 +113,12 @@ Compose 2.38.2 rejects Harbor's `up --wait` for these generated containers with
 `has no healthcheck configured`, even after successfully building and starting
 the container. Keep the native preflight enabled when updating this runtime.
 It validates the authored dataset first and never uses autopilot or generates
-cases during CI. Each skill is limited to four cases and thirty minutes.
+cases during CI. Each skill is limited to four cases and thirty minutes, except
+the reviewed `eval-author-discover` group, which allows eight cases within the
+same timeout. Discover includes `eval-author` and `eval-author-audit` in both
+arms and uses `default_plus_custom` grading. Its collector profile checks the
+reviewed config shape and sibling list; other skills remain isolated with
+default grading.
 Execution is capped by these counts and timeouts, **not by a dollar budget**;
 configure provider spending/rate limits before enabling live work. Docker
 containers may outlive a killed evaluator process until the ephemeral runner
@@ -218,12 +223,22 @@ may behave differently across embedding models. Embeddings do not affect Tier 3.
 
 ### Initial Tier 3 scope
 
-Two authored synthetic datasets ship in the skill-owned `evals/` directories:
+Three authored synthetic datasets ship in the skill-owned `evals/` directories:
 
 - `eval-author`: four routing cases covering explicit discovery, implicit first
   evals, a corrected request for trace-environment creation, and an unrelated
   negative case. This measures routing and evidence boundaries, not successful
   execution of downstream sub-skills.
+- `eval-author-discover`: eight cases covering existing Harbor suites, confirmed
+  absence of agent evals, non-Harbor evals, an unresolved external source,
+  missing-provider readiness, both inventory/audit handoffs, and an unrelated
+  negative case. Four synthetic repositories supply inspectable source. Its
+  custom grader checks reports, source preservation, write scope, execution
+  markers, and native missing-provider evidence. See the
+  [Discover dataset guide](../skills/eval-author-discover/evals/README.md) for
+  case IDs, limits, and commands. These cases do not establish complete audit
+  measurement or successful suite execution. The baseline keeps the two
+  supporting skills, so lift measures Discover's incremental contribution.
 - `mlflow-to-atif`: explicit and implicit offline conversion, refusal to invent
   a missing human instruction, and a negative case. Fixture JSON is synthetic;
   no customer or Intake access is required. This measures bounded offline
@@ -231,16 +246,23 @@ Two authored synthetic datasets ship in the skill-owned `evals/` directories:
 
 The standard SkillEvaluator grader uses model judgments and trace-derived
 signals. These scores do not replace our deterministic converter tests or the
-trace-environment NOP/Oracle proof contract. One attempt on four cases is a
-smoke evaluation, not a reliable population estimate.
+trace-environment NOP/Oracle proof contract. One attempt on a small authored
+dataset is a smoke evaluation, not a reliable population estimate.
+
+Discover's custom metrics do not replace native overall/pass@1. The collector
+requires one complete custom reward per selected case in both arms and checks
+the native aggregate against that evidence. It publishes separate artifact pass
+counts, per-case metrics/verdicts, and failed IDs. Missing or inconsistent custom
+evidence is `incomplete`; completed artifact failures stay visible alongside
+native behavior scores. Both remain advisory.
 
 All other discovered skills receive `missing_dataset` for selected Tier 3
 work. Author a bounded, reviewed `evals/evals.json` and validate it before
 enabling each additional skill. Harbor/Docker authoring inside a Tier 3 agent
 container requires a deliberate nested-runtime design; this PR does not mount
 the host Docker socket, add production credentials, or claim end-to-end
-trace-environment proof. Relative sibling-skill dependencies also need an
-explicit group evaluation design before measuring those sub-flows.
+trace-environment proof. Additional sibling-skill dependencies still need an
+explicit group evaluation design; Discover is the first reviewed group.
 
 ### Reports and local checks
 
