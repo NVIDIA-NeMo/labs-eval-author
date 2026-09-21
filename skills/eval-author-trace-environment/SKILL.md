@@ -229,7 +229,8 @@ minimal files needed to reproduce the starting state. Human-supplied or
 reviewed `Relevant experience` is necessary for readiness; never invent it.
 
 `tests/test.sh` must emit one `check-id\tPASS|FAIL` row per scored check to
-`/logs/verifier/results`; read and follow `references/check-grammar.md`.
+`/logs/verifier/results`; read and follow `references/check-grammar.md`, including its outcome-by-outcome
+review and executed copy probes when transcription could bypass requested behavior.
 
 Work in an authoring loop, not one pass. `validate-task` lints the tree with
 remediation hints; fix every issue it reports. Then `probe` runs one
@@ -319,27 +320,10 @@ Harbor is the authority for whether the task actually runs.
 
 ## Examples
 
-One end-to-end candidate flow (see `## Available Scripts` for every argument):
-
-```bash
-S=<skill_dir>/scripts/trace_environment.py
-python $S init --task-id my-task
-python $S prepare --task-dir <dir> --atif <trace.atif.json> --source-kind atif
-python $S review-privacy --task-dir <dir> --reviewer-kind agent --note "Reviewed every safe ATIF field."
-# decide candidate.json (check-candidate), then author <dir>/task/
-python $S validate-task --task-dir <dir>
-python $S probe --task-dir <dir>
-python $S record-reproducibility --task-dir <dir>
-python $S record-run-inputs --task-dir <dir> --arm nop --job-dir private/jobs/nop-1
-harbor run -p <dir>/task -a nop --jobs-dir <dir>/private/jobs --job-name nop-1
-# ... nop-2, oracle-1, oracle-2, negative-1 with record-run-inputs before each ...
-python $S record-validation --task-dir <dir> --nop-job-dir private/jobs/nop-1 \
-  --nop-job-dir private/jobs/nop-2 --oracle-job-dir private/jobs/oracle-1 \
-  --oracle-job-dir private/jobs/oracle-2 --negative-job-dir private/jobs/negative-1 \
-  --harbor-version "$(harbor --version)"
-python $S finalize --task-dir <dir> --status candidate --human-reviewed
-python $S check --task-dir <dir>
-```
+Steps 1–7 cover the complete authoring flow. For retained proof commands, use
+[the repeat-run example](references/environment-integrity.md#repeat-and-negative-control-proof);
+for transcription controls, use
+[the copy-probe example](references/check-grammar.md#executed-copy-probes).
 
 ## Available Scripts
 
@@ -360,7 +344,7 @@ the sibling `gym-to-atif` skill; put its owner-private output under
 | `probe` | Diagnostic NOP/Oracle run or adoption; never proof | `--task-dir --arm --results-from` |
 | `record-reproducibility` | Hash the task tree and integrity scan | `--task-dir` |
 | `record-run-inputs` | Bind one future Harbor job to arm and task digest | `--task-dir --arm --job-dir` |
-| `record-validation` | Derive proof from retained Harbor jobs | `--task-dir --*-job-dir --harbor-version [--allow-aggregate-only]` |
+| `record-validation` | Derive proof from retained Harbor jobs | `--task-dir --*-job-dir --harbor-version [--copy-job-dir] [--allow-aggregate-only]` |
 | `record-repair` | Archive superseded proof and record one bounded repair | `--task-dir --reason-code --note` |
 | `finalize` | Write the candidate decision and summary | `--task-dir --status [--human-reviewed]` |
 | `check` | Verify digests, artifacts, proof, and repair ledger | `--task-dir` |
