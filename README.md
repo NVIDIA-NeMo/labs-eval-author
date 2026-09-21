@@ -22,34 +22,20 @@ For example, an audit might report:
 
 This project is in alpha. Workflows and interfaces may change.
 
-## Prerequisites
-
-Harbor is required to create, validate, and run evaluation tasks. Use a Python
-environment supported by your Harbor installation; see the
-[setup guide](skills/eval-author-discover/references/harbor-setup.md) for installation
-and verification. Repository inventory and case planning can start without Harbor.
-
-First-evaluation design and coverage audits require a local **Ethos** describing
-your agent's purpose, boundaries, and success criteria. Eval Author can help you
-reuse or create one with the [Local Ethos procedure](skills/eval-author/references/local-ethos.md),
-without a NeMo service, account, or upload.
-
-The discovery helper requires Python 3.11+. Audit generation, validation, and
-aggregation require Python 3.11+, PyYAML, and jsonschema. Measuring coverage from
-ATIF traces requires Python 3.12+ and the
-[audit dependencies](skills/eval-author-audit/requirements.txt), including Harbor.
-
-Task execution may need Docker, application access, and model credentials,
-depending on the task and agent. Intake trace inspection requires a working
-`nemo` CLI, an explicit workspace, and read access to a configured local or remote
-NeMo Platform instance. See the [full requirements](docs/getting-started.md#requirements)
-for each workflow, including local trace conversion and experimental
-environment preparation.
-
 ## Start here
 
-With the [Eval Author skills loaded](docs/getting-started.md#load-the-skills)
-and your agent's repository open, ask your coding assistant:
+Install Eval Author from your agent's repository:
+
+```bash
+npx skills add NVIDIA-NeMo/labs-eval-author --skill '*'
+```
+
+Choose your coding assistant when prompted. This installs the complete Eval Author
+skill set, including the **experimental** trace-to-environment workflow. It requires
+Node.js 22.20+ (with `npx`) and Git; see
+[installation details and manual setup](docs/getting-started.md#load-the-skills).
+
+Then open your agent's repository in your coding assistant and ask:
 
 ```text
 Help me with the evals for my agent.
@@ -73,6 +59,30 @@ scenario, try one of these:
 Include the relevant file paths, trace IDs, or workspace names in your request.
 
 [Development](DEVELOPMENT.md) · [Skill reference](DEVELOPMENT.md#skill-reference) · [Support](https://github.com/NVIDIA-NeMo/labs-eval-author/issues)
+
+## Prerequisites
+
+Harbor is required to create, validate, and run evaluation tasks. Use a Python
+environment supported by your Harbor installation; see the
+[setup guide](skills/eval-author-discover/references/harbor-setup.md) for installation
+and verification. Repository inventory and case planning can start without Harbor.
+
+First-evaluation design and coverage audits require a local **Ethos** describing
+your agent's purpose, boundaries, and success criteria. Eval Author can help you
+reuse or create one with the [Local Ethos procedure](skills/eval-author/references/local-ethos.md),
+without a NeMo service, account, or upload.
+
+The discovery helper requires Python 3.11+. Audit generation, validation, and
+aggregation require Python 3.11+, PyYAML, and jsonschema. Measuring coverage from
+ATIF traces requires Python 3.12+ and the
+[audit dependencies](skills/eval-author-audit/requirements.txt), including Harbor.
+
+Task execution may need Docker, application access, and model credentials,
+depending on the task and agent. Intake trace inspection requires a working
+`nemo` CLI, an explicit workspace, and read access to a configured local or remote
+NeMo Platform instance. See the [full requirements](docs/getting-started.md#requirements)
+for each workflow, including local trace conversion and experimental
+environment preparation.
 
 ## License
 

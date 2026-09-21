@@ -10,9 +10,11 @@ the environment, including the test runner, validators, MCP, and Harbor 0.20.0.
 No NeMo Platform checkout is required. See [CONTRIBUTING.md](CONTRIBUTING.md)
 for the CI tool versions and contribution requirements.
 
-This repository is not installed as a Python package. Users load instructions
-and scripts directly from the checkout. Preserve relative paths between skills
-and their linked documentation when copying them. The bundled scripts do not
+This repository is not installed as a Python package. Users
+[install the skills with `npx` or load them from a checkout](docs/getting-started.md#load-the-skills).
+Keep runtime instructions and resources inside the skill directories, and
+preserve relative paths between sibling skills. A skill installation does not
+include repository-level documentation or tests. The bundled scripts do not
 expose a published Python package API.
 
 Adding a runtime dependency to a bundled script changes the requirements for

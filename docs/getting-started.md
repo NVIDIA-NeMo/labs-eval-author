@@ -3,15 +3,43 @@
 
 # Get started with Eval Author
 
-Load Eval Author's skills into your coding agent, then choose the work you need.
-A skill is a set of instructions and supporting scripts that your agent reads
-to carry out a task.
+Install Eval Author for your coding agent, then describe the evaluation help you
+need. Eval Author uses a coordinated set of skills: instructions and supporting
+scripts that your agent reads to carry out the work.
 
 ## Load the skills
 
 Use a coding agent that can read local instructions, read and write project
-files, and run shell commands. The following workflow loads the skills by file
-path and does not depend on an assistant-specific skill installer.
+files, and run shell commands.
+
+### Install Eval Author with npx
+
+With Node.js 22.20+ (including npm and `npx`) and Git available, run this command
+from the repository you want to evaluate:
+
+```bash
+npx skills add NVIDIA-NeMo/labs-eval-author --skill '*'
+```
+
+The [Skills CLI](https://github.com/vercel-labs/skills) lets you choose your coding
+assistant and installation scope. Choose a project installation to keep the
+skills with this repository, or a global installation to use them across projects.
+Keep `--skill '*'` to install Eval Author's complete skill set together. The
+entry skill selects the appropriate supporting skills for your request. The
+installation includes the **experimental** trace-to-environment workflow.
+
+Open your repository in the selected coding assistant and ask:
+
+```text
+Help me with the evals for my agent.
+```
+
+The installer copies the skills and their supporting files. It does not install
+Harbor or Python dependencies; those have [workflow-specific requirements](#requirements).
+
+### Manual checkout
+
+You can also load the skills by file path without the Skills CLI:
 
 1. Clone this repository and print the absolute path to the entry skill:
 
@@ -24,7 +52,7 @@ path and does not depend on an assistant-specific skill installer.
 2. Open the repository you want to evaluate in your coding agent. Give the agent
    access to both that repository and this skill checkout. Keep this checkout
    intact: the entry skill loads sibling skills, scripts, schemas, templates,
-   and references, and some workflows also link to the `docs/` directory.
+   and references.
 
 3. Start your request with this text, replacing `<entry-skill-path>` with the
    path printed above. Add your goal from one of the [workflow guides](../README.md#start-here):
@@ -39,7 +67,7 @@ agent's usual setup; later steps have [workflow-specific requirements](#requirem
 
 ## Find existing evaluations
 
-If you are unsure what evaluations exist, add this request to the text above:
+With the skills loaded, ask your coding assistant:
 
 ```text
 Find the existing evaluations, explain what they test, and show their
