@@ -110,5 +110,7 @@ jobs:
         run: uv run --locked python tools/generate_third_party_licenses.py --check
 
       - run: uv run --locked ruff check .
+      - name: Type check
+        run: uv run --locked ty check --python-version ${{ matrix.python-version }}
       - run: uv run --locked ruff format --check .
       - run: uv run --locked pytest -q -rs

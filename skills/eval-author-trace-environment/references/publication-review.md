@@ -3,6 +3,9 @@
 
 # Review and publish an exact product
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../SKILL.md).
+
 Every export requires a separate publication review, including `no_candidate`.
 The earlier trace review and `--human-reviewed` flag do not authorize publication.
 First prepare an owner-private preview of the exact files that will be exported:

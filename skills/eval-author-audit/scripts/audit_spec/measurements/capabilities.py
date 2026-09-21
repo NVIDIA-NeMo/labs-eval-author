@@ -11,7 +11,7 @@ from typing import Any, TypeAlias
 from measurements._composite import CompositeSpec, ToolGateSpec, measure_composite
 
 try:
-    from harbor.models.trajectories import Trajectory  # ty: ignore[unresolved-import]
+    from harbor.models.trajectories import Trajectory
 except ImportError:
     Trajectory = Any  # type: ignore[assignment,misc]
 

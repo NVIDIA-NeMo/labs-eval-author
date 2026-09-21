@@ -3,14 +3,20 @@
 
 # Trace-derived tool-call access
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../SKILL.md).
+
 ## Prerequisites
 
 - One bounded ATIF v1.0-v1.7 trace, normalized through the trace-environment
   author workflow when needed.
 - Python 3.11 or later, `jsonschema>=4.23`, and `referencing>=0.28.4`; Harbor and Docker when proving a
   candidate task. Use the existing supported environment; do not install providers
-  automatically. The plugin declares the schema dependency in its uv workspace.
+  automatically. The environment must provide these runtime dependencies.
 - A completed contextual privacy review before materializing mock calls.
+
+In the commands below, `<skill_dir>` is the installed `eval-author-trace-environment`
+directory containing `SKILL.md` and `scripts/`.
 
 ## Purpose
 
@@ -301,7 +307,12 @@ must validate that assertion.
 
 ## Regression checks
 
-From the repository root, in the existing uv environment:
+These development checks require an Eval Author source checkout and its prepared
+uv environment; the repository's tests are not included in a skill installation.
+To use the installed skill, follow [Evaluation integration](#evaluation-integration)
+and the [author workflow](../SKILL.md) for runtime checks and task proof.
+
+From the source checkout's root:
 
 ```bash
 uv run --frozen pytest tests/test_tool_call_fixtures.py -v

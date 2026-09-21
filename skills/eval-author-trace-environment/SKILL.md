@@ -1,9 +1,9 @@
 ---
 name: eval-author-trace-environment
-version: 1.2.0
+version: 1.3.0
 description: >-
-  Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace evidence to derive a private,
-  reproducible Harbor environment candidate.
+  Experimental workflow. Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace
+  evidence to derive a private, reproducible Harbor environment candidate.
 triggers:
   - create an evaluation environment from a trace
   - turn ATIF into a Harbor task environment
@@ -11,10 +11,11 @@ triggers:
 not-for:
   - eval-author (use for the shared standard and routing)
   - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
+  - gym-to-atif (use only to normalize Gym Responses traces into ATIF)
   - eval-author-task-create (use to close an actionable audit coverage gap)
   - eval-author-inspect-trace (use to explain an Intake trace without creating an environment)
 compatibility: >-
-  Python 3.11+, jsonschema 4.23+, referencing 0.28.4+; mlflow-to-atif for MLflow; nemo CLI for Intake; Harbor and
+  Python 3.11+, jsonschema 4.23+, referencing 0.28.4+; mlflow-to-atif for MLflow; gym-to-atif for Gym; nemo CLI for Intake; Harbor and
   Docker for proof. Use Harbor's Python environment. NOP/Oracle need no model;
   native-agent checks use the agent's configured provider.
 metadata:
@@ -29,6 +30,11 @@ allowed-tools: Bash Read Write Grep Glob
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: trace to environment
+
+**Experimental.** All workflows and outputs from this skill are experimental,
+including source normalization, task and fixture generation, validation, and
+publication review/export. Identify them as experimental when presenting them
+to the user.
 
 ## Purpose
 
@@ -88,8 +94,8 @@ Read and follow `references/sources.md`. One task per trace; never merge
 unrelated traces, and never invent an instruction, tool result, file, or final
 answer. Existing ATIF is used as-is; MLflow goes through `mlflow-to-atif`;
 Intake reads one exact trace plus every detailed span; bounded JSON OTLP
-exports map spans directly. For Gym, follow `references/gym.md`: prefer a
-retained Harbor ATIF, otherwise use the offline `gym_to_atif.py` adapter.
+exports map spans directly. For Gym, read and follow the `gym-to-atif` skill:
+prefer a retained Harbor ATIF, otherwise use its offline adapter.
 Record every missing or lossy field under
 `extra.normalization.uncertainties` or `extra.normalization.losses`. If no
 complete human instruction exists, record no_candidate instead of guessing.
@@ -125,7 +131,7 @@ the contextual reviewer owns that judgment.
 
 ### Resolve tool-call access
 
-For traces with tool calls, read `references/tool-call-fixtures.md`, then
+For traces with tool calls, read `references/trace-derived-fixtures.md`, then
 run `inventory-tool-calls`, `plan-tool-call-access`, and
 `resolve-tool-call-access --decisions <decisions.json> --reviewer-kind <agent|human>`.
 After privacy review, when at least one decision is mock, run
@@ -339,10 +345,9 @@ python $S check --task-dir <dir>
 
 Invoke the helper as `python <skill_dir>/scripts/trace_environment.py
 <command>`; there is no `run_script()` wrapper. Every command prints one JSON
-object and exits nonzero on contract errors. Gym's standalone adapter is
-`python <skill_dir>/scripts/gym_to_atif.py --input <record> --output-dir
-<task-dir>/private/gym [--row N] [--source-atif <original>]`; see
-`references/gym.md` for scope selection and explicit projection fallback.
+object and exits nonzero on contract errors. Gym's standalone adapter lives in
+the sibling `gym-to-atif` skill; put its owner-private output under
+`<task-dir>/private/gym` before `prepare`.
 
 | Command | Purpose | Key arguments |
 |---|---|---|
@@ -366,7 +371,8 @@ object and exits nonzero on contract errors. Gym's standalone adapter is
 ## Prerequisites
 
 Python 3.11+ with jsonschema 4.23+ and referencing 0.28.4+ for the helper; the
-sibling `mlflow-to-atif` skill for MLflow sources; the `nemo` CLI for Intake
+sibling `mlflow-to-atif` skill for MLflow sources; the sibling `gym-to-atif`
+skill for Gym sources; the `nemo` CLI for Intake
 sources; an existing Harbor installation plus Docker for probes and proof.
 
 ## Limitations

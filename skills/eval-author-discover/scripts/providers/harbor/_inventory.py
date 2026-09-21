@@ -36,7 +36,7 @@ from _checks import ADVISORY, FAIL, PASS, WARN, CheckResult, check
 try:
     import yaml
 except ModuleNotFoundError:  # ships with Harbor; absent only when Harbor is
-    yaml = None  # ty: ignore[invalid-assignment]
+    yaml = None
 
 # Malformed YAML raises yaml.YAMLError, which is not a ValueError. Empty without
 # PyYAML, so the except clause naming these stays valid either way.
@@ -252,7 +252,11 @@ def _candidate(path: Path) -> ConfigCandidate | None:
     is_json = path.suffix.lower() == ".json"
     if is_json or yaml is not None:
         try:
-            data = json.loads(text) if is_json else yaml.safe_load(text)
+            if is_json:
+                data = json.loads(text)
+            else:
+                assert yaml is not None
+                data = yaml.safe_load(text)
         except (json.JSONDecodeError, ValueError, *_PARSE_ERRORS):
             pass  # unparseable, so fall back to the key scan
         else:

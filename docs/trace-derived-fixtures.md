@@ -3,6 +3,16 @@
 
 # Trace-derived tool-call access
 
-The maintained [tool-call access guide](../skills/eval-author-trace-environment/references/tool-call-fixtures.md)
-is bundled with the trace-environment skill so installed and frozen copies retain
-its mock-tool and MCP instructions.
+**Experimental:** Trace-derived fixtures are part of the trace-to-environment
+workflow. The [complete guide](../skills/eval-author-trace-environment/references/trace-derived-fixtures.md)
+is bundled with the skill so it is available after installation.
+
+For runtime setup and checks, follow
+[Evaluation integration](../skills/eval-author-trace-environment/references/trace-derived-fixtures.md#evaluation-integration).
+
+## Regression checks
+
+Development tests require a source checkout and its prepared uv environment.
+See [Regression checks](../skills/eval-author-trace-environment/references/trace-derived-fixtures.md#regression-checks)
+in the canonical guide. They are separate from the installed skill's runtime
+checks and task proof.

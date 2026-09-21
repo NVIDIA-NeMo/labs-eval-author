@@ -2,8 +2,8 @@
 name: eval-author
 description: >-
   Build first evals from a required Ethos, work on existing
-  evaluation suites in a user's repository, or derive an environment from
-  trace evidence, or understand an agent run from NeMo Intake. Owns the evidence
+  evaluation suites in a user's repository, derive an environment from trace
+  evidence (experimental), or understand an agent run from NeMo Intake. Owns the evidence
   standard that every Eval Author sub-flow
   follows. Use when the user asks "help me with my evals",
   "what's the state of the eval suite here?", "what happened in this trace?", or
@@ -32,9 +32,10 @@ not-for:
   - eval-author-audit (use to generate, validate, measure, or aggregate audit.md coverage)
   - eval-author-task-create (use to propose dataset improvements; when task creation is requested, create and prove an eligible Harbor task)
   - eval-author-inspect-trace (use after this skill selects the trace sub-flow)
-  - eval-author-trace-environment (use to derive a Harbor environment from canonical ATIF evidence)
+  - eval-author-trace-environment (experimental; use to derive a Harbor environment from canonical ATIF evidence)
   - nemo-intake (use to instrument agents, ingest telemetry, or query Intake outside Eval Author)
   - mlflow-to-atif (use to convert MLflow traces into canonical ATIF files)
+  - gym-to-atif (use to convert Gym Responses traces into canonical ATIF files)
   - nemo-experimentalist (use to run insight-driven optimization end to end, which drives the Eval Author agent itself)
   - nemo-evaluator (use to run an existing benchmark rather than work on a repository's own suite)
 compatibility: >-
@@ -170,7 +171,7 @@ The authority depends on the sub-flow:
   correctness; measured ATIF proves whether repeated runs close the selected gap.
 - For trace inspection, Intake establishes what happened. Local source code can
   explain behavior, but it can't replace recorded trace evidence.
-- For trace-derived environments, canonical ATIF establishes the request and
+- For experimental trace-derived environments, canonical ATIF establishes the request and
   Harbor's NOP and Oracle runs prove the generated environment.
 
 No sub-flow reimplements a provider's rules. When evidence can't settle a claim,
@@ -203,7 +204,7 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 | `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Harbor task and prove it with Oracle and repeated measured runs |
 | `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
-| `eval-author-trace-environment` | Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor task when evidence supports it |
+| `eval-author-trace-environment` | **Experimental.** Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor task when evidence supports it |
 
 `eval-author-audit` works one level above tasks: it generates and validates the
 coverage denominator, measures traces against it, and aggregates deterministic
