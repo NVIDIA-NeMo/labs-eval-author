@@ -30,8 +30,9 @@ See the [audit script guide](skills/eval-author-audit/scripts/audit_spec/README.
 for measurement assumptions, evidence sidecars, and aggregation. Command examples
 are in the [audit skill](skills/eval-author-audit/SKILL.md).
 The experimental trace-environment skill documents its
-[artifact contract](skills/eval-author-trace-environment/SKILL.md#artifact-contract)
-and [Gym trace adapter](skills/eval-author-trace-environment/references/gym.md).
+[artifact contract](skills/eval-author-trace-environment/SKILL.md#artifact-contract).
+For standalone Gym trace conversion, see
+[`gym-to-atif`](skills/gym-to-atif/SKILL.md).
 
 ## Skill reference
 
@@ -48,6 +49,7 @@ instructions. The individual skill files document each workflow in detail.
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Explain an Intake trace selected through the entry skill. |
 | [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | **Experimental.** Derive and validate a private Harbor environment from trace evidence. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Convert MLflow traces to ATIF. |
+| [`gym-to-atif`](skills/gym-to-atif/SKILL.md) | Convert one Gym Responses record or retain original Harbor ATIF from a Gym run. |
 
 ## Validation
 
@@ -91,6 +93,8 @@ Run the same read-only checks used by CI:
 make check-copyright-headers
 make check-licenses
 uv run --locked ruff check .
+uv run --locked ty check --python-platform linux --python-version 3.12
+uv run --locked ty check --python-platform linux --python-version 3.13
 uv run --locked ruff format --check .
 uv run --locked pytest
 ```

@@ -47,8 +47,9 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _print(payload: dict, *, compact: bool) -> None:
-    kwargs = {"separators": (",", ":")} if compact else {"indent": 2}
-    print(json.dumps(payload, sort_keys=True, **kwargs))
+    print(
+        json.dumps(payload, sort_keys=True, separators=(",", ":") if compact else None, indent=None if compact else 2)
+    )
 
 
 if __name__ == "__main__":

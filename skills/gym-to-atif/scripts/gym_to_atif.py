@@ -14,6 +14,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -29,6 +30,110 @@ SUFFIX_TYPES = {
     ".webp": "image/webp",
 }
 RECEIPT_SCHEMA = "nemo.eval_author.gym_to_atif.v1"
+ATIF_VERSION = re.compile(r"ATIF-v1\.[0-7]")
+
+
+def _validate_message(message: Any, *, location: str) -> tuple[int, bool]:
+    """Same message boundary eval-author-trace-environment's prepare enforces."""
+    if isinstance(message, str):
+        return 0, bool(message.strip())
+    if not isinstance(message, list):
+        raise ConversionError(f"{location} must be text or a list of ATIF content parts")
+    image_count = 0
+    has_text = False
+    for index, part in enumerate(message):
+        if not isinstance(part, dict):
+            raise ConversionError(f"{location}[{index}] must be an object")
+        part_type = part.get("type")
+        text = part.get("text")
+        if part_type == "text" and isinstance(text, str):
+            has_text = has_text or bool(text.strip())
+        elif part_type == "image" and isinstance(part.get("source"), dict):
+            image_count += 1
+        else:
+            raise ConversionError(f"{location}[{index}] is not a supported text or image content part")
+    return image_count, has_text
+
+
+def _validate_trajectory(payload: Any, *, location: str = "trajectory", depth: int = 0) -> dict[str, Any]:
+    """Same structural boundary eval-author-trace-environment's prepare enforces.
+
+    Kept as a local copy so this skill stands alone when copied without its
+    siblings; dev tests additionally validate projected ATIF against Harbor's
+    own models.
+    """
+    if depth > 8:
+        raise ConversionError("embedded ATIF trajectories exceed the depth limit of 8")
+    if not isinstance(payload, dict):
+        raise ConversionError(f"{location} must be an object")
+    version = payload.get("schema_version")
+    if not isinstance(version, str) or ATIF_VERSION.fullmatch(version) is None:
+        raise ConversionError(f"{location}.schema_version must identify ATIF v1.x")
+    agent = payload.get("agent")
+    if not isinstance(agent, dict) or not isinstance(agent.get("name"), str) or not agent["name"].strip():
+        raise ConversionError(f"{location}.agent.name must be nonempty text")
+    steps = payload.get("steps")
+    if not isinstance(steps, list) or not steps:
+        raise ConversionError(f"{location}.steps must be a nonempty list")
+
+    image_count = 0
+    image_only_user_steps: list[int] = []
+    user_step_count = 0
+    for index, step in enumerate(steps, start=1):
+        step_location = f"{location}.steps[{index - 1}]"
+        if not isinstance(step, dict):
+            raise ConversionError(f"{step_location} must be an object")
+        if step.get("step_id") != index:
+            raise ConversionError(f"{step_location}.step_id must be sequential from 1")
+        source = step.get("source")
+        if source not in {"user", "agent", "system"}:
+            raise ConversionError(f"{step_location}.source must be user, agent, or system")
+        if source == "user":
+            user_step_count += 1
+        step_images, has_text = _validate_message(step.get("message", ""), location=f"{step_location}.message")
+        image_count += step_images
+        if source == "user" and step_images and not has_text:
+            image_only_user_steps.append(index)
+
+        calls = step.get("tool_calls") or []
+        if not isinstance(calls, list):
+            raise ConversionError(f"{step_location}.tool_calls must be a list")
+        call_ids: set[str] = set()
+        for call_index, call in enumerate(calls):
+            if not isinstance(call, dict):
+                raise ConversionError(f"{step_location}.tool_calls[{call_index}] must be an object")
+            call_id = call.get("tool_call_id")
+            if not isinstance(call_id, str) or not call_id or call_id in call_ids:
+                raise ConversionError(f"{step_location} has a missing or duplicate tool_call_id")
+            call_ids.add(call_id)
+        observation = step.get("observation")
+        if observation is not None:
+            if not isinstance(observation, dict):
+                raise ConversionError(f"{step_location}.observation must be an object")
+            results = observation.get("results", [])
+            if not isinstance(results, list):
+                raise ConversionError(f"{step_location}.observation.results must be a list")
+            for result in results:
+                if not isinstance(result, dict):
+                    raise ConversionError(f"{step_location}.observation results must be objects")
+                source_call_id = result.get("source_call_id")
+                if source_call_id is not None and source_call_id not in call_ids:
+                    raise ConversionError(
+                        f"{step_location} observation references unknown tool call {source_call_id!r}"
+                    )
+                result_images, _ = _validate_message(result.get("content", ""), location="observation content")
+                image_count += result_images
+
+    subagents = payload.get("subagent_trajectories") or []
+    if not isinstance(subagents, list):
+        raise ConversionError(f"{location}.subagent_trajectories must be a list")
+    for index, subagent in enumerate(subagents):
+        child = _validate_trajectory(subagent, location=f"{location}.subagent_trajectories[{index}]", depth=depth + 1)
+        image_count += child["image_count"]
+        image_only_user_steps.extend(child["image_only_user_steps"])
+    if depth == 0 and user_step_count == 0:
+        raise ConversionError("trajectory must contain at least one root user step")
+    return {"image_count": image_count, "image_only_user_steps": image_only_user_steps}
 
 
 class ConversionError(ValueError):
@@ -431,9 +536,7 @@ def normalize(
         if len(canonical) > MAX_ATIF_BYTES:
             raise ConversionError("projected ATIF exceeds the canonical byte limit")
         basis, uncertainties, losses = "gym_projection", projection.uncertainties, projection.losses
-    # Same structural boundary used by prepare; dev tests also validate against Harbor.
-    from trace_environment import _validate_trajectory
-
+    # Same structural boundary prepare enforces; dev tests also validate against Harbor.
     try:
         _validate_trajectory(payload)
     except (ValueError, TypeError, RecursionError):

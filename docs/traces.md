@@ -9,8 +9,8 @@ coverage audit, or build an evaluation task. First follow
 [requirements](getting-started.md#requirements) for your workflow, including
 platform access, execution dependencies, and model provider setup.
 
-The trace-to-environment workflow is **experimental**, including its Gym adapter,
-task creation, validation, and publication/export steps.
+The trace-to-environment workflow is **experimental**, including task creation,
+validation, and publication/export steps.
 
 ## Inspect an Intake trace
 
@@ -51,8 +51,8 @@ It writes one owner-private `.atif.json` file per trace. Conversion preserves
 recorded evidence and reports losses; it cannot recover missing instructions
 or results.
 
-For Gym traces, use the **experimental**
-[Gym adapter](../skills/eval-author-trace-environment/references/gym.md) with one
+For Gym traces, use the standalone
+[Gym conversion skill](../skills/gym-to-atif/SKILL.md) with one
 rollout JSON record or one explicit JSONL line. Prefer the original Harbor ATIF
 when retained. The experimental trace-to-environment
 [source guide](../skills/eval-author-trace-environment/references/sources.md)

@@ -105,7 +105,7 @@ you need to create, validate, or run Harbor tasks.
 | Generate or validate an audit specification; aggregate measured coverage | Python 3.11+, PyYAML, and jsonschema. These operations read local evidence and do not call NeMo services. |
 | Measure coverage from ATIF traces | Python 3.12+ and the [audit dependencies](../skills/eval-author-audit/requirements.txt), including Harbor. Measurement does not start evaluation jobs. |
 | Convert exported MLflow traces | Python 3.11+ and the standard library. Live MLflow queries additionally need an existing MLflow environment and access to the store. |
-| Convert Gym traces with the trace-environment adapter (**experimental**) | Python 3.11+ and the standard library for conversion. |
+| Convert Gym traces with `gym-to-atif` | Python 3.11+ and the standard library for conversion. |
 | Prepare and validate a trace-derived environment (**experimental**) | Python 3.11+, jsonschema 4.23+, and referencing 0.28.4+ for preparation; Harbor and Docker for execution checks. |
 | Inspect NeMo Intake traces | A working `nemo` CLI, an explicit workspace, and read access to a configured local or remote NeMo Platform instance. |
 
