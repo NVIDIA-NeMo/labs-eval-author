@@ -3,6 +3,9 @@
 
 # Per-check result grammar
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../SKILL.md).
+
 `tests/test.sh` must report one row per scored check to
 `/logs/verifier/results` so proof evidence identifies *which* behavior passed,
 not only an aggregate reward.

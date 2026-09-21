@@ -221,8 +221,8 @@ may behave differently across embedding models. Embeddings do not affect Tier 3.
 Two authored synthetic datasets ship in the skill-owned `evals/` directories:
 
 - `eval-author`: four routing cases covering explicit discovery, implicit first
-  evals, a corrected request for trace-environment creation, and an unrelated
-  negative case. This measures routing and evidence boundaries, not successful
+  evals, a corrected request for experimental trace-environment creation, and an
+  unrelated negative case. This measures routing and evidence boundaries, not successful
   execution of downstream sub-skills.
 - `mlflow-to-atif`: explicit and implicit offline conversion, refusal to invent
   a missing human instruction, and a negative case. Fixture JSON is synthetic;
@@ -231,16 +231,16 @@ Two authored synthetic datasets ship in the skill-owned `evals/` directories:
 
 The standard SkillEvaluator grader uses model judgments and trace-derived
 signals. These scores do not replace our deterministic converter tests or the
-trace-environment NOP/Oracle proof contract. One attempt on four cases is a
-smoke evaluation, not a reliable population estimate.
+experimental trace-environment NOP/Oracle proof contract. One attempt on four
+cases is a smoke evaluation, not a reliable population estimate.
 
 All other discovered skills receive `missing_dataset` for selected Tier 3
 work. Author a bounded, reviewed `evals/evals.json` and validate it before
 enabling each additional skill. Harbor/Docker authoring inside a Tier 3 agent
 container requires a deliberate nested-runtime design; this PR does not mount
 the host Docker socket, add production credentials, or claim end-to-end
-trace-environment proof. Relative sibling-skill dependencies also need an
-explicit group evaluation design before measuring those sub-flows.
+experimental trace-environment proof. Relative sibling-skill dependencies also
+need an explicit group evaluation design before measuring those sub-flows.
 
 ### Reports and local checks
 

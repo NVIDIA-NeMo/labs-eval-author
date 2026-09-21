@@ -2391,7 +2391,8 @@ def test_negative_source_mutation_invalidates_proof(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("agent", ["nop", "oracle", "harbor.agents.nop:NopAgent", "harbor.agents.oracle:OracleAgent"])
-def test_builtin_agent_cannot_be_declared_negative(tmp_path: Path, agent: str) -> None:
+@pytest.mark.parametrize("arm", ["negative", "copy"])
+def test_builtin_agent_cannot_be_declared_control(tmp_path: Path, agent: str, arm: str) -> None:
     task_dir, _ = _workspace(tmp_path)
     _ready_environment(task_dir, record_validation=False)
     code, result = _run(
@@ -2399,9 +2400,9 @@ def test_builtin_agent_cannot_be_declared_negative(tmp_path: Path, agent: str) -
         "--task-dir",
         str(task_dir),
         "--job-dir",
-        "private/jobs/new-negative",
+        f"private/jobs/new-{arm}",
         "--arm",
-        "negative",
+        arm,
         "--negative-agent",
         agent,
         "--negative-source",
@@ -2410,6 +2411,7 @@ def test_builtin_agent_cannot_be_declared_negative(tmp_path: Path, agent: str) -
         "Incomplete repair",
     )
     assert code == 1
+    assert result["error"].startswith(f"{arm} control must identify")
     assert "distinct from NOP and Oracle" in result["error"]
 
 
@@ -3020,7 +3022,7 @@ def test_copy_probe_retains_evidence_and_detects_full_escape(tmp_path, reward, s
     validation = _TRACE_ENVIRONMENT._validate_validation(task_dir)
     assert validation["runs"]["copy"][0]["agent"] == "copy_agent:CopyOnly"
     (task_dir / "private/copy_agent.py").write_text("# Different control implementation\n")
-    with pytest.raises(_TRACE_ENVIRONMENT.ContractError, match="control source"):
+    with pytest.raises(_TRACE_ENVIRONMENT.ContractError, match="copy control source"):
         _TRACE_ENVIRONMENT._validate_validation(task_dir)
 
 

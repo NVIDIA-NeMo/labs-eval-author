@@ -3,6 +3,9 @@
 
 # Candidate record shape
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../SKILL.md).
+
 Read this when writing the Step 5 decision. Replace illustrative values with
 reviewed evidence; this example is not a ready candidate while required software
 availability remains unknown. Validate metadata before building a task:

@@ -2547,18 +2547,18 @@ def _agent_identity(config: Any) -> str:
     return aliases.get(identity, identity)
 
 
-def _negative_control(task_dir: Path, agent: str, source: Path, rationale: str) -> dict[str, Any]:
+def _proof_control(task_dir: Path, agent: str, source: Path, rationale: str, *, arm: str) -> dict[str, Any]:
     identity = _agent_identity({"name": agent})
     if identity in ("nop", "oracle") or re.fullmatch(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*:[A-Za-z_]\w*", identity) is None:
-        raise ContractError("negative control must identify a custom module:Class agent distinct from NOP and Oracle")
+        raise ContractError(f"{arm} control must identify a custom module:Class agent distinct from NOP and Oracle")
     if not isinstance(rationale, str) or not rationale.strip():
-        raise ContractError("negative control requires a task-specific mutation rationale")
+        raise ContractError(f"{arm} control requires a task-specific mutation rationale")
     source_path = source if source.is_absolute() else task_dir / source
     if source_path.is_symlink() or not source_path.is_file():
-        raise ContractError("negative control source must be a retained regular file")
+        raise ContractError(f"{arm} control source must be a retained regular file")
     source_path = source_path.resolve()
     if not source_path.is_relative_to(task_dir / "private") or not source_path.stat().st_size:
-        raise ContractError("negative control source must be nonempty and stay under private/")
+        raise ContractError(f"{arm} control source must be nonempty and stay under private/")
     return {
         "agent": identity,
         "source_path": source_path.relative_to(task_dir).as_posix(),
@@ -2586,8 +2586,12 @@ def _record_run_inputs(args: argparse.Namespace) -> dict[str, Any]:
     control = None
     if args.arm in ("negative", "copy"):
         if not args.negative_agent or args.negative_source is None or not args.negative_rationale:
-            raise ContractError("control run inputs require --control-agent, --control-source and --control-rationale")
-        control = _negative_control(task_dir, args.negative_agent, args.negative_source, args.negative_rationale)
+            raise ContractError(
+                f"{args.arm} run inputs require --control-agent, --control-source and --control-rationale"
+            )
+        control = _proof_control(
+            task_dir, args.negative_agent, args.negative_source, args.negative_rationale, arm=args.arm
+        )
     elif args.negative_agent or args.negative_source or args.negative_rationale:
         raise ContractError("control options apply only to the negative or copy arm")
     receipt = {
@@ -2596,6 +2600,7 @@ def _record_run_inputs(args: argparse.Namespace) -> dict[str, Any]:
         "job_dir": job_dir.relative_to(task_dir).as_posix(),
         "task_tree_sha256": reproducibility["task_tree_sha256"],
         "task_checksum": _harbor_task_checksum(task_dir),
+        # Keep the v1 receipt field name for both control arms.
         "negative_control": control,
     }
     _mkdir_private(output.parent)
@@ -2629,12 +2634,14 @@ def _validate_run_inputs(
     control = receipt["negative_control"]
     if arm in ("negative", "copy"):
         if not isinstance(control, dict) or set(control) != {"agent", "source_path", "source_sha256", "rationale"}:
-            raise ContractError("negative run inputs require retained control source and rationale")
+            raise ContractError(f"{arm} run inputs require retained control source and rationale")
         if not isinstance(control["agent"], str) or not isinstance(control["source_path"], str):
-            raise ContractError("negative control agent and source_path must be strings")
-        expected = _negative_control(task_dir, control["agent"], Path(control["source_path"]), control["rationale"])
+            raise ContractError(f"{arm} control agent and source_path must be strings")
+        expected = _proof_control(
+            task_dir, control["agent"], Path(control["source_path"]), control["rationale"], arm=arm
+        )
         if expected != control or identity != control["agent"]:
-            raise ContractError("negative control source or recorded agent differs from its pre-run declaration")
+            raise ContractError(f"{arm} control source or recorded agent differs from its pre-run declaration")
     elif control is not None or identity != arm:
         raise ContractError(f"{arm} Harbor result must identify the {arm} agent")
     return {
