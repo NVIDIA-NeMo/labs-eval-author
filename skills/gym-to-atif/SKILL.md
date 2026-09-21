@@ -1,9 +1,10 @@
 ---
 name: gym-to-atif
-version: 0.1.0
 description: >-
-  Use to convert one Gym Responses rollout or retained Harbor trajectory to canonical
-  ATIF offline, with explicit losses and private output.
+  Convert one bounded Gym Responses rollout record, or a retained Harbor ATIF
+  from a Gym run, into one canonical ATIF trajectory for Harbor or Eval Author's
+  experimental environment derivation. Offline only: no Gym runtime, model invocation, or
+  image download.
 triggers:
   - convert a Gym rollout to ATIF
   - prepare a Gym Responses trace for an ATIF consumer

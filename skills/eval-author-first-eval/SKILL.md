@@ -1,9 +1,10 @@
 ---
 name: eval-author-first-eval
-version: 0.1.0
 description: >-
-  Use when an agent has no evals: establish Ethos, plan cases, and build a small Harbor
-  suite. No prior traces or coverage required.
+  Help a user with no evals establish a required Ethos, plan evaluation cases,
+  and set up a small working Harbor suite while explaining its parts. No prior
+  traces or coverage reports are required. Missing Harbor blocks scaffolding
+  and execution, not planning.
 triggers:
   - help me build my first evals
   - my agent has no evals yet
@@ -18,9 +19,6 @@ compatibility: >-
   Planning needs no Harbor installation. Scaffolding requires an existing Harbor CLI;
   validation requires its Python environment. Execution may require Docker,
   an agent adapter, and provider credentials.
-metadata:
-  author: Andrew Suter-Morris <asutermorris@nvidia.com>
-  tags: [evaluation, harbor, authoring]
 maturity: alpha
 license: Apache-2.0
 user-invocable: true

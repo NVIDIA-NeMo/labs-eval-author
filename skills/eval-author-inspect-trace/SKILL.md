@@ -1,9 +1,10 @@
 ---
 name: eval-author-inspect-trace
-version: 0.1.0
 description: >-
-  Use only when eval-author has routed one Intake trace for evidence-backed inspection.
-  Intake ingestion and unrelated queries use nemo-intake.
+  Use when eval-author has routed to this sub-flow for one Intake trace. Do not
+  use for instrumenting agents, ingesting telemetry, importing a trace store,
+  verifying ingest, or querying Intake outside Eval Author; those belong to
+  nemo-intake.
 triggers:
   - eval-author routed to inspect-trace
   - inspect the intake trace eval-author named
@@ -17,9 +18,6 @@ not-for:
 compatibility: >-
   A working nemo CLI invocation, an explicit workspace, and read access to
   Intake on a configured local or remote NeMo Platform instance.
-metadata:
-  author: Andrew Suter-Morris <asutermorris@nvidia.com>
-  tags: [evaluation, intake, traces]
 maturity: alpha
 license: Apache-2.0
 user-invocable: false

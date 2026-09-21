@@ -1,9 +1,13 @@
 ---
 name: eval-author-audit
-version: 0.1.0
 description: >-
-  Use for Ethos-based audit.md authoring, schema validation, and measurement or
-  aggregation of ATIF coverage across existing evals.
+  Generate, validate, measure, and report on an audit-spec coverage denominator
+  for Eval Author. Use when the user wants a hand-editable audit.md file derived
+  from Ethos, needs schema enforcement for declared tools, capabilities, failure
+  cases, evidence, and references, wants to measure which audit items one ATIF
+  trace covers, wants to aggregate coverage across measured traces, or accepts
+  a coverage audit of existing evals. Changes
+  none of the user's source, and saves audit artifacts under `.eval-author/`.
 triggers:
   - audit my existing evals
   - generate audit.md from ETHOS.md
@@ -24,9 +28,6 @@ compatibility: >-
   ATIF measurement via Harbor's trajectory model. Dependencies are listed in requirements.txt.
   Generation, validation, measurement, and aggregation read local files only;
   they do not start Harbor jobs or call platform services.
-metadata:
-  author: Andrew Suter-Morris <asutermorris@nvidia.com>
-  tags: [evaluation, coverage, atif]
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
@@ -95,6 +96,10 @@ ATIF input, Harbor trajectory parsing, v1 `tool_calls`, `capabilities`, and
 | `scripts/audit_spec/report.py` | Aggregate per-trace `coverage.json` files into one coverage report with uncovered audit items |
 | `scripts/audit_spec/validate.py` | Validate the marked audit-spec block in `audit.md` |
 
+Shared helpers, measurement method contracts, schemas, and examples are
+documented in `scripts/audit_spec/README.md`.
+Runtime dependencies are listed in `requirements.txt`.
+
 ## Step 1: Draft Or Update Audit Items
 
 Before drafting or updating `.eval-author/audit-items.yaml`, read
@@ -162,9 +167,31 @@ items file may contain only additions or edits. Use `--items-mode full` only whe
 the items file is intended to be the complete denominator; then existing items
 omitted from the proposal are reported as `possibly_stale_items`.
 
-For other modes, use the same command with `--mode suggest` for a read-only
-comparison, `--items-mode full` for a complete-denominator proposal, or
-`--mode replace` only for a requested whole-file replacement.
+Use the explicit modes when the default is not what the user wants:
+
+```bash
+uv run --with pyyaml --with jsonschema \
+  <skill_dir>/scripts/audit_spec/generate.py \
+  --ethos <ethos_path> \
+  --items .eval-author/audit-items.yaml \
+  --out .eval-author/audit.md \
+  --mode suggest
+
+uv run --with pyyaml --with jsonschema \
+  <skill_dir>/scripts/audit_spec/generate.py \
+  --ethos <ethos_path> \
+  --items .eval-author/audit-items.yaml \
+  --out .eval-author/audit.md \
+  --mode reconcile \
+  --items-mode full
+
+uv run --with pyyaml --with jsonschema \
+  <skill_dir>/scripts/audit_spec/generate.py \
+  --ethos <ethos_path> \
+  --items .eval-author/audit-items.yaml \
+  --out .eval-author/audit.md \
+  --mode replace
+```
 
 `suggest` performs the same comparison as `reconcile` but writes nothing.
 `replace` rewrites the whole file from the item proposal file, including prose
@@ -321,6 +348,9 @@ audit item names this trace covered plus provider-neutral subject identity
 aggregation should consume this file and ignore method-specific debug details.
 `details.json` is specific to the selected method and carries traceability data
 for humans.
+
+For current method semantics and details schemas, see
+`scripts/audit_spec/README.md`.
 
 The script validates `coverage.json` against `schemas/audit_coverage.schema.json`
 and validates `details.json` against the selected method's details schema before

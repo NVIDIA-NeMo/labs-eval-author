@@ -1,9 +1,9 @@
 ---
 name: mlflow-to-atif
-version: 0.1.0
 description: >-
-  Use to convert bounded live MLflow traces or exported Trace.to_dict() JSON to
-  canonical ATIF. Does not ingest traces into Intake.
+  Convert bounded live MLflow traces or exported Trace.to_dict() JSON into one
+  canonical ATIF trajectory per trace for Harbor or Eval Author audit coverage.
+  Use for MLflow-to-ATIF conversion, not Intake ingestion.
 triggers:
   - convert MLflow traces to ATIF
   - prepare an MLflow trace for an ATIF consumer
@@ -17,9 +17,6 @@ compatibility: >-
   require an existing Python environment with MLflow. Optional reference
   validation requires Harbor. Output is ATIF v1.7 for current downstream
   compatibility.
-metadata:
-  author: Andrew Suter-Morris <asutermorris@nvidia.com>
-  tags: [evaluation, mlflow, atif]
 maturity: alpha
 license: Apache-2.0
 user-invocable: true

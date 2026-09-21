@@ -1,9 +1,14 @@
 ---
 name: eval-author-task-create
-version: 0.1.0
 description: >-
-  Use audit findings to propose dataset improvements or create and prove a Harbor task
-  for a measured tool gap. Supports proposal-only work.
+  Propose dataset improvements from Eval Author audit findings, then optionally
+  create one Harbor task from one actionable uncovered tool. Prove the task with
+  Harbor's Oracle, run it repeatedly
+  with the repository's real agent when authorized, and accept it only when
+  measured ATIF closes the selected gap every time. Use when the user asks to
+  suggest dataset changes, fill an eval gap, turn audit uncovered_items into a
+  Harbor task, or add missing tool coverage. Writes proposals, drafts, and
+  measurements only under `.eval-author/`.
 triggers:
   - create a Harbor task from an audit gap
   - fill an uncovered eval tool
@@ -23,9 +28,6 @@ compatibility: >-
   Task creation needs Python 3.11 or later and a Harbor CLI compatible with `harbor task init`.
   Docker is required for Oracle and Docker-backed real-agent runs. Real-agent
   runs may require provider credentials and explicit user approval.
-metadata:
-  author: Andrew Suter-Morris <asutermorris@nvidia.com>
-  tags: [evaluation, harbor, coverage]
 maturity: alpha
 license: Apache-2.0
 user-invocable: true

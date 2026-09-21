@@ -1,9 +1,17 @@
 ---
 name: eval-author
-version: 0.1.0
 description: >-
-  Use to route agent-eval authoring, discovery, audits, improvements, Intake trace
-  inspection, and experimental trace-environment requests.
+  Build first evals from a required Ethos, work on existing
+  evaluation suites in a user's repository, derive an environment from trace
+  evidence (experimental), or understand an agent run from NeMo Intake. Owns the evidence
+  standard that every Eval Author sub-flow
+  follows. Use when the user asks "help me with my evals",
+  "what's the state of the eval suite here?", "what happened in this trace?", or
+  when you need to pick between bootstrapping evals, auditing existing evals,
+  finding out whether evals exist, or proposing improvements from an audit.
+  Establishes local Ethos when the selected flow needs it, without changing the
+  agent's implementation. The selected sub-flow uses the provider's supported
+  tools and saves findings under `.eval-author/`.
 triggers:
   - help me build evals for my agent
   - my agent has no evals yet
@@ -36,9 +44,6 @@ compatibility: >-
   Task execution requires Harbor and may require Docker and provider
   credentials. Trace inspection requires the nemo CLI, an explicit workspace,
   and read access to configured Intake.
-metadata:
-  author: Andrew Suter-Morris <asutermorris@nvidia.com>
-  tags: [evaluation, routing]
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
@@ -147,6 +152,9 @@ inventory, readiness, audit, and trace requests use their scoped sub-flow instea
 of this onboarding experience. If onboarding later finds an existing Harbor suite,
 tailor the remaining work to that suite without restarting the completed stages.
 
+A report that a downstream model trusts has to be right. A plausible report is
+worse than no report when somebody acts on it.
+
 ## The standard
 
 **Every fact you record comes from authoritative evidence, not a guess.**
@@ -173,24 +181,42 @@ the report marks the claim unproven or uncertain.
 
 ## Vocabulary
 
-Use the [evidence vocabulary](references/evidence-vocabulary.md) in reports:
-checks are `pass`, `warn`, or `fail`; trace outcomes are `success`, `failure`,
-or `unknown`. Required failures block readiness; advisory warnings do not.
+The sub-flows share this language, and reports use it verbatim.
+
+| Term | Meaning |
+|---|---|
+| Check | One named result: `pass`, `warn`, or `fail`. Carries a message and, when it fails, a hint |
+| Required | A failing required check blocks the suite. Report the suite as not ready |
+| Advisory | A warning worth surfacing that blocks nothing |
+| Rung | One step of a provider's validation ladder, ordered so a lower rung's failure often clears once a higher one is fixed |
+| Proven | A provider judged this check. An unproven check is an observation and never evidence |
+| Provider | The evaluation framework that owns the rules. Harbor today |
+| Finding | One trace claim categorized as `behavior`, `issue`, `recovery`, or `uncertainty`, with evidence IDs |
+| Outcome | The trace assessment: `success`, `failure`, or `unknown` |
 
 ## Sub-flows
 
-Read the selected sibling skill when its stage begins. The entry-route table
-links first-eval, discovery, audit, and dataset proposals. For explicit trace
-requests, use [Intake inspection](../eval-author-inspect-trace/SKILL.md) to explain
-one recorded run, or [trace to environment](../eval-author-trace-environment/SKILL.md)
-to derive an experimental private Harbor task from canonical evidence.
+Read the selected sub-flow's own `SKILL.md` when its stage begins and follow it.
+This file carries the standard and boundaries; the sub-flow carries the steps.
 
-Audit owns the denominator, validation, trace measurement, and aggregation.
-Task-create owns evidence-backed proposals across tools, capabilities, and
-failure cases. Its creation path accepts only actionable tool gaps and uses
-Harbor's native scaffolder. A requested full workflow continues to proposals
-even without eligible tool gaps; audit-only and proposal-only requests end at
-their respective findings.
+| Sub-flow | Use it to |
+|---|---|
+| `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and set up a small working suite while teaching the user how to run and extend it |
+| `eval-author-discover` | Establish whether a repository's evaluations run, name the rung that fails, and get the exact command to run them |
+| `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
+| `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Harbor task and prove it with Oracle and repeated measured runs |
+| `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
+| `eval-author-trace-environment` | **Experimental.** Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor task when evidence supports it |
+
+`eval-author-audit` works one level above tasks: it generates and validates the
+coverage denominator, measures traces against it, and aggregates deterministic
+coverage reports. `eval-author-task-create` owns the proposal step: prioritize
+dataset improvements from those findings across tools, capabilities, and failure
+cases while preserving their measured or unmeasured status. Proposal-only
+requests stop there. Its subsequent task-creation path consumes only actionable
+tool gaps and uses Harbor's native task scaffolder rather than guessing a task
+layout. For a requested full workflow, proceed from audit to proposals even when
+there are no eligible tool gaps; an audit-only request ends with the findings.
 
 ## Establish Ethos before authoring
 
@@ -202,10 +228,30 @@ evals establish what is currently tested; they do not replace intended behavior.
 
 ## Gather requirements and setup from evidence
 
-During source inspection, read [Authoring context](references/authoring-context.md)
-for gathering requirements, access, licenses, runtime dependencies, and reset
-behavior. Reuse documented evidence and prior answers; keep unknowns and what
-they block in the selected flow's findings. Never request secret values.
+During discovery and source inspection, read relevant repository and supplied
+documentation before asking the user to reconstruct it. Follow references to
+requirements, rubrics, setup guides, dependency manifests and lockfiles, agent
+configs, runner scripts, and license or access instructions. Gather what applies:
+
+- **Purpose and success:** scenarios, expected behavior, grading rules, and relevant constraints.
+- **Inputs and documentation:** source cases, fixtures, example outputs, and instructions for using them.
+- **Execution:** the agent and how to invoke it, required software/services and versions, OS, hardware, and where each dependency runs.
+- **Access and licenses:** documented installation and execution requirements, license provisioning, required accounts and credential variable names. Do not request secret values in chat or copy them into reports.
+- **Repeatability:** starting data/state, session handling, reset procedure, and how results reach the grader.
+
+Distinguish documented requirements, user-confirmed information, verified
+availability, and unknowns. Cite the source and record what an unresolved item
+blocks: task preparation, a particular grading check, or live execution. A repo
+license does not establish the license or availability of its dependencies.
+Ask focused questions only about missing facts that affect the next work, and
+reuse earlier answers. Missing access or license provisioning can leave execution
+pending while task files and independent checks proceed.
+
+Keep the gathered requirements, progress, and next action in the selected
+sub-flow's existing human-readable findings or task README under `.eval-author/`.
+Do not overwrite generated evidence reports or require a new intake document
+before authoring. For read-only requests, explain findings in the reply within
+that sub-flow's reporting boundaries.
 
 ## Route after the evaluation starting point
 
@@ -285,10 +331,37 @@ requirements unchanged.
 
 ### Explain the eval pieces as they become relevant
 
-Use [Authoring context](references/authoring-context.md#explain-the-eval-pieces-as-they-become-relevant)
-when introducing tasks, environments, agent connections, grading, and results.
-Explain the pieces relevant to the current decision using inspected material;
-keep grading an attempt distinct from auditing coverage.
+Do not assume the user knows Harbor terminology or has a particular repository
+layout, scorer, agent runner, or access to the system being tested. Ground the
+explanation in inspected material and the user's answers. Introduce the relevant
+pieces in plain language before asking the user to make decisions about them:
+
+| Piece | What it does |
+|---|---|
+| Task | The test scenario: what the agent is asked to do, with any inputs and conversation steps |
+| Environment | The files, data, tools, and software the task needs, including its starting state and how to reset it |
+| Agent connection | How Harbor gives the task to the actual agent and collects its responses and actions |
+| Grading criteria | The rules for deciding whether the agent did the task well |
+| Grader, also called a verifier | The checks that apply those rules to evidence from the attempt and produce a result or score |
+| Run and results | One attempt at the task, its recorded actions or outputs, and the grading results |
+
+Use a short explanation of the pieces relevant now, not this entire table in
+every reply. When useful, explain a reference solution as a known correct way to
+complete the task, used to test the grader; a past response is not automatically
+such a solution. Keep environment setup separate from the agent connection.
+
+Map each discussed piece to what was found or created, what was actually tested,
+and any specific gap. Existing executable evals may already supply grading;
+written criteria may need implementation; recordings may lack intended outcomes.
+Unknown access is not proof that access is unavailable. Missing evidence should
+lead to a focused question or an explicit limitation, not an assumed setup.
+Explain unfamiliar terms such as rubric, judge, weights, or partial credit before
+asking about them. A checklist status or file link cannot replace that explanation.
+
+Grading asks how an attempt performed against the task's criteria. A coverage
+audit asks which intended agent behaviors the evaluation evidence covers. Explain
+that distinction when offering the existing audit flow; the audit does not finish
+a task's grader or supply its runtime access.
 
 ### Validation and result reports
 
