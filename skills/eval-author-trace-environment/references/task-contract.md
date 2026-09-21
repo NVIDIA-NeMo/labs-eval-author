@@ -3,6 +3,9 @@
 
 # Task contract: layout, isolation, and README
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../SKILL.md).
+
 The Harbor task lives under `<task-dir>/task/` and contains:
 
 - `task.toml` with realistic timeouts and resources;

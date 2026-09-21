@@ -51,9 +51,10 @@ Intake inspection writes a report under `.eval-author/traces/` with observed
 behavior, issues, recoveries, and uncertainty. Review the cited trace evidence
 before treating an observation as a general pattern.
 
-A trace-derived workspace under `.eval-author/trace-environments/` contains a
-summary and the evidence for its candidate and validation decisions. A
-`no_candidate` result means the available evidence did not support a task.
+The **experimental** trace-to-environment workflow writes a workspace under
+`.eval-author/trace-environments/` containing a summary and the evidence for its
+candidate and validation decisions. A `no_candidate` result means the available
+evidence did not support a task.
 A generated candidate can still have an unproven environment or unresolved
 software requirements. Read those limits before attempting execution or
 [sharing a task](traces.md#sharing-generated-tasks).
@@ -74,7 +75,7 @@ producing every artifact when prerequisites are missing.
 | Discovery and readiness | `.eval-author/discovery.md` |
 | Coverage audit | `.eval-author/audit.md`, `.eval-author/audit-measurements/`, and `.eval-author/audit-coverage-report.json` |
 | Intake trace inspection | `.eval-author/traces/` |
-| Trace-derived environments | A private, gitignored workspace per task under `.eval-author/trace-environments/` |
+| Trace-derived environments (**experimental**) | A private, gitignored workspace per task under `.eval-author/trace-environments/` |
 | MLflow conversion | One `.atif.json` file per trace in the private output directory you select. |
 
 [Choose another workflow](../README.md#start-here) or review

@@ -3,6 +3,9 @@
 
 # Trace sources and normalization
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../SKILL.md).
+
 One task per trace. Do not merge unrelated traces. Preserve the source's trace
 and span identifiers in `extra`, order steps by recorded time where available
 (otherwise retain source item order), and record every missing or lossy field under `extra.normalization.uncertainties` or

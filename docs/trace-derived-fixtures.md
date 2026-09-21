@@ -3,6 +3,9 @@
 
 # Trace-derived tool-call access
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../skills/eval-author-trace-environment/SKILL.md).
+
 ## Prerequisites
 
 - One bounded ATIF v1.0-v1.7 trace, normalized through the trace-environment

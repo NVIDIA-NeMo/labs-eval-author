@@ -76,16 +76,17 @@ you need to create, validate, or run Harbor tasks.
 | Create, validate, and run Harbor tasks | Harbor and its supported Python environment. Execution also needs the selected backend and any application access, agent integration, and provider credentials required by the task. |
 | Generate or validate an audit specification; aggregate measured coverage | Python 3.11+, PyYAML, and jsonschema. These operations read local evidence and do not call NeMo services. |
 | Measure coverage from ATIF traces | Python 3.12+ and the [audit dependencies](../skills/eval-author-audit/requirements.txt), including Harbor. Measurement does not start evaluation jobs. |
-| Convert exported MLflow or Gym traces | Python 3.11+ and the standard library. Live MLflow queries additionally need an existing MLflow environment and access to the store. |
-| Prepare and validate a trace-derived environment | Python 3.11+, jsonschema 4.23+, and referencing 0.28.4+ for preparation; Harbor and Docker for execution checks. |
+| Convert exported MLflow traces | Python 3.11+ and the standard library. Live MLflow queries additionally need an existing MLflow environment and access to the store. |
+| Convert Gym traces with the trace-environment adapter (**experimental**) | Python 3.11+ and the standard library for conversion. |
+| Prepare and validate a trace-derived environment (**experimental**) | Python 3.11+, jsonschema 4.23+, and referencing 0.28.4+ for preparation; Harbor and Docker for execution checks. |
 | Inspect NeMo Intake traces | A working `nemo` CLI, an explicit workspace, and read access to a configured local or remote NeMo Platform instance. |
 
 Use the Python environment supported by your installed Harbor version for
 Harbor-backed operations. This repository's development checks use Python 3.12
 and 3.13 with Harbor 0.20.0; see [development setup](../DEVELOPMENT.md).
 
-Trace-derived task checks use Harbor's `nop` agent (a no-op baseline) and `oracle`
-agent (the task's reference solution). These checks do not require a model
+The experimental trace-to-environment workflow uses Harbor's `nop` agent (a no-op
+baseline) and `oracle` agent (the task's reference solution). These checks do not require a model
 provider. Running your actual agent uses its configured provider and dependencies.
 
 If you need help, [open an issue](https://github.com/NVIDIA-NeMo/labs-eval-author/issues)

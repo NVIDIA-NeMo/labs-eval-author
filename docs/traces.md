@@ -9,6 +9,9 @@ coverage audit, or build an evaluation task. First follow
 [requirements](getting-started.md#requirements) for your workflow, including
 platform access, execution dependencies, and model provider setup.
 
+The trace-to-environment workflow is **experimental**, including its Gym adapter,
+task creation, validation, and publication/export steps.
+
 ## Inspect an Intake trace
 
 Provide a trace ID and an explicit NeMo Platform workspace:
@@ -48,14 +51,17 @@ It writes one owner-private `.atif.json` file per trace. Conversion preserves
 recorded evidence and reports losses; it cannot recover missing instructions
 or results.
 
-For [Gym traces](../skills/eval-author-trace-environment/references/gym.md),
-select one rollout JSON record or one explicit JSONL line. Prefer the original
-Harbor ATIF when retained. The
+For Gym traces, use the **experimental**
+[Gym adapter](../skills/eval-author-trace-environment/references/gym.md) with one
+rollout JSON record or one explicit JSONL line. Prefer the original Harbor ATIF
+when retained. The experimental trace-to-environment
 [source guide](../skills/eval-author-trace-environment/references/sources.md)
 describes the supported ATIF, Gym, MLflow, Intake, and bounded JSON
 OpenTelemetry inputs and their limits.
 
 ## Build an evaluation task
+
+**Experimental:** This workflow uses the trace-to-environment skill.
 
 ```text
 Use Eval Author to derive a private Harbor task from
@@ -77,6 +83,8 @@ establish your actual agent's performance. That requires running your agent
 with its configured provider and dependencies. See [Understanding results](results.md).
 
 ## Sharing generated tasks
+
+**Experimental:** Publication review and export are part of the trace-to-environment workflow.
 
 Keep source traces, intermediate files, and validation jobs private. Before
 sharing any generated product, complete the separate

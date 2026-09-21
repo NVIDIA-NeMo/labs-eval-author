@@ -27,7 +27,7 @@ The audit validator is
 See the [audit script guide](skills/eval-author-audit/scripts/audit_spec/README.md)
 for measurement assumptions, evidence sidecars, and aggregation. Command examples
 are in the [audit skill](skills/eval-author-audit/SKILL.md).
-The trace-environment skill documents its
+The experimental trace-environment skill documents its
 [artifact contract](skills/eval-author-trace-environment/SKILL.md#artifact-contract)
 and [Gym trace adapter](skills/eval-author-trace-environment/references/gym.md).
 
@@ -44,7 +44,7 @@ instructions. The individual skill files document each workflow in detail.
 | [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Define intended behavior and measure coverage against trace evidence. |
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Propose improvements from an audit and create a supported task when requested. |
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Explain an Intake trace selected through the entry skill. |
-| [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | Derive and validate a private Harbor environment from trace evidence. |
+| [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | **Experimental.** Derive and validate a private Harbor environment from trace evidence. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Convert MLflow traces to ATIF. |
 
 ## Validation

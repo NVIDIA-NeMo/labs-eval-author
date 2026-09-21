@@ -3,6 +3,9 @@
 
 # Environment integrity protocol
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../SKILL.md).
+
 Apply this protocol to every candidate before finalization.
 
 ## Existing Harbor runtime preflight

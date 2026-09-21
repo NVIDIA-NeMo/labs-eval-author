@@ -3,6 +3,9 @@
 
 # Gym Responses traces
 
+**Experimental:** This guide is part of the
+[trace-to-environment workflow](../SKILL.md).
+
 Gym's stored rollouts use its Responses-style format, not ATIF. This does **not**
 mean the rollout must run outside Gym. Gym's Harbor bridge can run the user's
 Harbor agent and then project its ATIF into a Gym response. Keep the user's

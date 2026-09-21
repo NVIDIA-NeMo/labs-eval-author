@@ -43,7 +43,8 @@ Task execution may need Docker, application access, and model credentials,
 depending on the task and agent. Intake trace inspection requires a working
 `nemo` CLI, an explicit workspace, and read access to a configured local or remote
 NeMo Platform instance. See the [full requirements](docs/getting-started.md#requirements)
-for each workflow, including local trace conversion and environment preparation.
+for each workflow, including local trace conversion and experimental
+environment preparation.
 
 ## Start here
 
@@ -65,9 +66,9 @@ scenario, try one of these:
 | "Audit my evals against my agent's intended behavior using these traces." | [Audit coverage](docs/existing-evals.md#audit-coverage) |
 | "Use this audit report to propose the next evals to add." | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
 | "Explain Intake trace TRACE_ID in workspace WORKSPACE." | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
-| "Turn this local trace into a Harbor eval task." | [Work from recorded traces](docs/traces.md) |
+| "Turn this local trace into a Harbor eval task." | **Experimental** · [Build a task from a trace](docs/traces.md#build-an-evaluation-task) |
 | "Explain this eval report and what I should check next." | [Read your results](docs/results.md) |
-| "Review this task derived from a trace before I share it." | [Review the task for publication](docs/traces.md#sharing-generated-tasks) |
+| "Review this task derived from a trace before I share it." | **Experimental** · [Review the task for publication](docs/traces.md#sharing-generated-tasks) |
 
 Include the relevant file paths, trace IDs, or workspace names in your request.
 
