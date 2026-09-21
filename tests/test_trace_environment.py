@@ -21,7 +21,7 @@ _PLUGIN = Path(__file__).resolve().parents[1]
 _SCRIPT = _PLUGIN / "skills" / "eval-author-trace-environment" / "scripts" / "trace_environment.py"
 _SUMMARY_SCHEMA = "nemo.eval_author.trace_environment_summary.v2"
 _CANDIDATE_SCHEMA = "nemo.eval_author.trace_environment_candidate.v2"
-_VALIDATION_SCHEMA = "nemo.eval_author.trace_environment_validation.v5"
+_VALIDATION_SCHEMA = "nemo.eval_author.trace_environment_validation.v6"
 _TOOL_ACCESS_DECISIONS_SCHEMA = "nemo.eval_author.trace_environment_tool_access_decisions.v1"
 _SPEC = spec_from_file_location("trace_environment_for_tests", _SCRIPT)
 assert _SPEC is not None and _SPEC.loader is not None
@@ -1886,7 +1886,7 @@ def test_export_uses_a_strict_publication_whitelist(tmp_path: Path) -> None:
     product = json.loads((output / "result.json").read_text(encoding="utf-8"))
     assert product["schema"] == "nemo.eval_author.trace_environment_product.v4"
     assert product["reproducibility"]["contamination_passed"] is True
-    assert product["technical_validation"]["minimum_runs"] == {"negative": 1, "nop": 2, "oracle": 2}
+    assert product["technical_validation"]["minimum_runs"] == {"negative": 1, "nop": 2, "oracle": 2, "copy": 0}
     assert product["technical_validation"]["distinct_jobs"] is True
     assert product["technical_validation"]["container_freshness"] == "unverified"
     assert "fresh_jobs" not in product["technical_validation"]
@@ -2275,12 +2275,12 @@ def test_batch_status_contains_invalid_enum_types(tmp_path: Path, field: str, ba
     assert [row["task_id"] for row in report["members"]] == [task_dir.name, "healthy", "missing"]
 
 
-def _record_existing_jobs(task_dir: Path) -> tuple[int, dict[str, Any]]:
+def _record_existing_jobs(task_dir: Path, *extra: str) -> tuple[int, dict[str, Any]]:
     args = []
     for arm, count in (("nop", 2), ("oracle", 2), ("negative", 1)):
         for index in range(1, count + 1):
             args.extend([f"--{arm}-job-dir", f"private/jobs/{arm}-{index}"])
-    return _run("record-validation", "--task-dir", str(task_dir), *args, "--harbor-version", "0.21.0")
+    return _run("record-validation", "--task-dir", str(task_dir), *args, *extra, "--harbor-version", "0.21.0")
 
 
 @pytest.mark.parametrize("change", ["verifier", "executable", "instruction", "build_input", "new_file"])
@@ -2971,3 +2971,111 @@ def test_batch_status_surfaces_repair_counts(tmp_path: Path) -> None:
 
     assert code == 0, result
     assert result["members"][0]["repairs"] == 1
+
+
+def _copy_job(task_dir: Path, *, rows: str = "fixture-repaired\tFAIL\n", reward: float = 0) -> Path:
+    source = task_dir / "private/copy_agent.py"
+    source.write_text("# Synthetic control: copy the visible fixture without repairing it.\n")
+    code, result = _run(
+        "record-run-inputs",
+        "--task-dir",
+        str(task_dir),
+        "--arm",
+        "copy",
+        "--job-dir",
+        "private/jobs/copy-1",
+        "--control-agent",
+        "copy_agent:CopyOnly",
+        "--control-source",
+        "private/copy_agent.py",
+        "--control-rationale",
+        "Copy the visible fixture without repairing its invalid record.",
+    )
+    assert code == 0, result
+    trial = task_dir / "private/jobs/copy-1/task__trial"
+    trial.mkdir(parents=True)
+    baseline = json.loads((task_dir / "private/jobs/negative-1/task__trial/result.json").read_text())
+    baseline["config"] = {"job_id": "copy-job", "agent": {"import_path": "copy_agent:CopyOnly"}}
+    baseline["verifier_result"]["rewards"]["reward"] = reward
+    _write_json(trial / "result.json", baseline)
+    (trial / "verifier").mkdir()
+    (trial / "verifier/results").write_text(rows)
+    return trial
+
+
+@pytest.mark.parametrize("reward,status,passed", [(0, "FAIL", True), (1, "PASS", False)])
+def test_copy_probe_retains_evidence_and_detects_full_escape(tmp_path, reward, status, passed):
+    task_dir, _ = _workspace(tmp_path)
+    _ready_environment(task_dir, record_validation=False)
+    _copy_job(task_dir, rows=f"fixture-repaired\t{status}\n", reward=reward)
+    code, report = _record_existing_jobs(task_dir, "--copy-job-dir", "private/jobs/copy-1")
+    assert code == 0, report
+    assert report["passed"] is passed
+    assert report["copy_probes"] == {
+        "status": "recorded",
+        "runs": [
+            {"reward": reward, "exception_present": False, "passed_check_ids": ["fixture-repaired"] if reward else []}
+        ],
+    }
+    validation = _TRACE_ENVIRONMENT._validate_validation(task_dir)
+    assert validation["runs"]["copy"][0]["agent"] == "copy_agent:CopyOnly"
+    (task_dir / "private/copy_agent.py").write_text("# Different control implementation\n")
+    with pytest.raises(_TRACE_ENVIRONMENT.ContractError, match="control source"):
+        _TRACE_ENVIRONMENT._validate_validation(task_dir)
+
+
+@pytest.mark.parametrize(
+    "rows,reward,error",
+    [
+        ("different-check\tFAIL\n", 0, "same per-check ID set"),
+        ("fixture-repaired\tPASS\n", 0, "reward conflicts"),
+        ("fixture-repaired\tFAIL\n", 1, "reward conflicts"),
+        ("fixture-repaired\tFAIL\nfixture-repaired\tPASS\n", 0, "repeats a check ID"),
+    ],
+)
+def test_copy_probe_rejects_invalid_scoring_evidence(tmp_path, rows, reward, error):
+    task_dir, _ = _workspace(tmp_path)
+    _ready_environment(task_dir, record_validation=False)
+    _copy_job(task_dir, rows=rows, reward=reward)
+    code, report = _record_existing_jobs(task_dir, "--copy-job-dir", "private/jobs/copy-1")
+    assert code == 1, report
+    assert error in report["error"]
+    assert not (task_dir / "validation.json").exists()
+
+
+def test_copy_partial_passes_are_retained_for_outcome_review(tmp_path):
+    task_dir, _ = _workspace(tmp_path)
+    _ready_environment(task_dir, record_validation=False)
+    for path in (task_dir / "private/jobs").glob("*/task__trial/verifier/results"):
+        status = "PASS" if "oracle" in str(path) else "FAIL"
+        path.write_text(path.read_text() + f"second-outcome\t{status}\n")
+    _copy_job(task_dir, rows="fixture-repaired\tPASS\nsecond-outcome\tFAIL\n")
+    code, report = _record_existing_jobs(task_dir, "--copy-job-dir", "private/jobs/copy-1")
+    assert code == 0, report
+    assert report["passed"] is True
+    assert report["copy_probes"]["runs"][0]["passed_check_ids"] == ["fixture-repaired"]
+    _TRACE_ENVIRONMENT._validate_validation(task_dir)
+
+
+def test_copy_probe_cannot_use_aggregate_only_escape_hatch(tmp_path):
+    task_dir, _ = _workspace(tmp_path)
+    _ready_environment(task_dir, record_validation=False, check_rows=False)
+    trial = _copy_job(task_dir)
+    (trial / "verifier/results").unlink()
+    code, report = _record_existing_jobs(task_dir, "--copy-job-dir", "private/jobs/copy-1", "--allow-aggregate-only")
+    assert code == 1, report
+    assert "copy probes require per-check rows" in report["error"]
+
+
+def test_copy_exception_is_failed_evidence_and_no_copy_is_not_run(tmp_path):
+    task_dir, _ = _workspace(tmp_path)
+    _ready_environment(task_dir, record_validation=False)
+    trial = _copy_job(task_dir)
+    result = json.loads((trial / "result.json").read_text())
+    result["exception_info"] = {"exception_type": "RuntimeError"}
+    _write_json(trial / "result.json", result)
+    code, report = _record_existing_jobs(task_dir, "--copy-job-dir", "private/jobs/copy-1")
+    assert code == 0, report
+    assert report["passed"] is False
+    assert report["copy_probes"]["runs"][0]["exception_present"] is True
+    assert _TRACE_ENVIRONMENT._copy_probe_summary({"runs": {"copy": []}}) == {"status": "not_run", "runs": []}

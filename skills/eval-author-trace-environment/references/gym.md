@@ -137,3 +137,15 @@ with Harbor's models plus the standalone helper. This is not a claim of complete
 Gym model validation, lossless round trips, or live Gym task execution. Unknown
 Gym fields remain in the retained raw record. No Gym/Ray dependency, provider
 credentials, Docker stack, or model invocation is required for conversion.
+
+## Proxy-capture collection boundary
+
+Trace2Env's newer Gym collection flow also retains `ng_trajectory.model_calls`
+from the model proxy. Its Pi route can retain a verifier result with empty
+projected output because Harbor Pi does not emit ATIF. The bundled adapter reads
+Responses history, not these proxy captures; a reward or missing-ATIF warning
+cannot supply the missing interaction evidence. Preserve the original capture
+privately. If neither original ATIF nor complete supported Responses history is
+available, report unsupported normalization instead of inventing a trajectory.
+Supporting captures requires an explicit, fixture-tested mapping for the recorded
+request/response protocols, call ordering, and loss reporting.

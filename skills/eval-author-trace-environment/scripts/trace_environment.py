@@ -40,7 +40,7 @@ from mock_registration import probe_registration  # noqa: E402
 
 SCHEMA = "nemo.eval_author.trace_environment_summary.v2"
 CANDIDATE_SCHEMA = "nemo.eval_author.trace_environment_candidate.v2"
-VALIDATION_SCHEMA = "nemo.eval_author.trace_environment_validation.v5"
+VALIDATION_SCHEMA = "nemo.eval_author.trace_environment_validation.v6"
 RUN_INPUT_SCHEMA = "nemo.eval_author.trace_environment_run_input.v1"
 PROBE_SCHEMA = "nemo.eval_author.trace_environment_probes.v1"
 REPAIR_SCHEMA = "nemo.eval_author.trace_environment_repair.v1"
@@ -212,7 +212,7 @@ _PRIVATE_KEY_BYTES = re.compile(rb"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----")
 _BEARER_BYTES = re.compile(rb"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}")
 _CREDENTIALED_URL_BYTES = re.compile(rb"(?i)https?://[^\s/:@]+:[^\s/@]+@")
 _BATCH_MEMBER_KEYS = frozenset({"task_id", "atif", "source_kind"})
-_MIN_VALIDATION_RUNS = {"nop": 2, "oracle": 2, "negative": 1}
+_MIN_VALIDATION_RUNS = {"nop": 2, "oracle": 2, "negative": 1, "copy": 0}
 
 
 class ContractError(ValueError):
@@ -2584,14 +2584,12 @@ def _record_run_inputs(args: argparse.Namespace) -> dict[str, Any]:
         raise ContractError("run inputs already recorded; use a fresh job name")
     reproducibility = _validate_reproducibility(task_dir)
     control = None
-    if args.arm == "negative":
+    if args.arm in ("negative", "copy"):
         if not args.negative_agent or args.negative_source is None or not args.negative_rationale:
-            raise ContractError(
-                "negative run inputs require --negative-agent, --negative-source and --negative-rationale"
-            )
+            raise ContractError("control run inputs require --control-agent, --control-source and --control-rationale")
         control = _negative_control(task_dir, args.negative_agent, args.negative_source, args.negative_rationale)
     elif args.negative_agent or args.negative_source or args.negative_rationale:
-        raise ContractError("negative control options apply only to the negative arm")
+        raise ContractError("control options apply only to the negative or copy arm")
     receipt = {
         "schema": RUN_INPUT_SCHEMA,
         "arm": args.arm,
@@ -2629,7 +2627,7 @@ def _validate_run_inputs(
     config = result.get("config")
     identity = _agent_identity(config.get("agent") if isinstance(config, dict) else None)
     control = receipt["negative_control"]
-    if arm == "negative":
+    if arm in ("negative", "copy"):
         if not isinstance(control, dict) or set(control) != {"agent", "source_path", "source_sha256", "rationale"}:
             raise ContractError("negative run inputs require retained control source and rationale")
         if not isinstance(control["agent"], str) or not isinstance(control["source_path"], str):
@@ -2674,13 +2672,19 @@ def _validation_from_jobs(
     harbor_version: str,
     *,
     allow_aggregate_only: bool = False,
+    copy_job_dirs: list[str | Path] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(harbor_version, str) or not harbor_version.strip():
         raise ContractError("Harbor version must be nonempty text")
     task_contract = _validate_task(task_dir)
     reproducibility = _validate_reproducibility(task_dir)
     checksum = _harbor_task_checksum(task_dir)
-    inputs = {"nop": nop_job_dirs, "oracle": oracle_job_dirs, "negative": negative_job_dirs}
+    inputs = {
+        "nop": nop_job_dirs,
+        "oracle": oracle_job_dirs,
+        "negative": negative_job_dirs,
+        "copy": copy_job_dirs or [],
+    }
     for arm, minimum in _MIN_VALIDATION_RUNS.items():
         if len(inputs[arm]) < minimum:
             raise ContractError(f"validation requires at least {minimum} independent {arm} Harbor jobs")
@@ -2701,6 +2705,10 @@ def _validation_from_jobs(
             if checks is not None:
                 run["checks"] = checks
             runs[arm].append(run)
+    if copy_job_dirs and any(rows is None for rows in check_rows):
+        raise ContractError(
+            "copy probes require per-check rows in every proof job; aggregate-only evidence is insufficient"
+        )
     if any(rows is None for rows in check_rows):
         if any(rows is not None for rows in check_rows):
             raise ContractError("either every proof job or none must retain /logs/verifier/results check rows")
@@ -2723,9 +2731,12 @@ def _validation_from_jobs(
             failed_checks = [row["check_id"] for row in run["checks"] if row["status"] != "PASS"]
             if failed_checks and run["reward"] == 1:
                 raise ContractError(f"oracle reward 1 conflicts with failing checks: {', '.join(failed_checks)}")
-        for run in runs["negative"]:
-            if run["reward"] == 0 and all(row["status"] == "PASS" for row in run["checks"]):
-                raise ContractError("negative control reward 0 conflicts with all-passing checks")
+        for arm in ("negative", "copy"):
+            for run in runs[arm]:
+                if run["reward"] in (0, 1) and (run["reward"] == 1) != all(
+                    row["status"] == "PASS" for row in run["checks"]
+                ):
+                    raise ContractError(f"{arm} control reward conflicts with per-check results")
     job_dirs = [run["job_dir"] for arm_runs in runs.values() for run in arm_runs]
     job_ids = [run["job_id"] for arm_runs in runs.values() for run in arm_runs]
     if len(job_dirs) != len(set(job_dirs)):
@@ -2746,7 +2757,7 @@ def _validation_from_jobs(
     mode = next(iter(modes))
     if mode != task_contract["verifier_environment_mode"]:
         raise ContractError("Harbor verifier environment mode differs from task/task.toml")
-    expected_rewards = {"nop": 0, "oracle": 1, "negative": 0}
+    expected_rewards = {"nop": 0, "oracle": 1, "negative": 0, "copy": 0}
     passed = all(
         run["reward"] == expected_rewards[arm] and not run["exception_present"]
         for arm, arm_runs in runs.items()
@@ -2767,6 +2778,21 @@ def _validation_from_jobs(
     }
 
 
+def _copy_probe_summary(validation: dict[str, Any]) -> dict[str, Any]:
+    runs = validation["runs"]["copy"]
+    return {
+        "status": "recorded" if runs else "not_run",
+        "runs": [
+            {
+                "reward": run["reward"],
+                "exception_present": run["exception_present"],
+                "passed_check_ids": [row["check_id"] for row in run["checks"] if row["status"] == "PASS"],
+            }
+            for run in runs
+        ],
+    }
+
+
 def _record_validation(args: argparse.Namespace) -> dict[str, Any]:
     task_dir = _ensure_task_dir(args.task_dir)
     validation_path = task_dir / "validation.json"
@@ -2779,6 +2805,7 @@ def _record_validation(args: argparse.Namespace) -> dict[str, Any]:
         args.negative_job_dir,
         args.harbor_version,
         allow_aggregate_only=args.allow_aggregate_only,
+        copy_job_dirs=args.copy_job_dir,
     )
     _write_json(validation_path, validation)
     return {
@@ -2787,6 +2814,7 @@ def _record_validation(args: argparse.Namespace) -> dict[str, Any]:
         "nop_rewards": [run["reward"] for run in validation["runs"]["nop"]],
         "oracle_rewards": [run["reward"] for run in validation["runs"]["oracle"]],
         "negative_rewards": [run["reward"] for run in validation["runs"]["negative"]],
+        "copy_probes": _copy_probe_summary(validation),
         "verifier_environment_mode": validation["verifier_environment_mode"],
     }
 
@@ -2847,6 +2875,7 @@ def _validate_validation(task_dir: Path) -> dict[str, Any]:
         [run["job_dir"] for run in runs["negative"]],
         recorded["harbor_version"],
         allow_aggregate_only=recorded["check_evidence"] == "aggregate_only",
+        copy_job_dirs=[run["job_dir"] for run in runs["copy"]],
     )
     if recorded != derived:
         raise ContractError("validation.json differs from the retained Harbor result evidence")
@@ -3285,6 +3314,7 @@ def _write_publication(task_dir: Path, output_dir: Path) -> None:
             "minimum_runs": validation["minimum_runs"],
             "check_evidence": validation["check_evidence"],
             "passed": validation["passed"],
+            "copy_probes": _copy_probe_summary(validation),
             "runs": {
                 arm: [
                     {"reward": run["reward"], "exception_present": run["exception_present"]}
@@ -3511,10 +3541,10 @@ def _parser() -> argparse.ArgumentParser:
     )
     run_inputs.add_argument("--task-dir", required=True, type=Path)
     run_inputs.add_argument("--job-dir", required=True, type=Path)
-    run_inputs.add_argument("--arm", required=True, choices=("nop", "oracle", "negative"))
-    run_inputs.add_argument("--negative-agent")
-    run_inputs.add_argument("--negative-source", type=Path)
-    run_inputs.add_argument("--negative-rationale")
+    run_inputs.add_argument("--arm", required=True, choices=("nop", "oracle", "negative", "copy"))
+    run_inputs.add_argument("--negative-agent", "--control-agent", dest="negative_agent")
+    run_inputs.add_argument("--negative-source", "--control-source", dest="negative_source", type=Path)
+    run_inputs.add_argument("--negative-rationale", "--control-rationale", dest="negative_rationale")
     run_inputs.set_defaults(run=_record_run_inputs)
 
     record = subparsers.add_parser("record-validation", help="derive proof only from retained Harbor results")
@@ -3522,6 +3552,7 @@ def _parser() -> argparse.ArgumentParser:
     record.add_argument("--nop-job-dir", required=True, action="append", type=Path)
     record.add_argument("--oracle-job-dir", required=True, action="append", type=Path)
     record.add_argument("--negative-job-dir", required=True, action="append", type=Path)
+    record.add_argument("--copy-job-dir", action="append", type=Path, default=[])
     record.add_argument("--harbor-version", required=True)
     record.add_argument(
         "--allow-aggregate-only",
