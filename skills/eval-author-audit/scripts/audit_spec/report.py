@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypeAlias
@@ -19,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _markdown import AuditMarkdownError  # noqa: E402
 from _schema import ITEM_KINDS as AUDIT_ITEM_KINDS  # noqa: E402
 from _schema import AuditEnvironmentError, AuditSpecError, item_counts, load_audit_spec  # noqa: E402
+from _values import dedupe_names  # noqa: E402
 
 JsonObject: TypeAlias = dict[str, Any]
 
@@ -311,16 +311,16 @@ def _generation_focus(item: JsonObject) -> str:
 def _needed_tools(item: JsonObject, audit_items_by_name: dict[str, JsonObject]) -> list[str]:
     """Return the declared tool names a generator should consider when closing this gap."""
     if item["kind"] == "tool":
-        return _dedupe_names([item["name"]])
+        return dedupe_names([item["name"]])
     if item["kind"] == "capability":
-        return _dedupe_names(item["required_tools"])
+        return dedupe_names(item["required_tools"])
 
     if "expected_tools" in item:
         tools = item["expected_tools"]
     else:
         tools = _tools_from_capabilities(item, audit_items_by_name)
     prohibited_tools = set(item.get("prohibited_tools", []))
-    return _dedupe_names(tool for tool in tools if tool not in prohibited_tools)
+    return dedupe_names(tool for tool in tools if tool not in prohibited_tools)
 
 
 def _tools_from_capabilities(item: JsonObject, audit_items_by_name: dict[str, JsonObject]) -> list[str]:
@@ -331,11 +331,6 @@ def _tools_from_capabilities(item: JsonObject, audit_items_by_name: dict[str, Js
         if capability is not None and capability["kind"] == "capability":
             tools.extend(capability["required_tools"])
     return tools
-
-
-def _dedupe_names(names: Iterable[str]) -> list[str]:
-    """Dedupe a name iterable while preserving first-seen order."""
-    return list(dict.fromkeys(names))
 
 
 def _audit_info(audit: JsonObject, audit_path: Path, counts: dict[str, int]) -> JsonObject:
