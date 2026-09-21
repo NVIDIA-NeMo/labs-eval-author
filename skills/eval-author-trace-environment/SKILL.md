@@ -2,8 +2,8 @@
 name: eval-author-trace-environment
 version: 1.3.0
 description: >-
-  Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace evidence to derive a private,
-  reproducible Harbor environment candidate.
+  Experimental workflow. Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace
+  evidence to derive a private, reproducible Harbor environment candidate.
 triggers:
   - create an evaluation environment from a trace
   - turn ATIF into a Harbor task environment
@@ -30,6 +30,11 @@ allowed-tools: Bash Read Write Grep Glob
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: trace to environment
+
+**Experimental.** All workflows and outputs from this skill are experimental,
+including source normalization, task and fixture generation, validation, and
+publication review/export. Identify them as experimental when presenting them
+to the user.
 
 ## Purpose
 
@@ -126,7 +131,7 @@ the contextual reviewer owns that judgment.
 
 ### Resolve tool-call access
 
-For traces with tool calls, read `../../docs/trace-derived-fixtures.md`, then
+For traces with tool calls, read `references/trace-derived-fixtures.md`, then
 run `inventory-tool-calls`, `plan-tool-call-access`, and
 `resolve-tool-call-access --decisions <decisions.json> --reviewer-kind <agent|human>`.
 After privacy review, when at least one decision is mock, run

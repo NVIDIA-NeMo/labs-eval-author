@@ -2,8 +2,8 @@
 name: gym-to-atif
 description: >-
   Convert one bounded Gym Responses rollout record, or a retained Harbor ATIF
-  from a Gym run, into one canonical ATIF trajectory for Harbor or Eval Author
-  environment derivation. Offline only: no Gym runtime, model invocation, or
+  from a Gym run, into one canonical ATIF trajectory for Harbor or Eval Author's
+  experimental environment derivation. Offline only: no Gym runtime, model invocation, or
   image download.
 triggers:
   - convert a Gym rollout to ATIF
@@ -11,12 +11,13 @@ triggers:
   - normalize one Gym JSONL rollout line into ATIF
 not-for:
   - eval-author (use for the shared evidence standard and routing)
-  - eval-author-trace-environment (use after this skill emits ATIF to build a Harbor task environment)
+  - eval-author-trace-environment (experimental; use after this skill emits ATIF to build a Harbor task environment)
   - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
 compatibility: >-
   Offline conversion uses Python 3.11+ and the standard library. Optional
-  reference validation happens downstream in eval-author-trace-environment with
-  Harbor. Output keeps the ATIF version of an explicitly supplied original.
+  reference validation happens downstream in the experimental
+  eval-author-trace-environment workflow with Harbor. Output keeps the ATIF
+  version of an explicitly supplied original.
 metadata:
   author: Andrew Suter-Morris <asutermorris@nvidia.com>
   tags: [evaluation, atif, gym, traces]
@@ -97,8 +98,9 @@ The new output directory contains only owner-private files:
 - `conversion.json`: source/output digests, source basis, selected line, losses
   and uncertainties. This is not an evaluation or publication attestation.
 
-Keep all three files. When the downstream consumer is
-`eval-author-trace-environment`, run its `prepare` with the derived ATIF and
+Keep all three files. The downstream `eval-author-trace-environment` workflow
+is **experimental**; identify its workflows and outputs as experimental when
+presenting them to the user. When using it, run `prepare` with the derived ATIF and
 `--source-kind gym` (`--source-kind atif` for an explicit original); its
 `private/source.atif.json` is the exact ATIF input to `prepare`, not a claim
 that the original Gym record was ATIF. Batch manifests point `atif` at the
@@ -165,7 +167,7 @@ or recognized suffix are rejected rather than labeled as a made-up format.
 With explicit Harbor-projection fallback, ATIF-shaped serialized image lists are
 recovered into content parts and the interpretation is recorded. This keeps an
 image-only instruction from masquerading as ordinary text. The downstream
-`prepare` step then omits images from the safe copy and blocks image-only
+experimental `prepare` step then omits images from the safe copy and blocks image-only
 instructions. It does not add visual verification or bypass the text-only
 boundary.
 
