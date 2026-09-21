@@ -47,20 +47,29 @@ for each workflow, including local trace conversion and environment preparation.
 
 ## Start here
 
-Use a coding agent with local file and shell access, and install
-[Git](https://git-scm.com/downloads/) to obtain the skills. Then choose a guide:
+With the [Eval Author skills loaded](docs/getting-started.md#load-the-skills)
+and your agent's repository open, ask your coding assistant:
 
-| Your starting point | Guide |
+```text
+Help me with the evals for my agent.
+```
+
+Eval Author helps you find the right starting point. If you know more about your
+scenario, try one of these:
+
+| Say to your coding assistant | Guide |
 | --- | --- |
-| Unsure what evaluations exist in your repository | [Load the skills and find your evaluations](docs/getting-started.md) |
-| No evaluations yet | [Build your first evaluations](docs/first-evals.md) |
-| An existing Harbor suite | [Check readiness](docs/existing-evals.md#check-readiness) |
-| Existing evaluations and traces | [Audit coverage](docs/existing-evals.md#audit-coverage) |
-| Coverage gaps identified by an audit | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
-| A NeMo Platform Intake trace | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
-| Local MLflow, Gym, or ATIF traces | [Work from recorded traces](docs/traces.md) |
-| Reports or evaluation results to interpret | [Read your results](docs/results.md) |
-| A task derived from traces that you want to share | [Review the task for publication](docs/traces.md#sharing-generated-tasks) |
+| "Find the evals in this repository and explain how to run them." | [Discover existing evaluations](docs/getting-started.md#find-existing-evaluations) |
+| "I don't have evals yet. Help me build my first ones." | [Build your first evaluations](docs/first-evals.md) |
+| "Check whether my Harbor evals are ready to run." | [Check readiness](docs/existing-evals.md#check-readiness) |
+| "Audit my evals against my agent's intended behavior using these traces." | [Audit coverage](docs/existing-evals.md#audit-coverage) |
+| "Use this audit report to propose the next evals to add." | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
+| "Explain Intake trace TRACE_ID in workspace WORKSPACE." | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
+| "Turn this local trace into a Harbor eval task." | [Work from recorded traces](docs/traces.md) |
+| "Explain this eval report and what I should check next." | [Read your results](docs/results.md) |
+| "Review this task derived from a trace before I share it." | [Review the task for publication](docs/traces.md#sharing-generated-tasks) |
+
+Include the relevant file paths, trace IDs, or workspace names in your request.
 
 [Development](DEVELOPMENT.md) · [Skill reference](DEVELOPMENT.md#skill-reference) · [Support](https://github.com/NVIDIA-NeMo/labs-eval-author/issues)
 
