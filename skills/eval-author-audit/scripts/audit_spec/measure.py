@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _markdown import AuditMarkdownError  # noqa: E402
 from _schema import AuditEnvironmentError, AuditSpecError, item_counts, load_audit_spec  # noqa: E402
+from _values import optional_string  # noqa: E402
 from measurements import capabilities, failure_cases, tool_calls  # noqa: E402
 
 JsonObject: TypeAlias = dict[str, Any]
@@ -267,8 +268,8 @@ def _subject_from_trial_dir(trial_dir: Path, *, task_id: str | None, run_id: str
     result = _load_harbor_result(result_path)
     return PendingSubject(
         trace_path=trace_path,
-        task_id=task_id or _string(result.get("task_name")) or trial_dir.name,
-        run_id=run_id or _string(result.get("trial_name")) or trial_dir.name,
+        task_id=task_id or optional_string(result.get("task_name")) or trial_dir.name,
+        run_id=run_id or optional_string(result.get("trial_name")) or trial_dir.name,
     )
 
 
@@ -279,8 +280,10 @@ def _subject_from_trace(trace_path: Path, *, task_id: str | None, run_id: str | 
     result = _load_harbor_result(result_path) if result_path is not None else {}
     return PendingSubject(
         trace_path=trace_path,
-        task_id=task_id or _string(result.get("task_name")) or trace_path.stem,
-        run_id=run_id or _string(result.get("trial_name")) or (trial_dir.name if trial_dir is not None else None),
+        task_id=task_id or optional_string(result.get("task_name")) or trace_path.stem,
+        run_id=run_id
+        or optional_string(result.get("trial_name"))
+        or (trial_dir.name if trial_dir is not None else None),
     )
 
 
@@ -336,8 +339,8 @@ def _trace_run_id(loaded_trace: LoadedTrace) -> str:
     """Prefer explicit ATIF identity, then fall back to a short trace-content digest."""
     trajectory = loaded_trace.trajectory
     return (
-        _string(getattr(trajectory, "trajectory_id", None))
-        or _string(getattr(trajectory, "session_id", None))
+        optional_string(getattr(trajectory, "trajectory_id", None))
+        or optional_string(getattr(trajectory, "session_id", None))
         or f"trace-sha256-{loaded_trace.content_sha256[:12]}"
     )
 
@@ -579,14 +582,6 @@ def _validate_report(report: JsonObject, *, schema_path: Path, label: str, gener
             f"{prefix} failed its JSON Schema: "
             + "\n".join(f"{list(error.absolute_path)}: {error.message}" for error in errors)
         )
-
-
-def _string(value: object) -> str | None:
-    """Return stripped non-empty strings and drop every other value."""
-    if not isinstance(value, str):
-        return None
-    stripped = value.strip()
-    return stripped or None
 
 
 def _json(payload: JsonObject, *, compact: bool) -> str:

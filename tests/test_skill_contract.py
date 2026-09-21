@@ -1719,6 +1719,7 @@ def test_every_audit_spec_path_the_skill_or_reference_readme_names_exists() -> N
         "scripts/audit_spec/validate.py",
         "scripts/audit_spec/_schema.py",
         "scripts/audit_spec/_markdown.py",
+        "scripts/audit_spec/_values.py",
         "scripts/audit_spec/measurements/_composite.py",
         "scripts/audit_spec/measurements/capabilities.py",
         "scripts/audit_spec/measurements/failure_cases.py",

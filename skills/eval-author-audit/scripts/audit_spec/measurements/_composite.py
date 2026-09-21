@@ -6,10 +6,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, TypeAlias
 
+from _values import dedupe_names
 from measurements.trace_tools import collect_tool_calls, tool_call_counts
 
 try:
@@ -131,7 +131,7 @@ def _tool_results(
     """Evaluate each configured tool name using presence or absence semantics."""
     results: list[JsonObject] = []
     failure_status = "missing" if spec.should_be_observed else "violated"
-    for tool in _dedupe_names(item.get(spec.item_field, [])):
+    for tool in dedupe_names(item.get(spec.item_field, [])):
         matches = calls_by_tool.get(tool, [])
         satisfied = bool(matches) is spec.should_be_observed
         results.append(
@@ -286,11 +286,6 @@ def _judgment_input_summary(judgments: JsonObject | None, *, spec: CompositeSpec
     if isinstance(judged_by, str) and judged_by.strip():
         summary["judged_by"] = judged_by.strip()
     return summary
-
-
-def _dedupe_names(names: Iterable[str]) -> list[str]:
-    """Dedupe declared names while preserving audit order."""
-    return list(dict.fromkeys(names))
 
 
 def _calls_by_tool(tool_calls: list[JsonObject]) -> dict[str, list[JsonObject]]:

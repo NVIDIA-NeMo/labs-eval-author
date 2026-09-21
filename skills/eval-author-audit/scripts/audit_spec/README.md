@@ -77,6 +77,7 @@ Current assumptions:
 
 Private shared helpers live in `scripts/audit_spec/_schema.py`,
 `scripts/audit_spec/_markdown.py`,
+`scripts/audit_spec/_values.py`,
 `scripts/audit_spec/measurements/_composite.py`, and
 `scripts/audit_spec/measurements/trace_tools.py`. Measurement methods live under
 `scripts/audit_spec/measurements/`; v1 ships

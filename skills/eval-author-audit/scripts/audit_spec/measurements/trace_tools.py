@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any, TypeAlias
 
+from _values import optional_string
+
 try:
     from harbor.models.trajectories import Trajectory
 except ImportError:
@@ -50,11 +52,3 @@ def tool_call_counts(tool_calls: list[JsonObject]) -> dict[str, int]:
         tool = call["tool"]
         counts[tool] = counts.get(tool, 0) + 1
     return counts
-
-
-def optional_string(value: object) -> str | None:
-    """Return stripped non-empty strings and drop every other value."""
-    if not isinstance(value, str):
-        return None
-    stripped = value.strip()
-    return stripped or None
