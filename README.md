@@ -11,8 +11,7 @@ Bring your agent's repository and use the skills with your own coding agent.
 Build a first evaluation suite, check an existing suite, or audit its coverage.
 
 Evaluations run with [Harbor](https://docs.harborframework.com/), the framework
-Eval Author uses to validate tasks, execute agents, and grade results. Core
-workflows do not require a NeMo Platform service or account.
+Eval Author uses to validate tasks, execute agents, and grade results.
 
 For example, an audit might report:
 
