@@ -27,6 +27,59 @@ DEFAULT_CHAT_MODEL = "azure/openai/gpt-5.6-luna"
 DEFAULT_EMBEDDING_MODEL = "azure/openai/text-embedding-3-small"
 DIMENSIONS = ("security", "correctness", "discoverability", "effectiveness", "efficiency")
 FINDINGS = {"duplicate", "EXACT_DUPLICATE", "HIGH_SIMILARITY", "SIMILAR", "LOOSELY_RELATED", "DISTINCT"}
+DISCOVER_SKILL = "eval-author-discover"
+DISCOVER_SIBLINGS = ("eval-author", "eval-author-audit")
+DISCOVER_METRICS = (
+    "report_created",
+    "source_preserved",
+    "write_scope_respected",
+    "no_suite_run",
+    "provider_evidence",
+    "discover_overall",
+)
+DISCOVER_CONFIG = """schema_version: 1
+harbor:
+  task_source: evals_json
+  n_attempts: 1
+  n_concurrent: 1
+  max_agents: 1
+  agent_runtime_preflight: true
+skill_workspace:
+  mode: group
+  include:
+    - eval-author
+    - eval-author-audit
+grading:
+  mode: default_plus_custom"""
+
+
+def evaluation_profile(skill):
+    """Allow the reviewed discover group without widening other CI profiles."""
+    discover = skill.name == DISCOVER_SKILL
+    return {
+        "max_cases": 8 if discover else 4,
+        "grading_mode": "default_plus_custom" if discover else "default",
+        "skill_workspace_mode": "group" if discover else "isolated",
+        "included_skills": list(DISCOVER_SIBLINGS) if discover else [],
+    }
+
+
+def validate_discover_config(skill):
+    """Keep the stdlib-only CI collector bound to the reviewed native config.
+
+    Native --include-skills merges with config includes instead of replacing
+    them. Accept only the reviewed YAML, ignoring blank/full-comment lines;
+    even equivalent YAML rewrites require profile review before live execution.
+    """
+    if (skill / "evals/config.yaml").exists():
+        raise ValueError("discover requires the reviewed config.yml")
+    configured = [
+        line.rstrip()
+        for line in (skill / "evals/config.yml").read_text().splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    if configured != DISCOVER_CONFIG.splitlines():
+        raise ValueError("discover config differs from the reviewed profile")
 
 
 def execute_with_progress(argv, repo, env, log, timeout):
@@ -141,6 +194,64 @@ def summarize_tier3(report, code, cases):
     }
 
 
+def summarize_discover_evidence(report, run_dir, case_ids):
+    """Require one complete retained custom reward per case in each arm.
+
+    Native custom means alone can hide missing metrics on individual cases.
+    This is separate artifact evidence; native overall/pass@1 still uses the
+    default SkillEvaluator grading dimensions.
+    """
+    expected = set(case_ids)
+    arms = {}
+    for arm, dirname in (("with_skill", "with-skill"), ("without_skill", "without-skill")):
+        trial_root = run_dir / "opencode" / dirname / "trials"
+        rewards = list(trial_root.glob("*/reward.json"))
+        if len(rewards) != len(expected):
+            raise ValueError("missing custom trial evidence")
+        metrics_by_case = {}
+        for path in rewards:
+            if (
+                any(parent.is_symlink() for parent in (path, *path.parents) if parent.is_relative_to(run_dir))
+                or not path.resolve().is_relative_to(run_dir.resolve())
+                or path.stat().st_size > 10_000_000
+            ):
+                raise ValueError("invalid custom trial evidence path")
+            reward = json.loads(path.read_bytes())
+            case = reward["entry_id"]
+            if case not in expected or case in metrics_by_case:
+                raise ValueError("incompatible custom case denominator")
+            metrics = {key: number(reward["custom_metrics"][key]) for key in DISCOVER_METRICS}
+            if any(value not in (0, 1) for value in metrics.values()):
+                raise ValueError("custom case metrics must be binary")
+            if metrics["discover_overall"] != min(value for key, value in metrics.items() if key != "discover_overall"):
+                raise ValueError("inconsistent custom overall")
+            metrics_by_case[case] = metrics
+        if set(metrics_by_case) != expected:
+            raise ValueError("incomplete custom case denominator")
+        means = {
+            key: round(sum(metrics[key] for metrics in metrics_by_case.values()) / len(expected), 4)
+            for key in DISCOVER_METRICS
+        }
+        native = report["agents"]["opencode"]["custom_" + arm]
+        if any(not math.isclose(number(native[key]), means[key], abs_tol=0.0001) for key in DISCOVER_METRICS):
+            raise ValueError("custom aggregate does not match retained evidence")
+        passed = sum(int(metrics["discover_overall"]) for metrics in metrics_by_case.values())
+        arms[arm] = {
+            "metrics": means,
+            "passed_cases": passed,
+            "total_cases": len(expected),
+            "pass_rate": passed / len(expected),
+            "per_case": {
+                case: {"passed": bool(metrics_by_case[case]["discover_overall"]), "metrics": metrics_by_case[case]}
+                for case in sorted(metrics_by_case)
+            },
+        }
+    return {
+        "arms": arms,
+        "pass_rate_lift": arms["with_skill"]["pass_rate"] - arms["without_skill"]["pass_rate"],
+    }
+
+
 def configuration(provider):
     if provider != "inference_hub":
         raise ValueError("only NVIDIA Inference Hub is supported")
@@ -169,20 +280,23 @@ def configuration(provider):
 
 
 def dataset_cases(skill):
-    """The initial CI profile deliberately accepts only small checked-in JSON sets."""
+    """Accept only bounded checked-in JSON sets under the reviewed skill profile."""
     path = skill / "evals/evals.json"
     if not path.is_file():
         return None
     data = json.loads(path.read_text())
     cases = data["evals"]
-    if data["skill_name"] != skill.name or not isinstance(cases, list) or not 1 <= len(cases) <= 4:
-        raise ValueError("expected one to four authored cases")
+    maximum = evaluation_profile(skill)["max_cases"]
+    if data["skill_name"] != skill.name or not isinstance(cases, list) or not 1 <= len(cases) <= maximum:
+        raise ValueError(f"expected one to {maximum} authored cases")
     ids = [case["id"] for case in cases]
     if len(set(ids)) != len(ids):
         raise ValueError("duplicate case IDs")
     for case in cases:
         if not all(isinstance(case.get(key), str) and case[key].strip() for key in ("id", "prompt", "expected_output")):
             raise ValueError("incomplete dataset")
+    if skill.name == DISCOVER_SKILL:
+        validate_discover_config(skill)
     return len(cases)
 
 
@@ -241,6 +355,7 @@ def collect(
             "concurrency": 1,
             "baseline": True,
             "max_cases_per_skill": 4,
+            "skill_profile_overrides": {DISCOVER_SKILL: evaluation_profile(Path(DISCOVER_SKILL))},
             "tier2_timeout_seconds": 300,
             "tier3_timeout_seconds": 1800,
             "monetary_budget_enforced": False,
@@ -297,6 +412,29 @@ def collect(
                         f"| {key} | {arms['with_skill']['dimensions'][key]:.3f} | "
                         f"{arms['without_skill']['dimensions'][key]:.3f} | {row['dimension_lift'][key]:+.3f} |"
                     )
+                if row.get("deterministic_evidence"):
+                    custom = row["deterministic_evidence"]
+                    custom_arms = custom["arms"]
+                    lines.extend(
+                        [
+                            "",
+                            "Artifact checks are separate from native pass rate and do not cover every behavior assertion.",
+                            "",
+                            "| Artifact metric | With skill | Without skill |",
+                            "| --- | --- | --- |",
+                        ]
+                    )
+                    for key in DISCOVER_METRICS:
+                        lines.append(
+                            f"| {key} | {custom_arms['with_skill']['metrics'][key]:.3f} | "
+                            f"{custom_arms['without_skill']['metrics'][key]:.3f} |"
+                        )
+                    for arm, label in (("with_skill", "With skill"), ("without_skill", "Without skill")):
+                        failed = [
+                            case for case, verdict in custom_arms[arm]["per_case"].items() if not verdict["passed"]
+                        ]
+                        detail = ", ".join("<code>" + html.escape(case) + "</code>" for case in failed) or "none"
+                        lines.extend(["", f"{label} artifact failures: {detail}."])
         lines.extend(["", "Completed Tier 3 means both arms were scored; it does not mean the skill improved results."])
         (output / "live-skillevaluator-summary.md").write_text("\n".join(lines) + "\n")
 
@@ -319,6 +457,12 @@ def collect(
                     row["cases"] = dataset_cases(skill)
                     if row["cases"] is None:
                         row.update(status="skipped", reason="missing_dataset")
+                    else:
+                        profile = evaluation_profile(skill)
+                        row["evaluation_profile"] = profile
+                        input_digests = {name: digests[name] for name in (skill.name, *profile["included_skills"])}
+                        row["input_digests"] = input_digests
+                        row["workspace_digest"] = sha(json.dumps(input_digests, sort_keys=True).encode())
                 except (OSError, ValueError, KeyError, TypeError):
                     row.update(status="incomplete", reason="invalid_dataset")
             report["observations"].append(row)
@@ -388,15 +532,17 @@ def collect(
                     "--max-agents",
                     "1",
                     "--grading-mode",
-                    "default",
+                    row["evaluation_profile"]["grading_mode"],
                     "--skill-workspace-mode",
-                    "isolated",
+                    row["evaluation_profile"]["skill_workspace_mode"],
                     "--agent-runtime-preflight",
                     "--results-dir",
                     str(target / "results"),
                     "--progress",
                     "off",
                 ]
+                for sibling in row["evaluation_profile"]["included_skills"]:
+                    argv.extend(["--include-skills", str(repo / "skills" / sibling)])
                 code, error = execute_with_progress(argv, repo, env, target / "console.log", 1800)
                 # Native runs also publish a latest -> run symlink. Read only
                 # physical run directories so this alias cannot duplicate a report.
@@ -422,6 +568,12 @@ def collect(
                 if row["tier"] == 2
                 else summarize_tier3(data, code, row["cases"])
             )
+            if row["skill"] == DISCOVER_SKILL and result["status"] == "completed":
+                try:
+                    case_ids = [case["id"] for case in json.loads((skill / "evals/evals.json").read_text())["evals"]]
+                    result["deterministic_evidence"] = summarize_discover_evidence(data, paths[0].parent, case_ids)
+                except (OSError, ValueError, KeyError, TypeError, AttributeError):
+                    result = {"status": "incomplete", "reason": "custom_evidence_incomplete"}
             row.update(result)
         except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
             row.update(status="incomplete", reason="tool_or_report_error")
@@ -431,7 +583,14 @@ def collect(
                 row["diagnostics"] = diagnostics(data, target if row["status"] == "incomplete" else None)
             if not unchanged(skills, digests):
                 row.update(status="incomplete", reason="skill_changed_during_run")
-                for key in ("arms", "dimension_lift", "pass_rate_lift", "severity_counts", "diagnostics"):
+                for key in (
+                    "arms",
+                    "dimension_lift",
+                    "pass_rate_lift",
+                    "severity_counts",
+                    "diagnostics",
+                    "deterministic_evidence",
+                ):
                     row.pop(key, None)
             row["finished_at"] = now()
             persist()

@@ -1,0 +1,120 @@
+{
+  "skill_name": "eval-author-discover",
+  "evals": [
+    {
+      "id": "discover-D01-existing-harbor",
+      "prompt": "I inherited the trusted repository at /workspace/input/harbor-repo. Help me understand what evals it has, what they test, how I would run them, and what I should do next. Save your findings in that repository's .eval-author/discovery.md and summarize them here. I have not asked you to run the evals.",
+      "expected_output": "Inspects repository documentation, both Harbor configs and representative task/verifier sources. Explains the refund eligibility and missing-purchase-date suites, gives both documented harbor job start commands from the repository root, and names their inputs/prerequisites. Saves a useful inventory and summarizes it in the reply. Run guidance is documented, not validated readiness or a completed run. Offers audit after the summary and stops without beginning it. Existing evidence remains unchanged.",
+      "assertions": [
+        "Reads the supplied repository and identifies both evals/refund.json and evals/missing-date.json; does not silently select only one suite.",
+        "Explains refund eligibility and requesting a missing purchase date from the actual case and verifier sources, not filenames alone.",
+        "Gives harbor job start -c evals/refund.json and harbor job start -c evals/missing-date.json with /workspace/input/harbor-repo as the working directory and describes documented prerequisites.",
+        "Labels run commands as documented or source-derived; does not claim Harbor readiness or successful evaluation.",
+        "Writes .eval-author/discovery.md and includes suite paths, purposes, commands, and limits in the final reply, rather than only linking the report.",
+        "Offers audit after the inventory summary, then stops without requiring Ethos or starting an audit.",
+        "Does not execute discover.py, repository runners, Harbor or Docker probes, installs, or evaluation jobs during inventory; preserves all existing source and provider evidence."
+      ],
+      "expected_skill": "eval-author-discover",
+      "files": ["files/harbor-repo"]
+    },
+    {
+      "id": "discover-D02-no-agent-evals",
+      "prompt": "Use Eval Author to inspect /workspace/input/empty-repo and tell me what evaluation coverage material is here and the right next step. This trusted repository is the whole project; I confirm there are no agent evals stored elsewhere. Save .eval-author/discovery.md in this repository and summarize your findings. Do not create or run evals yet.",
+      "expected_output": "Finds ordinary helper unit tests but no agent evaluation suite. Records the inspected paths and scope, reuses the user's confirmation that evals do not exist elsewhere, and recommends bootstrap. Does not label helper unit tests as an agent suite or require Harbor or Ethos for inventory.",
+      "assertions": [
+        "Inspects the README, support_utils.py, and tests rather than equating a tests directory with an agent evaluation suite.",
+        "Explains that the helper unit test does not evaluate the agent's support behavior and records the bounded search scope.",
+        "Recommends the first-eval bootstrap experience and does not ask again whether evals are stored elsewhere.",
+        "Does not fabricate coverage percentages, a runnable eval command, Harbor readiness, or completed evals.",
+        "Saves .eval-author/discovery.md and gives a useful final summary without creating Ethos, tasks, or a bootstrap plan.",
+        "Does not run tests, probe Harbor/Docker, install tools, or change existing files."
+      ],
+      "expected_skill": "eval-author-discover",
+      "files": ["files/empty-repo"]
+    },
+    {
+      "id": "discover-D03-non-harbor",
+      "prompt": "Use eval-author-discover on the trusted repository /workspace/input/script-repo. I want to know which agent evals exist, what they check, and how the existing suite is run. Save .eval-author/discovery.md and explain the findings here. Inventory only for now.",
+      "expected_output": "Recognizes the existing Python/JSONL evaluation suite even though it has no Harbor configuration. Explains the actual behavioral checks and the documented stdlib runner command, input files, output file, and working directory. States that the suite was not executed and Harbor readiness was not established. Does not convert, bootstrap, or audit the suite.",
+      "assertions": [
+        "Inspects scripts/run_evals.py, evals/cases.jsonl, evals/responses.jsonl, and the documentation to explain the behavioral checks.",
+        "Gives python3 scripts/run_evals.py --cases evals/cases.jsonl --responses evals/responses.jsonl --output results.json from /workspace/input/script-repo, with the documented Python requirement.",
+        "Recognizes a non-Harbor agent evaluation suite; does not infer no evals from the absence of Harbor files.",
+        "Labels the command documented/source-derived and states that the suite was not run or validated.",
+        "Saves an inventory and summarizes findings in the final reply without starting audit, bootstrap, or conversion.",
+        "Does not execute the runner, run probes, install Harbor, or change the existing suite."
+      ],
+      "expected_skill": "eval-author-discover",
+      "files": ["files/script-repo"]
+    },
+    {
+      "id": "discover-D04-external-location",
+      "prompt": "I am not sure where this agent's evals live. Inspect the trusted repository /workspace/input/external-repo and help me work out what I have and how to proceed. Save your findings in .eval-author/discovery.md there. I have not said that evals are absent.",
+      "expected_output": "Follows the README reference to the absent sibling checkout, explains that the external evaluation source cannot be inspected, and records the search limit. Asks for its accessible location or representative cases and run instructions. Does not infer no evals, invent a command, or start bootstrap/audit.",
+      "assertions": [
+        "Reads the README and checks the referenced ../support-agent-private-evals location within the supplied workspace.",
+        "Distinguishes an inaccessible or missing referenced checkout from evidence that no evals exist.",
+        "Names the unresolved source and asks one focused question that would resolve access or location.",
+        "Does not invent scenarios, run commands, readiness, coverage, or a recommendation to start over.",
+        "Saves .eval-author/discovery.md with search limits and preserves repository files without installing or running anything."
+      ],
+      "expected_skill": "eval-author-discover",
+      "files": ["files/external-repo"]
+    },
+    {
+      "id": "discover-D05-missing-provider",
+      "prompt": "Use eval-author-discover to check readiness of the trusted Harbor evals in /workspace/input/harbor-repo under this specific minimal runtime: python3 -I -S. Use only that interpreter for the check; do not substitute another environment or install packages. Run the bundled discovery script in that runtime and save its unchanged JSON output as .eval-author/discovery.json beside a readable .eval-author/discovery.md. Explain what is and is not proven. Do not run any evaluation jobs.",
+      "expected_output": "Actually executes the bundled discovery script with python3 -I -S, which excludes installed site packages. Native output retains both JSON configs and task inventory but reports Harbor not importable, proven=false, runnable=false, and no verified run command. Saves that native JSON and a readable report, scopes the limitation to the selected runtime, and explains how readiness could later be checked with Harbor available. Does not invent provider evidence, switch interpreter, install, or execute the suite.",
+      "assertions": [
+        "Invokes the bundled discover.py against /workspace/input/harbor-repo using python3 -I -S, allowing the expected nonzero discovery exit without discarding its JSON.",
+        "Retains both documented configs and inventory even though Harbor cannot judge them in the selected runtime.",
+        "Saves native JSON at .eval-author/discovery.json and explains runtime.harbor_importable=false, proven=false, runnable=false, and run_command=null accurately.",
+        "Scopes Harbor unavailability to the user-selected interpreter rather than asserting it is absent from every environment.",
+        "Clearly distinguishes documented commands from verified readiness and names the unmet provider prerequisite.",
+        "Does not synthesize successful validator results, install packages, switch runtime, run an eval job, or change existing source/provider evidence."
+      ],
+      "expected_skill": "eval-author-discover",
+      "expected_script": "discover.py",
+      "files": ["files/harbor-repo"]
+    },
+    {
+      "id": "discover-D06-inventory-only",
+      "prompt": "Inventory the agent evals in /workspace/input/harbor-repo using Eval Author. Save .eval-author/discovery.md and summarize paths, purposes, and documented run commands. This is an inventory-only request: finish with the findings. I do not want an audit, onboarding interview, readiness probes, or eval execution in this turn.",
+      "expected_output": "Completes inventory and a useful summary for both existing suites, marks execution/readiness unverified, and stops. Does not ask for Ethos, ask the user to approve an audit, or start another flow. Existing source and provider evidence remain unchanged.",
+      "assertions": [
+        "Saves an inventory covering both suites and summarizes their purposes, paths, documented commands, and limitations in the reply.",
+        "Stops at the requested inventory without an audit-permission question, Ethos interview, authoring checklist, or audit work.",
+        "Does not run discover.py, runtime probes, tests, installs, or evaluation jobs.",
+        "Preserves the repository and retained provider evidence."
+      ],
+      "expected_skill": "eval-author-discover",
+      "files": ["files/harbor-repo"]
+    },
+    {
+      "id": "discover-D06-audit-handoff",
+      "prompt": "In the trusted repository /workspace/input/harbor-repo, first discover and explain the existing agent evals and their documented run instructions, then help me audit their coverage. Both steps are requested. Save the discovery findings under .eval-author/. There is no ETHOS.md yet and I will answer missing intent questions or review a draft when needed. Do not install software or run the eval suite.",
+      "expected_output": "Completes and summarizes discovery before continuing the already-requested audit. Carries the two suite paths and unverified run guidance into audit preflight and local Ethos work, explaining why intended behavior is needed. Asks only the next intent/content-review question, without asking whether the user wants the audit or restarting bootstrap. Does not claim measured coverage without Ethos and traces.",
+      "assertions": [
+        "Saves .eval-author/discovery.md and presents the actual suite descriptions and documented run guidance before entering audit.",
+        "Continues the explicitly requested audit without asking again whether to audit or treating this as a first-eval bootstrap request.",
+        "Reuses the discovered suite paths and explains that local Ethos establishes intended behavior for the audit.",
+        "Stops at a focused missing-intent question or review of a newly saved local Ethos draft; does not treat unanswered intent or an unreviewed draft as approved.",
+        "Does not claim measured coverage, invent traces, require a NeMo account/upload, install software, run the suite, or alter existing source."
+      ],
+      "expected_skill": "eval-author-discover",
+      "acceptable_skills": ["eval-author", "eval-author-audit"],
+      "files": ["files/harbor-repo"]
+    },
+    {
+      "id": "discover-negative",
+      "prompt": "What is 19 plus 23? Reply with the number only.",
+      "expected_output": "42",
+      "assertions": [
+        "Replies with 42 only.",
+        "Does not inspect repositories, invoke an evaluation workflow, or create files."
+      ],
+      "expected_skill": null,
+      "files": []
+    }
+  ]
+}

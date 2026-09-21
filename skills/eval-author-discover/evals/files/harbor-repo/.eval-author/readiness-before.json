@@ -1,0 +1,12 @@
+{
+  "record_type": "synthetic_prior_readiness_note",
+  "proven": false,
+  "runnable": false,
+  "status": "unproven",
+  "reason": "Historical note only: Harbor and Docker readiness were not checked.",
+  "configs": [
+    "evals/refund.json",
+    "evals/missing-date.json"
+  ],
+  "run_command": null
+}

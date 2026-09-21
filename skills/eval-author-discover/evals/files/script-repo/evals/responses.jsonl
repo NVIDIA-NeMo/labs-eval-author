@@ -1,0 +1,2 @@
+{"id": "refund-within-window", "decision": "eligible", "missing_fields": []}
+{"id": "ask-purchase-date", "decision": "needs_information", "missing_fields": ["purchase_date"]}

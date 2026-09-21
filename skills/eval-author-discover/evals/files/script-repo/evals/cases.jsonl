@@ -1,0 +1,2 @@
+{"id": "refund-within-window", "request": {"request_date": "2026-06-20", "purchase_date": "2026-06-02"}, "expected_decision": "eligible", "expected_missing_fields": []}
+{"id": "ask-purchase-date", "request": {"request_date": "2026-06-20"}, "expected_decision": "needs_information", "expected_missing_fields": ["purchase_date"]}

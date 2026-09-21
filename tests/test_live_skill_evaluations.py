@@ -236,6 +236,9 @@ def test_live_collection_is_bounded_and_retains_every_skill(live, repo, tmp_path
         if "evaluate" in argv:
             assert argv[argv.index("--n-attempts") + 1] == "1"
             assert argv[argv.index("--agent-model") + 1] == "opencode=openai/fixture/chat"
+            assert argv[argv.index("--grading-mode") + 1] == "default"
+            assert argv[argv.index("--skill-workspace-mode") + 1] == "isolated"
+            assert "--include-skills" not in argv
             path = Path(argv[argv.index("--results-dir") + 1]) / "eval-author/run/result.json"
             data = tier3()
         else:
@@ -524,3 +527,221 @@ def test_converter_seed_evidence_matches_expected_behavior(tmp_path, fixture, ex
         assert json.loads(trajectories[0].read_text())["schema_version"] == "ATIF-v1.7"
         assert output.stat().st_mode & 0o777 == 0o700
         assert trajectories[0].stat().st_mode & 0o777 == 0o600
+
+
+def discover_dataset(repo, cases=8):
+    """Build a reviewed-group fixture without depending on authored case text."""
+    for name in ("eval-author-discover", "eval-author-audit"):
+        skill = repo / "skills" / name
+        skill.mkdir(parents=True, exist_ok=True)
+        (skill / "SKILL.md").write_text("# Fixture\n")
+    skill = repo / "skills/eval-author-discover"
+    (skill / "evals").mkdir(exist_ok=True)
+    (skill / "evals/config.yml").write_text((ROOT / "skills/eval-author-discover/evals/config.yml").read_text())
+    (skill / "evals/evals.json").write_text(
+        json.dumps(
+            {
+                "skill_name": skill.name,
+                "evals": [
+                    {"id": f"case-{index}", "prompt": "Discover", "expected_output": "Evidence"}
+                    for index in range(cases)
+                ],
+            }
+        )
+    )
+    subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+    subprocess.run(
+        ["git", "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "discover fixture"],
+        cwd=repo,
+        capture_output=True,
+        check=True,
+    )
+    return skill
+
+
+def discover_rewards(live, run_dir, cases=8):
+    """Match the pinned evaluator's retained reward and aggregate schema."""
+    report = tier3()
+    agent = report["agents"]["opencode"]
+    for arm, dirname in (("with_skill", "with-skill"), ("without_skill", "without-skill")):
+        agent["conditions"][arm].update(expected_attempts=cases, scored_attempts=cases)
+        agent["pass_at_k"][arm].update(passed_cases=cases, total_cases=cases)
+        sums = dict.fromkeys(live.DISCOVER_METRICS, 0)
+        for index in range(cases):
+            metrics = dict.fromkeys(live.DISCOVER_METRICS, 1)
+            if arm == "with_skill" and index == 0:
+                # Native pass@1 remains 100%; the artifact check independently fails.
+                metrics.update(provider_evidence=0, discover_overall=0)
+            for key, value in metrics.items():
+                sums[key] += value
+            reward = {
+                "entry_id": f"case-{index}",
+                "trial_id": f"trial-{index}",
+                "custom_metrics": metrics,
+                "custom_details": {"private": "PRIVATE-SENTINEL"},
+            }
+            path = run_dir / "opencode" / dirname / "trials" / f"trial-{index}" / "reward.json"
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(reward))
+        agent["custom_" + arm] = {key: round(value / cases, 4) for key, value in sums.items()}
+    return report
+
+
+def test_discover_profile_does_not_expand_other_datasets(live, repo):
+    skill = discover_dataset(repo)
+    assert live.dataset_cases(skill) == 8
+    other = repo / "skills/another-skill"
+    (other / "evals").mkdir()
+    data = json.loads((skill / "evals/evals.json").read_text())
+    data["skill_name"] = other.name
+    (other / "evals/evals.json").write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="one to 4"):
+        live.dataset_cases(other)
+    data["skill_name"] = skill.name
+    data["evals"].append({"id": "ninth", "prompt": "Task", "expected_output": "Evidence"})
+    (skill / "evals/evals.json").write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="one to 8"):
+        live.dataset_cases(skill)
+
+
+@pytest.mark.parametrize("missing_metric", [False, True])
+def test_discover_collection_uses_group_and_reports_custom_evidence(live, repo, tmp_path, monkeypatch, missing_metric):
+    discover_dataset(repo)
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "test-credential")
+    calls = []
+
+    def execute(argv, cwd, env, log, timeout):
+        calls.append(argv)
+        if "validate" in argv:
+            return 0, None
+        assert argv[argv.index("--grading-mode") + 1] == "default_plus_custom"
+        assert argv[argv.index("--skill-workspace-mode") + 1] == "group"
+        for option in ("--n-attempts", "--n-concurrent", "--max-agents"):
+            assert argv[argv.index(option) + 1] == "1"
+        assert "--skip-baseline" not in argv and "--copy-repo" not in argv
+        included = [argv[index + 1] for index, value in enumerate(argv) if value == "--include-skills"]
+        assert included == [str(repo / "skills" / name) for name in ("eval-author", "eval-author-audit")]
+        run_dir = Path(argv[argv.index("--results-dir") + 1]) / "eval-author-discover/run"
+        data = discover_rewards(live, run_dir)
+        if missing_metric:
+            path = run_dir / "opencode/without-skill/trials/trial-7/reward.json"
+            reward = json.loads(path.read_text())
+            del reward["custom_metrics"]["provider_evidence"]
+            path.write_text(json.dumps(reward))
+        (run_dir / "result.json").write_text(json.dumps(data))
+        return 0, None
+
+    monkeypatch.setattr(live, "execute", execute)
+    output = tmp_path / "discover-live"
+    report = live.collect(repo, output, run=True, tier="3", skill_name="eval-author-discover")
+    row = next(row for row in report["observations"] if row["skill"] == "eval-author-discover" and row["tier"] == 3)
+    assert len(calls) == 2
+    assert row["cases"] == 8
+    assert set(row["input_digests"]) == {"eval-author-discover", "eval-author", "eval-author-audit"}
+    assert row["workspace_digest"] == live.sha(json.dumps(row["input_digests"], sort_keys=True).encode())
+    if missing_metric:
+        assert row["status"] == "incomplete" and row["reason"] == "custom_evidence_incomplete"
+        assert "arms" not in row and "deterministic_evidence" not in row
+    else:
+        assert row["status"] == "completed"
+        assert row["arms"]["with_skill"]["pass_rate"] == 1
+        assert row["deterministic_evidence"]["arms"]["with_skill"]["passed_cases"] == 7
+        assert row["deterministic_evidence"]["arms"]["without_skill"]["passed_cases"] == 8
+        assert row["deterministic_evidence"]["pass_rate_lift"] == -0.125
+        per_case = row["deterministic_evidence"]["arms"]["with_skill"]["per_case"]
+        assert list(per_case) == sorted(f"case-{index}" for index in range(8))
+        assert per_case["case-0"] == {
+            "passed": False,
+            "metrics": dict.fromkeys(live.DISCOVER_METRICS, 1) | {"provider_evidence": 0, "discover_overall": 0},
+        }
+        assert all(per_case[f"case-{index}"]["passed"] for index in range(1, 8))
+        markdown = (output / "live-skillevaluator-summary.md").read_text()
+        assert "separate from native pass rate" in markdown
+        assert "With skill artifact failures: <code>case-0</code>" in markdown
+        assert "Without skill artifact failures: none" in markdown
+    assert "PRIVATE-SENTINEL" not in (output / "live-skillevaluator-summary.json").read_text()
+
+
+@pytest.mark.parametrize("damage", ["missing", "duplicate", "unexpected", "linked", "nonbinary", "mean", "overall"])
+def test_custom_evidence_requires_every_expected_case(live, tmp_path, damage):
+    report = discover_rewards(live, tmp_path, cases=2)
+    path = tmp_path / "opencode/with-skill/trials/trial-0/reward.json"
+    reward = json.loads(path.read_text())
+    if damage == "missing":
+        path.unlink()
+    elif damage == "linked":
+        target = tmp_path / "linked-reward.json"
+        path.rename(target)
+        path.symlink_to(target)
+    elif damage == "mean":
+        report["agents"]["opencode"]["custom_with_skill"]["provider_evidence"] = 1
+    else:
+        if damage == "duplicate":
+            reward["entry_id"] = "case-1"
+        elif damage == "unexpected":
+            reward["entry_id"] = "not-an-authored-case"
+        elif damage == "nonbinary":
+            reward["custom_metrics"]["report_created"] = 0.5
+        elif damage == "overall":
+            reward["custom_metrics"]["discover_overall"] = 1
+        path.write_text(json.dumps(reward))
+    with pytest.raises(ValueError):
+        live.summarize_discover_evidence(report, tmp_path, ["case-0", "case-1"])
+
+
+def test_discover_missing_sibling_is_incomplete_before_invocation(live, repo, tmp_path, monkeypatch):
+    discover_dataset(repo)
+    (repo / "skills/eval-author-audit/SKILL.md").unlink()
+    monkeypatch.setattr(live, "execute", lambda *args: pytest.fail("invalid group launched a process"))
+    report = live.collect(repo, tmp_path / "missing-sibling", tier="3", skill_name="eval-author-discover")
+    row = next(row for row in report["observations"] if row["skill"] == "eval-author-discover" and row["tier"] == 3)
+    assert row["status"] == "incomplete" and row["reason"] == "invalid_dataset"
+
+
+@pytest.mark.parametrize("change", ["extra_include", "duplicate_block", "alternate_file", "missing_config"])
+def test_discover_config_cannot_expand_reviewed_group(live, repo, tmp_path, monkeypatch, change):
+    skill = discover_dataset(repo)
+    path = skill / "evals/config.yml"
+    config = path.read_text()
+    if change == "extra_include":
+        path.write_text(config.replace("    - eval-author-audit", "    - eval-author-audit\n    - another-skill"))
+    elif change == "duplicate_block":
+        path.write_text(config + "\nskill_workspace:\n  mode: group\n  include: [another-skill]\n")
+    elif change == "alternate_file":
+        (path.parent / "config.yaml").write_text(config)
+    else:
+        path.unlink()
+    monkeypatch.setattr(live, "execute", lambda *args: pytest.fail("unreviewed config launched a process"))
+    report = live.collect(repo, tmp_path / "bad-config", tier="3", skill_name="eval-author-discover")
+    row = next(row for row in report["observations"] if row["skill"] == "eval-author-discover" and row["tier"] == 3)
+    assert row["status"] == "incomplete" and row["reason"] == "invalid_dataset"
+
+
+def test_discover_reviewed_config_matches_native_group(live):
+    skill = ROOT / "skills/eval-author-discover"
+    live.validate_discover_config(skill)
+    config = yaml.safe_load((skill / "evals/config.yml").read_text())
+    profile = live.evaluation_profile(skill)
+    assert config["skill_workspace"] == {"mode": "group", "include": profile["included_skills"]}
+    assert config["grading"]["mode"] == profile["grading_mode"]
+
+
+def test_discover_sibling_mutation_invalidates_group_evidence(live, repo, tmp_path, monkeypatch):
+    discover_dataset(repo)
+    monkeypatch.setenv("INFERENCE_HUB_API_KEY", "test-credential")
+
+    def execute(argv, cwd, env, log, timeout):
+        if "validate" in argv:
+            return 0, None
+        run_dir = Path(argv[argv.index("--results-dir") + 1]) / "eval-author-discover/run"
+        (run_dir.parent).mkdir(parents=True)
+        data = discover_rewards(live, run_dir)
+        (run_dir / "result.json").write_text(json.dumps(data))
+        (repo / "skills/eval-author-audit/SKILL.md").write_text("Changed sibling\n")
+        return 0, None
+
+    monkeypatch.setattr(live, "execute", execute)
+    report = live.collect(repo, tmp_path / "mutated-sibling", run=True, tier="3", skill_name="eval-author-discover")
+    row = next(row for row in report["observations"] if row["skill"] == "eval-author-discover" and row["tier"] == 3)
+    assert row["status"] == "incomplete" and row["reason"] == "skill_changed_during_run"
+    assert "arms" not in row and "deterministic_evidence" not in row

@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version = "1.3"
+
+[task]
+name = "discover-fixture/refund-eligibility"
+description = "Apply the documented 30-day refund policy to a dated request."
+keywords = ["support", "refund", "policy"]
+authors = [{name = "NVIDIA"}]
+
+[agent]
+timeout_sec = 120.0
+
+[verifier]
+timeout_sec = 30.0
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 300.0
+os = "linux"
+cpus = 1
+memory_mb = 512
