@@ -8,8 +8,11 @@ gaps in behavior coverage, grounded in your agent's intended behavior and
 execution traces.
 
 Bring your agent's repository and use the skills with your own coding agent.
-Build a first Harbor evaluation suite, check an existing suite, or audit its
-coverage. Core workflows do not require a NeMo Platform service or account.
+Build a first evaluation suite, check an existing suite, or audit its coverage.
+
+Evaluations run with [Harbor](https://docs.harborframework.com/), the framework
+Eval Author uses to validate tasks, execute agents, and grade results. Core
+workflows do not require a NeMo Platform service or account.
 
 For example, an audit might report:
 
