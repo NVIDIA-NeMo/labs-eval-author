@@ -4,8 +4,9 @@ description: >-
   Convert one bounded Gym Responses rollout record, or a retained Harbor ATIF
   from a Gym run, into one canonical ATIF trajectory for Harbor or Eval Author's
   experimental environment derivation. Offline only: no Gym runtime, model invocation, or
-  image download.
+  image download. Also load native ng_trajectory evidence through Trace Intel without ATIF export.
 triggers:
+  - load Gym ng_trajectory evidence with Trace Intel
   - convert a Gym rollout to ATIF
   - prepare a Gym Responses trace for an ATIF consumer
   - normalize one Gym JSONL rollout line into ATIF
@@ -14,8 +15,9 @@ not-for:
   - eval-author-trace-environment (experimental; use after this skill emits ATIF to build a Harbor task environment)
   - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
 compatibility: >-
-  Offline conversion uses Python 3.11+ and the standard library. Optional
-  reference validation happens downstream in the experimental
+  Offline ATIF conversion uses Python 3.11+ and the standard library. The optional
+  Trace Intel loader requires Python 3.12 or 3.13 and the pinned trace-ingest package.
+  Optional reference validation happens downstream in the experimental
   eval-author-trace-environment workflow with Harbor. Output keeps the ATIF
   version of an explicitly supplied original.
 metadata:
@@ -40,10 +42,11 @@ user's agent and harness; choose the best retained evidence for downstream
 processing. The bundled script writes owner-private files and prints only a
 content-free summary.
 
-This skill is a bounded local adapter. The intended long-term home for provider
-trace normalization is the Trace Intel ingestion package; see
-[references/trace-intel-ingest.md](references/trace-intel-ingest.md) (temporary
-document) before extending this adapter.
+For native `ng_trajectory` evidence, the optional shared Trace Intel loader is
+available alongside this ATIF adapter. Read
+[Trace Intel ingestion](references/trace-intel-ingest.md) before using
+`scripts/load_gym_trace.py`. It retains normalized evidence without claiming
+that the attachment is ATIF or changing the ATIF conversion boundary.
 
 ## Protect the trace
 
@@ -113,14 +116,14 @@ that the original Gym record was ATIF. Batch manifests point `atif` at the
 **converted ATIF**, with `source_kind: gym` for projections. Never point that
 field at raw Gym JSONL.
 
-## ng_trajectory attachments are out of scope
+## ng_trajectory attachments use a separate loader
 
 Some Gym rollout records carry an `ng_trajectory` observability attachment
 (with `ng_model_call_capture` / `ng_agent_observations` sources); many do not.
 Emission is producer- and path-dependent: it requires `observability_enabled`
 and model calls routed through the rollout-prefixed Gym Model Server, while
 direct-provider calls bypass capture and aggregate exports omit the attachment
-entirely. This adapter converts only the Responses record
+entirely. The ATIF adapter converts only the Responses record
 (`responses_create_params`/`response`) and ignores the attachment, so its
 presence or absence does not change conversion. When present, keep it in the
 retained raw record: its per-call token counts, timing, tool durations, and
@@ -213,6 +216,7 @@ installed location. Commands use the existing Python interpreter.
 
 | Script | Purpose | Arguments |
 |---|---|---|
+| `scripts/load_gym_trace.py` | Load native attachment evidence through pinned Trace Intel; no ATIF | `--input --output-dir`; `--row` for JSONL |
 | `scripts/gym_to_atif.py` | Convert one record and retain provenance and losses | `--input --output-dir`; `--row` for JSONL; `--source-atif` for a retained original |
 
 ## Troubleshooting

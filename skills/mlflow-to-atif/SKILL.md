@@ -3,8 +3,10 @@ name: mlflow-to-atif
 description: >-
   Convert bounded live MLflow traces or exported Trace.to_dict() JSON into one
   canonical ATIF trajectory per trace for Harbor or Eval Author audit coverage.
-  Use for MLflow-to-ATIF conversion, not Intake ingestion.
+  Also load complete local exports through Trace Intel for normalized span evidence.
+  Use for MLflow-to-ATIF conversion or local loading, not Intake ingestion.
 triggers:
+  - load MLflow export evidence with Trace Intel
   - convert MLflow traces to ATIF
   - prepare an MLflow trace for an ATIF consumer
   - measure Eval Author audit coverage from an MLflow run
@@ -16,7 +18,8 @@ compatibility: >-
   Offline conversion uses Python 3.11+ and the standard library. Live queries
   require an existing Python environment with MLflow. Optional reference
   validation requires Harbor. Output is ATIF v1.7 for current downstream
-  compatibility.
+  compatibility. The optional Trace Intel loader requires Python 3.12 or 3.13
+  and the pinned trace-ingest MLflow extra.
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
@@ -32,6 +35,11 @@ allowed-tools: Bash Read Write
 Produce canonical ATIF without routing trace data through Intake. The bundled
 script writes one owner-private `.atif.json` file per MLflow trace and prints
 only a content-free summary.
+
+For shared normalized span evidence, read
+[Trace Intel ingestion](references/trace-intel-ingest.md) and use the optional
+`scripts/load_mlflow_trace.py` command. Its output is not ATIF and does not
+replace the conversion or downstream validation contract below.
 
 ## Protect the trace
 
@@ -124,6 +132,7 @@ Use the Python environment already prepared for the chosen input mode.
 
 | Script | Purpose | Arguments |
 |---|---|---|
+| `scripts/load_mlflow_trace.py` | Load a complete export through pinned Trace Intel; no ATIF | `--input --max-traces --output-dir` |
 | `scripts/convert_mlflow_to_atif.py` | Export one ATIF trajectory per selected MLflow trace | `--input` or bounded live-store flags; `--output-dir --agent-name --agent-version` |
 
 ## Limitations
