@@ -1,10 +1,9 @@
 ---
 name: eval-author-inspect-trace
+version: 0.1.0
 description: >-
-  Use when eval-author has routed to this sub-flow for one Intake trace. Do not
-  use for instrumenting agents, ingesting telemetry, importing a trace store,
-  verifying ingest, or querying Intake outside Eval Author; those belong to
-  nemo-intake.
+  Use only when eval-author has routed one Intake trace for evidence-backed inspection.
+  Intake ingestion and unrelated queries use nemo-intake.
 triggers:
   - eval-author routed to inspect-trace
   - inspect the intake trace eval-author named
@@ -18,15 +17,20 @@ not-for:
 compatibility: >-
   A working nemo CLI invocation, an explicit workspace, and read access to
   Intake on a configured local or remote NeMo Platform instance.
+metadata:
+  author: Andrew Suter-Morris <asutermorris@nvidia.com>
+  tags: [evaluation, intake, traces]
 maturity: alpha
 license: Apache-2.0
 user-invocable: false
-allowed-tools: [Bash, Read, Write, Grep, Glob]
+allowed-tools: Bash Read Write Grep Glob
 ---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: inspect an Intake trace
+
+## Purpose
 
 Read one Intake trace, explain its trajectory, and save an evidence-backed
 report. Start this sub-flow only after `eval-author` selects it. For
@@ -193,3 +197,19 @@ Omit **Source evidence** when you didn't inspect source. Before completion,
 verify every important moment and finding names evidence, the outcome uses an
 allowed value, and only the report changed. Leave the report uncommitted and
 state its path.
+
+## Limitations
+
+Inspection covers one selected trace in one explicit workspace. Missing spans,
+payloads, or evaluator evidence can leave the outcome `unknown`. An error span
+alone does not prove failure. Source inspection can explain a recorded event,
+but cannot replace or override it. This flow neither repairs nor ingests data.
+
+## Troubleshooting
+
+- No working CLI: retain the launcher errors and stop; do not install or repair it.
+- Intake read fails: quote the error with credentials omitted and stop; this flow
+  does not authenticate, switch contexts, or start services.
+- Empty bounded search: report the searched scope and stop; widen it only at the
+  user's direction.
+- Returned span belongs to another trace: discard it and report the mismatch.

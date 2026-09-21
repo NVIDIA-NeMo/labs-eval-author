@@ -1,9 +1,9 @@
 ---
 name: eval-author-trace-environment
-version: 1.3.0
+version: 1.3.1
 description: >-
-  Experimental workflow. Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace
-  evidence to derive a private, reproducible Harbor environment candidate.
+  Experimental workflow. Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace evidence
+  to derive a private, reproducible Harbor environment candidate.
 triggers:
   - create an evaluation environment from a trace
   - turn ATIF into a Harbor task environment
@@ -31,10 +31,8 @@ allowed-tools: Bash Read Write Grep Glob
 
 # Eval Author: trace to environment
 
-**Experimental.** All workflows and outputs from this skill are experimental,
-including source normalization, task and fixture generation, validation, and
-publication review/export. Identify them as experimental when presenting them
-to the user.
+**Experimental.** Identify every workflow and output as experimental, including
+normalization, task/fixture generation, validation, and publication review/export.
 
 ## Purpose
 
@@ -44,9 +42,12 @@ machine-checked proof, and gated publication.
 
 ## Instructions
 
-Follow steps 1-7 in order, one task workspace per trace. Commands are in
-`## Available Scripts`; an end-to-end run is in `## Examples`. Trace payloads,
-credentials, and task workspaces never go into Git.
+1. Initialize and normalize one source (Steps 1–2).
+2. Review privacy, tool access, truth, and requirements (Steps 3–4).
+3. Decide candidacy, prove eligible tasks, and finalize (Steps 5–7).
+
+Keep this order and one workspace per trace. See **Available Scripts** and
+**Examples** for commands. Never put trace payloads, credentials, or workspaces in Git.
 
 ## Artifact contract
 

@@ -1,17 +1,9 @@
 ---
 name: eval-author-discover
+version: 0.1.0
 description: >-
-  Record whether a repository's Harbor evaluations are ready to run, and prove it
-  with Harbor's own validators instead of guessing. Finds every repository-owned
-  job config, dataset, and task directory, then makes Harbor judge each config:
-  schema, job resolution, agent, environment backend, per-task validity, tasks
-  Harbor silently dropped, and required host variables. Use when the user wants
-  to run an eval suite they did not write, hand a suite to a cheaper model, or
-  asks "can I run these evals?", "why won't my Harbor config resolve?", "which
-  env vars does this suite need?", "where are the evals in this repo?", or "why
-  did Harbor skip my task?". Changes none of your source, and leaves behind
-  `.eval-author/discovery.md` so your team and the next model read the verdict
-  without Harbor and without discovering again.
+  Use to find repository evals and their run instructions, or prove Harbor suite
+  readiness with native validators. Never runs eval jobs.
 triggers:
   - can I run the evals in this repo
   - where are the Harbor evals in this repository
@@ -27,15 +19,20 @@ compatibility: >-
   Python 3.11 or later. Harbor must be importable by the interpreter that runs the
   script for any finding to be proven; without it the script reports an unproven
   inventory and exits 1. Docker is needed only for the environment backend check.
+metadata:
+  author: Andrew Suter-Morris <asutermorris@nvidia.com>
+  tags: [evaluation, harbor, readiness]
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
-allowed-tools: [Bash, Read, Write, Grep, Glob]
+allowed-tools: Bash Read Write Grep Glob
 ---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: discover
+
+## Purpose
 
 The Eval Author discovery pass. Read `eval-author` for the shared standard,
 vocabulary, and boundaries.
@@ -77,165 +74,34 @@ in Step 5.
 
 ## Inventory an uncertain starting point
 
-Start with the supplied locations and a bounded inspection of the repository's
-README, evaluation documentation, CI/workflow commands, and likely test or eval
-directories. Look for Harbor configs and tasks as well as scripts, datasets,
-notebooks, and written cases or grading criteria. Inspect representative
-candidates to explain what agent behavior they evaluate; ordinary helper tests
-are not automatically agent evals. Follow relevant references to separate eval
-locations and record anything inaccessible.
+Use [Inventory and source selection](references/inventory.md) for file-only
+inspection of repository evals. Report paths, purposes, documented run commands,
+search limits, and unverified requirements in `.eval-author/discovery.md`.
+This entry needs no Ethos or runtime probes and must not invoke `discover.py`.
+It does not establish readiness, grading quality, or coverage.
 
-Read the relevant README, runner, configuration, and CI invocation to explain
-how to run each identified suite. Include the working directory, documented
-command, selected config or dataset, and documented dependencies or credential
-variable names that affect that command. Do not expose credential values. Label
-these as documented or source-derived instructions, not verified readiness or
-successful execution. If a usable command cannot be established, state the
-specific missing information instead of inventing one. For multiple suites,
-describe their differences and give each supported invocation without choosing
-one silently.
+Finish with the inventory summary before offering an audit or first-eval flow.
+Wait for that next step unless it is already requested; an inventory-only
+request ends with findings. Carry prior answers and source selections forward.
 
-This entry establishes what material exists, not whether it runs. Do not require
-Ethos, install tools, probe Harbor or Docker, execute repository code, or invoke
-`discover.py`: that script also performs runtime validation when Harbor is
-available. Inspect only enough case or grader source to identify what a suite
-tests and how its runner works; assessing grading quality or coverage against
-Ethos belongs to a requested audit. Save paths, suite purposes, run instructions
-and their sources, inspected scope, and remaining uncertainty in
-`.eval-author/discovery.md` as inventory observations, preserving any existing
-provider validation evidence separately.
+## Prerequisites
 
-Explain the candidates before asking a focused question to settle their use or a
-missing location. Reuse the user's explicit source selection or statement that
-they have no evals. An empty search or access failure alone does not prove absence;
-when no candidates are found, state the search limits and resolve whether the user
-keeps evals elsewhere or wants to start from scratch.
-
-Finish discovery with a user-facing summary: whether evals were found, their paths
-and purposes, how to run them, and what remains unverified or unresolved. A report
-link or a menu of possible next steps does not replace this summary. For example,
-after providing the actual suite descriptions and run commands:
-
-> These are the documented run instructions; I have not run or validated the evals.
-> Would you like me to audit these evals next?
-
-Ask that question only after the discovery summary is complete, then end the
-reply and wait. Do not start an Ethos review, coverage assessment, or audit-tool
-work in the same turn merely because the user asked for general evaluation help.
-For confirmed absence, offer to bootstrap first evals instead. If the location
-remains unresolved, ask the focused source question. An inventory-only request
-ends with findings rather than an audit question.
-
-After a requested or accepted continuation, return to the core's **Choose the
-entry route** section with the findings, run guidance, prior answers, and any
-existing Ethos or runtime evidence; inventory itself completes neither
-prerequisite. If the user already explicitly requested discovery followed by
-audit or another flow, present the discovery summary and continue that work
-without a duplicate question. Honor a more specific outcome such as readiness
-or repair without substituting an audit.
+Inventory uses file inspection only. Full discovery needs Python 3.11+ and an
+interpreter that imports the repository's required Harbor version. Docker is
+needed only for Docker backend validation; discovery never starts eval jobs.
 
 ## Runtime prerequisite checks
 
-Identify an interpreter that can import Harbor. Full discovery must later use
-that interpreter for Harbor's validators to judge readiness.
+For readiness or the **Get Harbor ready** milestone, follow
+[Runtime prerequisites](references/runtime-prerequisites.md) to resolve and
+verify the existing Harbor interpreter and CLI, and check optional Harbor
+assistant skills. Return the invocation, version, setup needs, and bounded
+skill-availability observations to the caller. Reuse current findings.
 
-Read the repository's setup instructions and Harbor version requirements first.
-Use its documented environment when present; otherwise locate an existing one.
-A `harbor` command on your `PATH` does not mean Harbor is importable by the Python
-you are about to run. A repository with its own virtual environment usually needs
-that environment's interpreter. Try these in order until one prints a version:
-
-```bash
-harbor_python=""
-for py in .venv/bin/python ./venv/bin/python python3; do
-  if "$py" -c "import harbor, sys; print(sys.executable, harbor.__version__)" 2>/dev/null; then
-    harbor_python="$py"
-    break
-  fi
-done
-```
-
-If none prints a version, check an existing uv tool installation before declaring
-Harbor unavailable. `uv tool install harbor` isolates Harbor from project Python:
-
-```bash
-if [ -z "$harbor_python" ] && command -v uv >/dev/null 2>&1; then
-  if harbor_tool_root="$(uv tool dir)" &&
-    "$harbor_tool_root/harbor/bin/python" -c \
-      "import harbor, sys; print(sys.executable, harbor.__version__)"; then
-    harbor_python="$harbor_tool_root/harbor/bin/python"
-  fi
-fi
-```
-
-If these probes fail but a `harbor` executable exists, resolve that executable's
-symlink and inspect its launcher to locate the existing environment's Python
-(for example, an installed uv tool environment). Verify that interpreter with
-the same import check before using it. Do not assume that a project interpreter's
-failed import proves Harbor is absent everywhere, and do not run `uv tool run`
-to probe availability because it can install a tool.
-
-If no existing interpreter can import Harbor, read
-[Help the user get Harbor ready](references/harbor-setup.md). For prerequisite-only
-work, return the missing or broken setup finding to the caller. During full
-discovery, still run inventory with an available Python 3.11+ interpreter and use
-the empty-scan conversation below when appropriate. Missing Harbor blocks readiness
-validation, not that inventory. Include the setup requirement in the full report
-even when the inventory finds no Harbor evals.
-
-Keep the verified `harbor_python` path for Step 1, including across shell sessions.
-Check `harbor --help` using the corresponding installation. **Get Harbor ready**
-is complete when that command starts, the selected interpreter imports Harbor
-and reports a version consistent with repository requirements, and the invocation
-is recorded for reuse. Runtime setup does not prove task-specific backend
-readiness, agent access, or successful runs.
-
-Return the verified command, interpreter, version, and unresolved setup needs to
-the calling stage. Full discovery later records its runtime mode in
-`runtime.harbor_importable` and the top-level `proven` field; prerequisite checks
-alone do not produce a suite-readiness verdict or discovery evidence JSON.
-
-## Check for optional Harbor skills
-
-Alongside the runtime check, look for
-[Harbor's own skills](https://github.com/harbor-framework/harbor/tree/main/skills).
-These are guides for the coding assistant working on evals; they are separate
-from the Harbor runtime and from Eval Author. They are recommended, not required.
-Check even when Harbor is missing or no Harbor evals were found.
-
-Start with the current assistant's available-skill catalog. Also inspect existing
-repository skill directories, such as `.agents/skills/` or `.claude/skills/`, and
-skill locations exposed by the host or explicitly supplied by the user. Keep the
-search bounded to those locations; do not scan the user's entire home directory.
-Use skill metadata and source references to identify Harbor's skills, not a name
-match alone. Names such as `create-task`, `create-adapter`, and `harbor-exec` are
-examples from the linked collection, not an exhaustive installation checklist.
-Do not mistake Eval Author itself or a Harbor source checkout for skills loaded
-by the current assistant.
-
-Record which skills are available in the session, which files were found but
-whose availability is unconfirmed, and which locations were checked. If none
-were found, say “not found in the locations checked.” If access or the host's
-catalog is unavailable, report that limitation rather than asserting they are
-not installed. A subset is useful; do not require every skill in the collection.
-
-When presenting the runtime findings, briefly explain their purpose and
-observed availability. When missing or unconfirmed, recommend them and link the
-official collection. For example, when the search found none:
-
-> Harbor also provides skills that guide your coding assistant through creating
-> and working with evals. I didn't find them in the locations I checked. They're
-> optional, but recommended: see [Harbor's skills](https://github.com/harbor-framework/harbor/tree/main/skills).
-> We can continue without them.
-
-When skills are available, name the relevant ones briefly instead of recommending
-another installation. Include this advisory with the runtime findings. Do not
-install or invoke skills as a detection step, ask the user to install them before
-continuing, or add a new approval gate.
-Their absence changes no readiness checks, `proven`, `runnable`, or exit code.
-The script cannot determine host skill availability. Return these observations
-with prerequisite-only findings; include them separately from evidence JSON in
-the later full discovery report as described in Step 6.
+Keep the verified `harbor_python` path for Step 1. If Harbor is unavailable,
+full discovery can still inventory with Python 3.11+ but cannot prove readiness.
+Use [Harbor setup](references/harbor-setup.md) for missing or broken installations;
+installation requires the user's setup authorization.
 
 ## Step 1: run discovery
 
@@ -279,7 +145,9 @@ Read these four fields before any others.
 user guesses at intent, so ask which suite they mean and build the command from that
 config's `path`.
 
-## Step 3: fix what failed
+## Troubleshooting
+
+### Step 3: fix what failed
 
 Each check names one rung of Harbor's ladder. Work top to bottom, because a lower
 rung's failure often disappears once you fix a higher one.
@@ -382,59 +250,11 @@ An `error` result means discovery did not complete, not that Harbor is missing.
 
 ### When no Harbor evals were found
 
-Use this conversation only after a completed scan has no configs, task files, or
-dataset directories. Files that failed validation or tasks without a config stay
-on the existing-suite path. The inventory's depth and excluded directories limit
-what was inspected; a user-supplied location takes precedence over scan absence.
-The scanner also picks up configs by `tasks` or `datasets` keys. If source or
-documentation shows that a candidate belongs to another framework, explain that
-finding and use the source-selection conversation below; do not try
-to repair it as Harbor merely because Harbor rejected it. A schema failure alone
-does not identify its format.
-
-For an empty scan, explain the absence and possible source material without
-adding “readiness remains unproven.” Actual validation failures still need their
-explanation and next action. For example:
-
-> I didn't find Harbor evals in the locations I checked. Do you already have
-> evals in any form, such as tests, scripts, a dataset, a notebook, or a manual
-> checklist? Can you point me to them?
-
-If the user already supplied evals or said they have none, use that answer instead
-of asking again. If inspection found possible eval files, mention their concrete
-paths as candidates, without claiming they are a validated suite. Do not label
-ordinary software tests as agent evals without inspecting what they exercise.
-Inspection alone does not settle whether the user wants to use those files.
-When candidates were found but the user has not identified them as their evals,
-briefly explain what makes them look useful. The finding and question could be:
-
-> I didn't find Harbor evals in the locations I checked, but I did find reports
-> with example conversations and descriptions of what a good answer should look
-> like. Those could give us a useful starting point.
->
-> Let's confirm we're using the right material. Are these your
-> existing evals, or do you keep them somewhere else?
-
-Use actual source descriptions and links. If no candidate material was found,
-use the open question above. Source selection must precede choosing a case, bulk
-extraction, or task creation; candidate files alone do not settle that choice.
-Reuse an explicitly supplied source or earlier selection.
-
-Save discovery before handing off, even when Harbor is unavailable. Return the
-selected source, confirmed absence, or unresolved location to the core's **Route
-after the evaluation starting point** section, carrying any established Ethos
-and prior setup findings. The shared milestone
-procedure owns the next conversation. The summary formatter supplies the default
-empty-scan question; adapt it to the selected source while retaining the saved
-report's original diagnostics and JSON.
-
-For example, when Docker preflight fails and host access has not been verified:
-
-> This repo has Harbor evals, but I could not verify readiness because the Docker preflight check failed.
->
-> Check Docker access from this session, then rerun discovery with the necessary permission.
->
-> Details are saved in `.eval-author/discovery.md`.
+After a completed scan has no configs, task files, or dataset directories, read
+[Empty-scan handoff](references/empty-scan-handoff.md). Preserve search limits,
+reuse an explicitly supplied source or confirmed absence, and settle source
+selection before case extraction or authoring. Invalid existing tasks remain
+on the existing-suite path. An error is not an empty scan.
 
 ## Step 6: save the report
 
@@ -469,12 +289,12 @@ Leave the file in the working tree and say where it is. Committing it is the use
 call, and worth suggesting. Do not touch their `.gitignore`. A rerun replaces the
 file rather than merging into it.
 
-## Files in this skill
+## Available Scripts
 
 Provider-specific code sits under `scripts/providers/`, so support for a second
 evaluation provider is an added directory rather than a change to the entry point.
 
-| Path | Purpose |
+| Script | Purpose |
 |---|---|
 | `scripts/discover.py` | Entry point. Owns phase order, report assembly, and the exit code, and nothing provider-specific |
 | `scripts/render_report.py` | Formats the JSON report as human-friendly Markdown while preserving verbatim evidence |
@@ -486,3 +306,11 @@ evaluation provider is an added directory rather than a change to the entry poin
 The provider directory deliberately sits one level down. A `scripts/harbor/`
 directory would be importable as `harbor`, which on a machine without Harbor makes
 `find_spec("harbor")` succeed and the probe report an install that is not there.
+
+## Limitations
+
+Config search stops at depth four; excluded directories and inaccessible
+locations limit inventory. File presence cannot prove readiness, and runtime
+validation can import repository code, so use it only with trusted repositories.
+Optional Harbor assistant skills do not affect readiness. Discovery reports
+requirements and validated setup, never agent performance or coverage quality.

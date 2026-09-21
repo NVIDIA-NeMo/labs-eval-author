@@ -1,14 +1,9 @@
 ---
 name: eval-author-task-create
+version: 0.1.0
 description: >-
-  Propose dataset improvements from Eval Author audit findings, then optionally
-  create one Harbor task from one actionable uncovered tool. Prove the task with
-  Harbor's Oracle, run it repeatedly
-  with the repository's real agent when authorized, and accept it only when
-  measured ATIF closes the selected gap every time. Use when the user asks to
-  suggest dataset changes, fill an eval gap, turn audit uncovered_items into a
-  Harbor task, or add missing tool coverage. Writes proposals, drafts, and
-  measurements only under `.eval-author/`.
+  Use audit findings to propose dataset improvements or create and prove a Harbor task
+  for a measured tool gap. Supports proposal-only work.
 triggers:
   - create a Harbor task from an audit gap
   - fill an uncovered eval tool
@@ -28,15 +23,20 @@ compatibility: >-
   Task creation needs Python 3.11 or later and a Harbor CLI compatible with `harbor task init`.
   Docker is required for Oracle and Docker-backed real-agent runs. Real-agent
   runs may require provider credentials and explicit user approval.
+metadata:
+  author: Andrew Suter-Morris <asutermorris@nvidia.com>
+  tags: [evaluation, harbor, coverage]
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
-allowed-tools: [Bash, Read, Write, Grep, Glob]
+allowed-tools: Bash Read Write Grep Glob
 ---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: create task
+
+## Purpose
 
 Read `eval-author` for the shared evidence standard and boundaries. Read
 `eval-author-audit` for measurement and aggregation. Start with the proposal step
@@ -65,9 +65,15 @@ audit or proposal work obtains its missing coverage inputs through
 `eval-author-audit`; readiness work belongs in `eval-author-discover`. A missing
 report alone is not a first-eval request.
 
-## Script
+## Available Scripts
 
-`scripts/task_pipeline.py` has three deterministic commands:
+Run `uv run <skill_dir>/scripts/task_pipeline.py <command>`:
+
+| Script | Purpose | Arguments |
+|---|---|---|
+| `scripts/task_pipeline.py` | Select, scaffold, and verify one audit-gap task | `select --report`; `scaffold --report --target` plus task metadata; `verify --before --after --target` |
+
+The three deterministic commands have these verdicts:
 
 | Command | Verdict |
 |---|---|
@@ -97,8 +103,9 @@ Distinguish the basis for each recommendation:
 
 `not_covered_by_any_input_report` alone does not distinguish an absent scenario,
 an agent failure, or missing judgments. `not_measured_by_any_method` is a
-measurement limitation, not proof of a dataset deficiency. Failure-case items
-remain unmeasured in v1; manual trace observations do not change that status.
+measurement limitation, not proof of a dataset deficiency. Failure-case coverage requires the audit
+skill's `failure_cases` measurement; manual observations alone do not change
+measurement status. Failure cases remain ineligible for automatic tool-gap generation.
 
 Write recommendations to `.eval-author/proposals/dataset-recommendations.md` as
 skill-authored analysis; keep the generated coverage JSON unchanged. Rank by
@@ -253,3 +260,32 @@ uv run <skill_dir>/scripts/task_pipeline.py verify \
 Accept the draft only when `accepted` is `true`. Report Oracle reward, both
 real-agent rewards, both trial paths, and the verify JSON. If either repeat
 misses the tool, revise the task and rerun both attempts.
+
+## Prerequisites
+
+Proposals need audit findings and the relevant task or trace evidence. Automated
+task creation additionally needs an actionable measured tool gap, Python 3.11+,
+and a Harbor CLI supporting `harbor task init`. Docker is needed for Oracle and
+Docker-backed agent runs; measurement uses the audit skill's dependencies.
+Use the repository's proven agent configuration and authorize real-agent spend
+before starting those jobs.
+
+## Limitations
+
+The generator handles one eligible tool gap at a time; capabilities and failure
+cases can inform proposals but are not automatic task-generation inputs.
+Two passing measured repeats prove closure only for those runs. An uncovered
+item alone cannot distinguish missing scenarios, missing evidence, and agent
+failure. Proposal-only requests end before scaffolding or execution.
+
+## Troubleshooting
+
+- Empty `actionable_tools`: report the evidence-backed proposals; do not relabel
+  unmeasured or non-tool gaps to force selection.
+- Scaffold path mismatch: use the selector's `task_slug` and `paths` verbatim.
+- Oracle failure: repair the task, solution, or verifier against the intended
+  outcome, then rerun; preserve the assertion being tested.
+- Invalid ATIF or repeated run identities: fix the adapter or obtain two distinct
+  recorded trials before measurement; a reward cannot replace trajectory evidence.
+- `accepted: false`: inspect both reports, revise the draft if needed, and rerun
+  both attempts within the authorized scope before claiming closure.
