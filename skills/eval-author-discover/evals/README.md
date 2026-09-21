@@ -22,9 +22,8 @@ credentials for live execution.
 | `discover-D06-audit-handoff` | D06, continue variant | `harbor-repo` | Summarize inventory, then enter the requested audit's local Ethos checkpoint without duplicate authorization. |
 | `discover-negative` | Trigger boundary | None | Answer unrelated arithmetic without starting an eval workflow. |
 
-These IDs map to the Discover catalog in the P0 release plan. D05's invalid
-config, unavailable backend, dropped-task, and missing-variable variants remain
-future live cases. Existing deterministic provider tests do not prove those
+D05 variants covering invalid configs, unavailable backends, dropped tasks, and
+missing variables remain future live cases. Existing deterministic provider tests do not prove those
 conversational behaviors. D06 exercises one handoff turn, not a complete
 multi-turn audit or content-review conversation.
 
