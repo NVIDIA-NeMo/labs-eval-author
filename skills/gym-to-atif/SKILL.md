@@ -121,14 +121,6 @@ retained raw record: its per-call token counts, timing, tool durations, and
 invocation-scoped histories are the plausible source for closing this adapter's
 recorded per-step timestamp, token-cost, and LLM-call-grouping losses.
 
-Trace2Env's proxy-routed Pi collection can retain `ng_trajectory.model_calls`
-and a verifier result with empty projected output because Harbor Pi does not
-emit ATIF. A reward or missing-ATIF warning cannot supply missing interaction
-evidence. If neither original ATIF nor complete supported Responses history is
-available, report unsupported normalization instead of inventing a trajectory.
-Supporting captures requires an explicit, fixture-tested mapping for the
-recorded protocols, call ordering, and losses.
-
 ## Mapping boundary
 
 The adapter supports Gym rollout envelopes (`responses_create_params` and
