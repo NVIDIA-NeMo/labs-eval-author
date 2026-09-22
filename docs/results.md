@@ -14,7 +14,7 @@ what they test, and documented or source-derived run commands. It does not prove
 that the suite can run. A report that found no evaluations describes the scope
 inspected; it is not a claim about material outside that scope.
 
-A readiness report adds Harbor validation evidence and any blockers. Check which
+A discovery report adds Gym static validation or Harbor validation evidence and any blockers. Check which
 validation steps completed, which could not run, and what needs attention. A
 missing backend or credential is a readiness problem, not a failed agent test.
 See [Check readiness](existing-evals.md#check-readiness) for the next step.

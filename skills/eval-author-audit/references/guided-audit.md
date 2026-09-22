@@ -102,7 +102,7 @@ fresh intent interview or a demand to rewrite an unchanged document.
 
 If no document exists, explain that one will capture the intended
 behavior, then follow the shared Local Ethos procedure to create and review it.
-This milestone does not require an eval inventory, traces, Harbor setup, or an
+This milestone does not require an eval inventory, traces, Gym or Harbor setup, or an
 evaluation run.
 
 Complete when the applicable Ethos has been checked and any new or revised
@@ -166,7 +166,7 @@ If the location is unknown, ask the next focused source question rather than sea
 directory, platform accounts, or unrelated jobs for candidate traces.
 
 Once selected, inspect only that source to establish which records are accessible
-and usable. Audit measurement accepts local ATIF files or Harbor trial directories
+and usable. Audit measurement accepts local ATIF files (including supported Gym conversions) or Harbor trial directories
 containing ATIF; selecting a remote source does not grant access or make it ATIF.
 For other formats or inaccessible services, explain the needed local export or
 appropriate supported conversion. Do not query Intake or start platform discovery
@@ -246,7 +246,7 @@ neither automatically means the dataset needs another test.
 For no evals, offer first-eval creation and explain that it will turn the agreed
 intent into cases, grading, and a runnable suite. Carry Ethos, proposed coverage,
 prior answers, and remaining setup needs into that flow if the user selects it;
-do not restart Ethos or imply Harbor setup and execution already passed. For an
+do not restart Ethos or imply Gym or Harbor setup and execution already passed. For an
 existing suite without usable traces, explain how its documented run/export path
 could supply the missing evidence. For measured audits, offer dataset proposals
 when useful. Only enter these next flows when requested or already included in

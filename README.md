@@ -10,8 +10,9 @@ execution traces.
 Bring your agent's repository and use the skills with your own coding agent.
 Build a first evaluation suite, check an existing suite, or audit its coverage.
 
-Evaluations run with [Harbor](https://docs.harborframework.com/), the framework
-Eval Author uses to validate tasks, execute agents, and grade results.
+Evaluations run with [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/) or
+[Harbor](https://docs.harborframework.com/). Eval Author uses the selected
+framework to create tasks, validate them, run agents, and retain grading evidence.
 
 For example, an audit might report:
 
@@ -24,10 +25,10 @@ This project is in alpha. Workflows and interfaces may change.
 
 ## Prerequisites
 
-Harbor is required to create, validate, and run evaluation tasks. Use a Python
-environment supported by your Harbor installation; see the
-[setup guide](skills/eval-author-discover/references/harbor-setup.md) for installation
-and verification. Repository inventory and case planning can start without Harbor.
+Use the runtime for your selected provider: [Gym setup](skills/eval-author-discover/references/gym-setup.md)
+(Gym v0.6.0, Python 3.13.14+) or [Harbor setup](skills/eval-author-discover/references/harbor-setup.md).
+Keep their Python environments separate. Repository inventory and case planning
+can start before either runtime is installed.
 
 First-evaluation design and coverage audits require a local **Ethos** describing
 your agent's purpose, boundaries, and success criteria.
@@ -70,7 +71,7 @@ See the [Skills CLI documentation](https://github.com/vercel-labs/skills#support
 for other assistants.
 
 Installation adds nine skill directories with their instructions, scripts,
-schemas, templates, and references. Harbor and Python dependencies are separate
+schemas, templates, and references. Gym, Harbor, and Python dependencies are separate
 [workflow requirements](docs/getting-started.md#requirements).
 
 Verify the installation from the same directory, using the same assistant value:
@@ -105,7 +106,7 @@ Use eval-author to help me with the evals for my agent.
 
 With no starting point supplied, Eval Author inventories existing evaluations
 and saves `.eval-author/discovery.md` with what it found and documented run
-commands. Inventory can start without Harbor. If the assistant cannot find
+commands. Inventory can start without Gym or Harbor. If the assistant cannot find
 `eval-author`, follow the [availability check](docs/getting-started.md#verify-your-assistant-can-use-eval-author).
 If you know more about your scenario, try one of these:
 
@@ -113,8 +114,9 @@ If you know more about your scenario, try one of these:
 | --- | --- |
 | "Find the evals in this repository and explain how to run them." | [Discover existing evaluations](docs/getting-started.md#find-existing-evaluations) |
 | "I don't have evals yet. Help me build my first ones." | [Build your first evaluations](docs/first-evals.md) |
-| "Check whether my Harbor evals are ready to run." | [Check readiness](docs/existing-evals.md#check-readiness) |
+| "Find my Gym or Harbor evals and check what is ready to run." | [Check readiness](docs/existing-evals.md#check-readiness) |
 | "Audit my evals against my agent's intended behavior using these traces." | [Audit coverage](docs/existing-evals.md#audit-coverage) |
+| "Create a Gym evaluation from this audit gap." | [Author and prove a Gym task](skills/eval-author-task-create/references/gym-tasks.md) |
 | "Use this audit report to propose the next evals to add." | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
 | "Explain Intake trace TRACE_ID in workspace WORKSPACE." | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
 | "Turn this local trace into a Harbor eval task." | **Experimental** · [Build a task from a trace](docs/traces.md#build-an-evaluation-task) |

@@ -37,7 +37,7 @@ that sub-flow's reporting boundaries.
 
 ### Explain the eval pieces as they become relevant
 
-Do not assume the user knows Harbor terminology or has a particular repository
+Do not assume the user knows Gym or Harbor terminology or has a particular repository
 layout, scorer, agent runner, or access to the system being tested. Ground the
 explanation in inspected material and the user's answers. Introduce the relevant
 pieces in plain language before asking the user to make decisions about them:
@@ -46,7 +46,7 @@ pieces in plain language before asking the user to make decisions about them:
 |---|---|
 | Task | The test scenario: what the agent is asked to do, with any inputs and conversation steps |
 | Environment | The files, data, tools, and software the task needs, including its starting state and how to reset it |
-| Agent connection | How Harbor gives the task to the actual agent and collects its responses and actions |
+| Agent connection | How Gym or Harbor gives the task to the actual agent and collects its responses and actions |
 | Grading criteria | The rules for deciding whether the agent did the task well |
 | Grader, also called a verifier | The checks that apply those rules to evidence from the attempt and produce a result or score |
 | Run and results | One attempt at the task, its recorded actions or outputs, and the grading results |

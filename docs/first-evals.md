@@ -4,7 +4,7 @@
 # Build your first evaluations
 
 Use this guide when your agent has no evaluations yet. Eval Author helps you
-build a small Harbor suite that you can rerun after changes.
+build a small Gym or Harbor suite that you can rerun after changes.
 
 Follow [the setup guide](getting-started.md) to load Eval Author in your coding
 agent, with the repository you want to evaluate open. Then ask:
@@ -27,8 +27,9 @@ checks that distinguish success from failure. For a support agent, that could
 mean answering a question from a supplied policy and handling a request the
 policy does not cover.
 
-You can plan cases before Harbor is installed. Creating runnable tasks requires
-Harbor; see the [Harbor setup guide](../skills/eval-author-discover/references/harbor-setup.md).
+You can plan cases before Gym or Harbor is installed. For Gym, follow the
+[Gym authoring guide](../skills/eval-author-task-create/references/gym-tasks.md).
+For Harbor, native task creation requires its runtime; see the [Harbor setup guide](../skills/eval-author-discover/references/harbor-setup.md).
 Execution also needs the selected environment backend, any required application
 access, and a supported connection to your agent. See the full
 [runtime requirements](getting-started.md#requirements).
@@ -36,7 +37,8 @@ access, and a supported connection to your agent. See the full
 ## Check the cases and evaluate the agent
 
 Eval Author creates each case's instructions, environment, reference solution,
-and grader. It then checks the tasks with Harbor:
+and grader. For Gym it uses native manifest validation, verifier controls, and real-agent
+rollouts. For Harbor it checks the tasks with Harbor:
 
 - **NOP** runs a no-op baseline to check what happens when no work is done.
 - **Oracle** runs the prepared reference solution to check that the grader

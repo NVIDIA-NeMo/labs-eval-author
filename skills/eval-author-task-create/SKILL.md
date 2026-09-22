@@ -2,7 +2,7 @@
 name: eval-author-task-create
 description: >-
   Propose dataset improvements from Eval Author audit findings, then optionally
-  create one Harbor task from one actionable uncovered tool. Prove the task with
+  create one Gym or Harbor task from one actionable uncovered tool. Prove the task with Gym controls and native execution or
   Harbor's Oracle, run it repeatedly
   with the repository's real agent when authorized, and accept it only when
   measured ATIF closes the selected gap every time. Use when the user asks to
@@ -10,6 +10,7 @@ description: >-
   Harbor task, or add missing tool coverage. Writes proposals, drafts, and
   measurements only under `.eval-author/`.
 triggers:
+  - create a Gym task from an audit gap
   - create a Harbor task from an audit gap
   - fill an uncovered eval tool
   - generate missing eval tasks
@@ -24,8 +25,9 @@ not-for:
   - eval-author-discover (use to prove an existing suite is runnable)
   - nemo-evaluator (use to run an existing benchmark without authoring tasks)
 compatibility: >-
-  Proposals read local audit artifacts and task evidence without running Harbor.
-  Task creation needs Python 3.11 or later and a Harbor CLI compatible with `harbor task init`.
+  Proposals read local audit artifacts and task evidence without running Gym or Harbor.
+  Gym task creation needs a separate Gym v0.6.0+ runtime (Python 3.13.14+);
+  Harbor task creation needs Python 3.11+ and a CLI compatible with `harbor task init`.
   Docker is required for Oracle and Docker-backed real-agent runs. Real-agent
   runs may require provider credentials and explicit user approval.
 maturity: alpha
@@ -53,8 +55,8 @@ existing execution path:
 
 ```text
 actionable uncovered tool
-  → Harbor-native draft
-  → Oracle reward 1
+  → Gym-native or Harbor-native draft
+  → native positive and negative controls
   → repeated real-agent ATIF
   → target tool covered in every report
 ```
@@ -80,7 +82,7 @@ The three deterministic commands have these verdicts:
 | Command | Verdict |
 |---|---|
 | `select` | Lists only tool items with `reason: not_covered_by_any_input_report` and emits a deterministic `task_slug` plus artifact paths |
-| `scaffold` | Calls Harbor's own `harbor task init`, requires matching draft/proposal names for that slug, and installs the supplied instruction |
+| `scaffold` | Calls Gym's native scaffolder with `--provider gym` or Harbor's `harbor task init`, requires matching draft/proposal names for that slug, and installs the supplied instruction |
 | `verify` | Exits 0 only when the selected tool was uncovered before and covered in two distinct repeated after-reports with distinct ATIF `subject.run_id` values |
 
 The script prints one JSON object. Exit code 0 is success; do not replace its
@@ -126,7 +128,7 @@ For each recommendation, include:
   Mark proposed fixture details as proposals, not observed facts.
 - **Next action:** say whether the suggestion is eligible for automatic tool-gap
   task creation, needs manual task design, or needs more measurement. A written
-  recommendation is not a generated, validated, or accepted Harbor task.
+  recommendation is not a generated, validated, or accepted Gym or Harbor task.
 
 Lead the proposal response with the highest-value recommendations and enough
 scenario and expected-behavior detail to act on them. Follow with supporting
@@ -171,7 +173,15 @@ Decide the verifier before scaffolding. Prefer deterministic shell or pytest.
 The verifier must grade the task outcome, not the tool call; ATIF measurement
 proves tool coverage separately.
 
-## Step 4: scaffold with Harbor
+## Step 4: scaffold with Gym or Harbor
+
+Select the provider from the user's request and existing suite; for new suites,
+offer Gym first. For **Gym**, follow [Author and prove a Gym evaluation](references/gym-tasks.md)
+for native scaffolding, verifier controls, and real-agent runs. Keep Steps 1–3's
+selected gap and instruction, then return to the shared coverage verification
+steps. Do not apply Harbor file layouts or Oracle CLI flags to Gym.
+
+For **Harbor**, use the following native scaffold:
 
 ```bash
 uv run <skill_dir>/scripts/task_pipeline.py scaffold \
@@ -198,9 +208,10 @@ Then complete Harbor's generated files:
 Do not leave generated placeholders, `pass`, unconditional reward 1, or empty
 keywords.
 
-## Step 5: prove task correctness with Oracle
+## Step 5: prove task correctness with native controls
 
-Run Harbor's Oracle before spending model credentials:
+For Gym, use the positive and negative controls and native execution in the
+[Gym guide](references/gym-tasks.md). For Harbor, run Oracle before spending model credentials:
 
 ```bash
 harbor run -p .eval-author/task-drafts/<task-slug> -a oracle
@@ -214,13 +225,15 @@ make it pass.
 
 Running a model spends credentials. Do it only when the user asked for the run
 or approved it. Use the repository's proven agent configuration, point it at the
-draft, and set `n_attempts: 2`. Keep the resulting job under `.eval-author/`.
+draft, and use Gym `--num-repeats 2` or Harbor `n_attempts: 2`. Keep the resulting job under `.eval-author/`.
 
 Require both trials to:
 
 1. finish without an exception,
 2. receive the intended verifier reward, and
-3. contain `agent/trajectory.json` accepted as ATIF by the audit `measure.py`.
+3. retain interaction evidence accepted as ATIF by the audit `measure.py`: Gym
+   Responses converted with receipts, original retained ATIF, or Harbor's
+   `agent/trajectory.json`. Trace Loader output alone is not ATIF.
 
 `SUPPORTS_ATIF = true` is not evidence that the emitted JSON matches Harbor's
 current schema. A `measure.py` parse failure is an agent-adapter defect, not a
@@ -229,7 +242,11 @@ coverage result.
 ## Step 7: measure and aggregate each trial
 
 Run `eval-author-audit`'s `measure.py` and `report.py` separately for each
-trial. Keep repeat outputs separate so one successful run cannot hide another:
+trial. For Gym, load each physical rollout row with the Trace Loader, retain
+its gaps, and convert supported Responses evidence as described in the
+[Gym guide](references/gym-tasks.md). In the command below, replace
+`--trial-dir <job-dir>/<trial-1>` with `--trace <converted-trace.atif.json>`.
+Keep repeat outputs separate so one successful run cannot hide another:
 
 ```bash
 uv run --with-requirements <audit_skill_dir>/requirements.txt \
@@ -259,16 +276,17 @@ uv run <skill_dir>/scripts/task_pipeline.py verify \
   --target <tool-name>
 ```
 
-Accept the draft only when `accepted` is `true`. Report Oracle reward, both
-real-agent rewards, both trial paths, and the verify JSON. If either repeat
+Accept the draft only when `accepted` is `true`. Report native control rewards, both
+real-agent rewards, both run/trace paths, and the verify JSON. If either repeat
 misses the tool, revise the task and rerun both attempts.
 
 ## Prerequisites
 
 Proposals need audit findings and the relevant task or trace evidence. Automated
 task creation additionally needs an actionable measured tool gap, Python 3.11+,
-and a Harbor CLI supporting `harbor task init`. Docker is needed for Oracle and
-Docker-backed agent runs; measurement uses the audit skill's dependencies.
+and the selected native runtime: Gym in its separate environment or a Harbor
+CLI supporting `harbor task init`. Docker is needed for Docker-backed execution;
+measurement uses the audit skill's dependencies.
 Use the repository's proven agent configuration and authorize real-agent spend
 before starting those jobs.
 
@@ -285,7 +303,7 @@ failure. Proposal-only requests end before scaffolding or execution.
 - Empty `actionable_tools`: report the evidence-backed proposals; do not relabel
   unmeasured or non-tool gaps to force selection.
 - Scaffold path mismatch: use the selector's `task_slug` and `paths` verbatim.
-- Oracle failure: repair the task, solution, or verifier against the intended
+- Native control failure: repair the task, solution, or verifier against the intended
   outcome, then rerun; preserve the assertion being tested.
 - Invalid ATIF or repeated run identities: fix the adapter or obtain two distinct
   recorded trials before measurement; a reward cannot replace trajectory evidence.

@@ -67,6 +67,18 @@ def _harbor_setup_guidance(report: dict[str, Any]) -> str:
 
 def render_summary(report: dict[str, Any]) -> str:
     """Return the short user reply, also used at the top of the saved report."""
+    if report.get("provider") == "multiple":
+        return "\n\n".join(render_summary(provider) for provider in report["providers"])
+    if report.get("provider") == "gym":
+        configs, manifests = report.get("configs", []), report.get("manifests", [])
+        count = sum(
+            item.get("validation") in {"manifest_validated", "config_validated"} for item in [*configs, *manifests]
+        )
+        return (
+            f"Gym: found {len(manifests)} manifests and {len(configs)} component or workload configs. "
+            f"{count} passed native static validation. "
+            "Service readiness and evaluation execution have not been checked."
+        )
     if "error" in report:
         return "\n\n".join(
             ["I could not inspect this repository.", str(report["error"]), str(report.get("hint", ""))]
@@ -125,6 +137,31 @@ def render_summary(report: dict[str, Any]) -> str:
 
 def render_report(report: dict[str, Any], *, evidence: str | None = None) -> str:
     """Return the saved report, preserving input JSON bytes when supplied by the CLI."""
+    if report.get("provider") in {"gym", "multiple"}:
+        providers = report.get("providers", [report])
+        sections = ["# Eval Discovery", "", render_summary(report), ""]
+        for provider in providers:
+            if provider.get("provider") != "gym":
+                sections.append(render_report(provider))
+                continue
+            sections += ["## Gym artifacts", "", "| Path | Validation |", "|---|---|"]
+            for item in [*provider.get("manifests", []), *provider.get("configs", [])]:
+                path = item["path"].replace("|", "\\|").replace("\n", " ")
+                sections.append(f"| `{path}` | {item['validation']} |")
+            sections += [
+                "",
+                "Dataset declarations, components, search limits, and validation evidence are retained below.",
+            ]
+        sections += [
+            "",
+            "## Evidence JSON",
+            "",
+            "```json",
+            evidence if evidence is not None else json.dumps(report, indent=2),
+            "```",
+            "",
+        ]
+        return "\n".join(sections)
     lines = ["# Eval Discovery", "", render_summary(report), ""]
     if "error" not in report:
         proven = bool(report.get("proven"))

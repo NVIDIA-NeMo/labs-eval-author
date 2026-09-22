@@ -35,6 +35,14 @@ of packaging proprietary software on those assumptions.
 
 ## Configure a supported execution path during environment preparation
 
+For Gym, identify which dependencies run in the resources server, agent server,
+model server, or an external service. Preserve the task's native capabilities,
+per-session state isolation, resets, and verifier access. Validate the manifest
+and test the actual component lifecycle before live agent runs; static validation
+does not start these services. Follow the selected Gym component's setup and
+[Gym authoring guide](../../eval-author-task-create/references/gym-tasks.md).
+The Harbor-specific container guidance below applies to Harbor tasks.
+
 Use the requirements learned at scope. Check the installed Harbor version and
 selected backend before configuring the
 [task environment](https://www.harborframework.com/docs/task-format). Permitted

@@ -74,6 +74,23 @@ ATIF converters for coverage measurement or experimental environment derivation.
 A capture that loads successfully can still lack sufficient interaction evidence
 for either workflow.
 
+## Audit Gym runs and propose a task
+
+For Gym evaluations, keep native rollout JSONL, failure sidecars, configuration,
+dataset identities, and all attempted repeats. Enable Gym's observability capture
+when starting the servers (`+observability_enabled=true` in v0.6.0) so the native
+collector can retain `ng_trajectory` evidence. Select explicit physical JSONL
+rows for the Trace Loader and retain its reported gaps; successful loading is
+not proof that every tool or model interaction was captured.
+
+Use supported Responses-to-ATIF conversion or original retained ATIF for
+[coverage measurement](existing-evals.md#audit-coverage). The resulting gaps can
+inform [proposals](existing-evals.md#propose-new-evaluations). To implement a
+selected proposal as a Gym task, follow the
+[Gym authoring path](../skills/eval-author-task-create/references/gym-tasks.md),
+which uses native resources servers, datasets, verifier controls, and agent runs.
+Task validation and model performance remain separate claims.
+
 ## Build an evaluation task
 
 **Experimental:** This workflow uses the trace-to-environment skill.
