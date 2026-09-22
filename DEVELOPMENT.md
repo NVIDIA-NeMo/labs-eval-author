@@ -34,6 +34,45 @@ The experimental trace-environment skill documents its
 For standalone Gym trace conversion, see
 [`gym-to-atif`](skills/gym-to-atif/SKILL.md).
 
+## Private Trace Intel access
+
+The development dependencies include `trace-ingest[mlflow]` pinned to a commit
+in the private `NVIDIA-NeMo/labs-trace-intel` repository. Your GitHub account
+needs read access to that repository. For local HTTPS authentication:
+
+```bash
+gh auth login
+gh auth setup-git
+gh repo view NVIDIA-NeMo/labs-trace-intel
+uv sync --locked
+```
+
+To inspect the upstream source, run
+`gh repo clone NVIDIA-NeMo/labs-trace-intel` in your preferred parent directory.
+A separate checkout is not required for dependency installation.
+
+GitHub Actions' automatic `GITHUB_TOKEN` is limited to this repository and
+cannot fetch that private dependency. Configure a fine-grained personal access
+token with resource owner `NVIDIA-NeMo`, repository access limited to
+`labs-trace-intel`, and repository permission **Contents: read-only**. Complete
+any organization approval requirements before using it. Store it as the Actions
+secret `TRACE_INTEL_READ_TOKEN` on `labs-eval-author` (or an organization secret
+made available to this repository), with an expiration and rotation owner.
+For an interactive prompt that keeps the token out of command history:
+
+```bash
+gh secret set TRACE_INTEL_READ_TOKEN --repo NVIDIA-NeMo/labs-eval-author
+```
+
+CI supplies this secret to the GitHub CLI credential helper only during
+`uv sync --locked`; it does not write the token into Git configuration, dependency
+URLs, or the lockfile. A missing secret fails with a setup message rather than
+skipping the real-loader tests. The token must be available to the trusted
+same-repository PR jobs described in [CONTRIBUTING.md](CONTRIBUTING.md#ci-trust-boundary).
+
+For a stacked PR whose base is not `main`, run the same test matrix manually
+with `gh workflow run ci.yml --repo NVIDIA-NeMo/labs-eval-author --ref BRANCH`.
+
 ## Skill reference
 
 Start with `eval-author`; it selects the appropriate workflow and loads supporting
