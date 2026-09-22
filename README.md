@@ -30,9 +30,7 @@ environment supported by your Harbor installation; see the
 and verification. Repository inventory and case planning can start without Harbor.
 
 First-evaluation design and coverage audits require a local **Ethos** describing
-your agent's purpose, boundaries, and success criteria. Eval Author can help you
-reuse or create one with the [Local Ethos procedure](skills/eval-author/references/local-ethos.md),
-without a NeMo service, account, or upload.
+your agent's purpose, boundaries, and success criteria.
 
 The discovery helper requires Python 3.11+. Audit generation, validation, and
 aggregation require Python 3.11+, PyYAML, and jsonschema. Measuring coverage from
