@@ -47,12 +47,14 @@ compatibility: >-
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
-allowed-tools: [Read, Write, Grep, Glob]
+allowed-tools: Read Write Grep Glob
 ---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author
+
+## Purpose
 
 Work on repository-owned evaluation suites and understand agent traces. Route
 each request to the narrow sub-flow that owns it.
@@ -226,30 +228,11 @@ evals establish what is currently tested; they do not replace intended behavior.
 
 ## Gather requirements and setup from evidence
 
-During discovery and source inspection, read relevant repository and supplied
-documentation before asking the user to reconstruct it. Follow references to
-requirements, rubrics, setup guides, dependency manifests and lockfiles, agent
-configs, runner scripts, and license or access instructions. Gather what applies:
-
-- **Purpose and success:** scenarios, expected behavior, grading rules, and relevant constraints.
-- **Inputs and documentation:** source cases, fixtures, example outputs, and instructions for using them.
-- **Execution:** the agent and how to invoke it, required software/services and versions, OS, hardware, and where each dependency runs.
-- **Access and licenses:** documented installation and execution requirements, license provisioning, required accounts and credential variable names. Do not request secret values in chat or copy them into reports.
-- **Repeatability:** starting data/state, session handling, reset procedure, and how results reach the grader.
-
-Distinguish documented requirements, user-confirmed information, verified
-availability, and unknowns. Cite the source and record what an unresolved item
-blocks: task preparation, a particular grading check, or live execution. A repo
-license does not establish the license or availability of its dependencies.
-Ask focused questions only about missing facts that affect the next work, and
-reuse earlier answers. Missing access or license provisioning can leave execution
-pending while task files and independent checks proceed.
-
-Keep the gathered requirements, progress, and next action in the selected
-sub-flow's existing human-readable findings or task README under `.eval-author/`.
-Do not overwrite generated evidence reports or require a new intake document
-before authoring. For read-only requests, explain findings in the reply within
-that sub-flow's reporting boundaries.
+During discovery and authoring source inspection, read and follow
+[Requirements and setup evidence](references/authoring-context.md#gather-requirements-and-setup-from-evidence).
+It defines the requirements to gather, their source and verification status,
+and where to record unknowns. Reuse documentation and prior answers; ask only
+about missing facts affecting the next work. Never request secret values.
 
 ## Route after the evaluation starting point
 
@@ -329,37 +312,11 @@ requirements unchanged.
 
 ### Explain the eval pieces as they become relevant
 
-Do not assume the user knows Harbor terminology or has a particular repository
-layout, scorer, agent runner, or access to the system being tested. Ground the
-explanation in inspected material and the user's answers. Introduce the relevant
-pieces in plain language before asking the user to make decisions about them:
-
-| Piece | What it does |
-|---|---|
-| Task | The test scenario: what the agent is asked to do, with any inputs and conversation steps |
-| Environment | The files, data, tools, and software the task needs, including its starting state and how to reset it |
-| Agent connection | How Harbor gives the task to the actual agent and collects its responses and actions |
-| Grading criteria | The rules for deciding whether the agent did the task well |
-| Grader, also called a verifier | The checks that apply those rules to evidence from the attempt and produce a result or score |
-| Run and results | One attempt at the task, its recorded actions or outputs, and the grading results |
-
-Use a short explanation of the pieces relevant now, not this entire table in
-every reply. When useful, explain a reference solution as a known correct way to
-complete the task, used to test the grader; a past response is not automatically
-such a solution. Keep environment setup separate from the agent connection.
-
-Map each discussed piece to what was found or created, what was actually tested,
-and any specific gap. Existing executable evals may already supply grading;
-written criteria may need implementation; recordings may lack intended outcomes.
-Unknown access is not proof that access is unavailable. Missing evidence should
-lead to a focused question or an explicit limitation, not an assumed setup.
-Explain unfamiliar terms such as rubric, judge, weights, or partial credit before
-asking about them. A checklist status or file link cannot replace that explanation.
-
-Grading asks how an attempt performed against the task's criteria. A coverage
-audit asks which intended agent behaviors the evaluation evidence covers. Explain
-that distinction when offering the existing audit flow; the audit does not finish
-a task's grader or supply its runtime access.
+Before asking the user to make an authoring or setup decision, read
+[Explaining evaluation components](references/authoring-context.md#explain-the-eval-pieces-as-they-become-relevant).
+Use its definitions for the pieces relevant now, grounded in inspected material
+and the user's answers. Explain unfamiliar grading terms before asking about them;
+keep task grading distinct from coverage auditing.
 
 ### Validation and result reports
 
@@ -381,3 +338,35 @@ planning within their prerequisite rules.
 For a trace, use `success`, `failure`, or `unknown`. Tie key moments and findings
 to span IDs, evaluator result IDs, or source symbols. A healthy trace doesn't
 need an issue finding.
+
+## Prerequisites
+
+Routing needs the user's desired outcome and any supplied repository or trace
+location, not Harbor or credentials. Authoring needs local Ethos; runtime
+dependencies belong to the selected flow.
+
+## Limitations
+
+The router does not execute evals or establish readiness itself. Discovery is
+not an audit, a coverage gap is not proof of an agent defect, and trace-derived
+environments remain experimental. Existing-eval adaptation is disabled.
+
+## Troubleshooting
+
+- Unclear desired outcome: ask one focused question; reuse known starting facts.
+- Missing Ethos: follow [Ethos recovery](references/local-ethos.md#recovery) when the
+  selected flow requires it; inventory and trace inspection can proceed without it.
+- Missing provider or inaccessible source: report the blocked claim and use the
+  selected flow's recovery; an access failure never proves that evals are absent.
+
+## Examples
+
+```text
+Request: "Audit the evals in ./evals; the agent Ethos is ./ETHOS.md."
+Route: eval-author-audit, carrying both paths into its pre-flight.
+Deliverable: coverage findings and their evidence, not a readiness-only report.
+
+Request: "I don't know whether this repo has agent evals."
+Route: eval-author-discover's inventory entry, without runtime probes.
+Deliverable: candidate paths, documented run commands, and search limits.
+```

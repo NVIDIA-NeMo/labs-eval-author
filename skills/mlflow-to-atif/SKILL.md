@@ -20,12 +20,14 @@ compatibility: >-
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
-allowed-tools: [Bash, Read, Write]
+allowed-tools: Bash Read Write
 ---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Convert MLflow to ATIF
+
+## Purpose
 
 Produce canonical ATIF without routing trace data through Intake. The bundled
 script writes one owner-private `.atif.json` file per MLflow trace and prints
@@ -106,3 +108,38 @@ that version; do not relabel v1.7 output as v1.8.
 
 After conversion, pass one emitted file to the downstream consumer as canonical
 ATIF. Keep restricted originals separate from restricted converted output.
+
+## Prerequisites
+
+Offline conversion needs Python 3.11+ and a complete local `Trace.to_dict()`
+export. Live conversion additionally needs MLflow in the existing environment,
+configured access to the selected store, an experiment ID, and explicit time
+bounds. Optional Harbor validation uses an already installed Harbor environment.
+Choose a private output directory and a stable agent name and version.
+
+## Available Scripts
+
+Run from this skill's directory, or use the script's absolute installed path.
+Use the Python environment already prepared for the chosen input mode.
+
+| Script | Purpose | Arguments |
+|---|---|---|
+| `scripts/convert_mlflow_to_atif.py` | Export one ATIF trajectory per selected MLflow trace | `--input` or bounded live-store flags; `--output-dir --agent-name --agent-version` |
+
+## Limitations
+
+The converter projects text and JSON into ATIF v1.7, preserving known losses;
+it cannot recover unrecorded human input, tool output, or multimedia. Conversion
+does not prove task correctness or coverage. Live reads are bounded to the
+supplied experiment and time range and do not change authentication.
+
+## Troubleshooting
+
+- Missing human instruction: obtain a complete export; never invent input text.
+- Non-empty `next_page_token`: collect the remaining export pages before conversion.
+- Unresolved parents or cycles: obtain a consistent trace export rather than
+  deleting spans to make it parse.
+- TLS or redirect rejection: use the authorized HTTPS endpoint with verification
+  enabled; HTTP is supported only for loopback.
+- Existing output: use a fresh directory unless replacement of this same
+  conversion is explicitly requested; only then use `--overwrite`.

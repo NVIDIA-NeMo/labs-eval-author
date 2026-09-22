@@ -31,7 +31,7 @@ compatibility: >-
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
-allowed-tools: [Bash, Read, Write, Grep, Glob]
+allowed-tools: Bash Read Write Grep Glob
 ---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
@@ -54,6 +54,8 @@ prerequisite and its recovery. Use its exact returned path as `<ethos_path>` and
 resume audit-item drafting only after the prerequisite is complete.
 
 # Eval Author: audit
+
+## Purpose
 
 Read `eval-author` for the shared standard, vocabulary, and boundaries. This
 sub-flow generates and validates a finite coverage denominator from `<ethos_path>`
@@ -403,3 +405,26 @@ uncovered or whether an existing task already exposes an agent failure.
   `reason: not_covered_by_any_input_report`. Items with
   `reason: not_measured_by_any_method` remain unmeasured, even when the proposal
   step suggests a candidate scenario for them.
+
+## Prerequisites
+
+Establish Ethos and review audit items first. Generation/validation need Python
+3.11+, PyYAML, and jsonschema. Measurement needs Python 3.12+ and Harbor's
+trajectory model; use `requirements.txt`. Commands read local files, not services.
+
+## Limitations
+
+Validation proves structure, not denominator completeness. Coverage applies
+only to supplied traces and selected methods; missing judgments leave items
+uncovered. It does not establish task quality, agent correctness, or absent scenarios.
+
+## Troubleshooting
+
+- Invalid tool or capability reference: match the declared stable `name`, repair
+  the audit item, and rerun `validate.py` before measurement.
+- Missing or invalid ATIF: obtain the original trajectory or a supported
+  conversion; a reward alone cannot substitute for interaction evidence.
+- Stale judgment digest or target: inspect the current trace and evidence
+  requirement, regenerate the judgment, and remeasure; never relabel old evidence.
+- Aggregate metadata mismatch: remeasure against the current audit. A status-only
+  draft-to-approved change is a warning, not a reason to rewrite coverage JSON.

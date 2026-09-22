@@ -93,7 +93,7 @@ actual next step. For fresh onboarding, Harbor follows Ethos; for a later return
 use the next unfinished milestone; for audit, it is drafting the coverage
 denominator. For example during onboarding:
 
-> I've generated your [ETHOS.md](<actual-saved-path>) for review. It describes the
+> I've generated your `ETHOS.md` for review. It describes the
 > agent's intended baggage-policy behavior and limits it to the demo policies.
 > Once you confirm it, I'll introduce Harbor, the framework we'll use for the
 > evals, and check its setup.

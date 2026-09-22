@@ -31,6 +31,8 @@ allowed-tools: Bash Read Write
 
 # Convert Gym to ATIF
 
+## Purpose
+
 Gym's stored rollouts use its Responses-style format, not ATIF. This does
 **not** mean the rollout must run outside Gym. Gym's Harbor bridge can run the
 user's Harbor agent and then project its ATIF into a Gym response. Keep the
@@ -50,7 +52,9 @@ otherwise. Do not print trace payloads, place them in Git, or write them into a
 public or shared output directory. The script makes its output directory mode
 `0700` and its files mode `0600`, and never replaces existing outputs.
 
-## Choose the source
+## Instructions
+
+### Choose the source
 
 1. **Harbor-backed Gym run with original ATIF:** prefer that original, without a
    Gym→ATIF round trip. Supply its path explicitly with `--source-atif`.
@@ -69,7 +73,9 @@ Advertised session IDs are checked when present; the broader association remains
 an operator-supplied assertion, not cryptographic proof of equivalent
 trajectories.
 
-## Convert one record
+## Examples
+
+### Convert one record
 
 ```bash
 python scripts/gym_to_atif.py --input <private-rollout.json> \
@@ -175,7 +181,7 @@ Preserving ATIF bytes does not make referenced image files portable. Keep the
 original media bundle; copying/rebasing or fetching media needs its own explicit
 authorization and provenance. The converter never follows source metadata paths.
 
-## Evidence and limitations
+## Limitations
 
 The mappings were derived from Gym revision
 `676cf1f4efe265f74455f73986a734dbda4eaec2`:
@@ -192,3 +198,30 @@ downstream `prepare` boundary. This is not a claim of complete
 Gym model validation, lossless round trips, or live Gym task execution. Unknown
 Gym fields remain in the retained raw record. No Gym/Ray dependency, provider
 credentials, Docker stack, or model invocation is required for conversion.
+
+## Prerequisites
+
+Use Python 3.11+ and one local rollout record, with a physical line number for
+JSONL. Offline conversion uses only the standard library; no Gym runtime,
+provider credentials, model invocation, Docker, or image download is needed.
+Choose a new owner-private output directory and retain the source record.
+
+## Available Scripts
+
+Run from this skill's directory, or replace the script path with its absolute
+installed location. Commands use the existing Python interpreter.
+
+| Script | Purpose | Arguments |
+|---|---|---|
+| `scripts/gym_to_atif.py` | Convert one record and retain provenance and losses | `--input --output-dir`; `--row` for JSONL; `--source-atif` for a retained original |
+
+## Troubleshooting
+
+- Missing human instruction or incomplete history: obtain a complete supported
+  record or original ATIF; do not synthesize the missing interaction.
+- Ambiguous overlapping history: choose `--output-scope` only from the producer's
+  recorded contract; preserve uncertainty if that contract is unavailable.
+- Unsupported item or opaque image type: supply original ATIF or add a tested
+  protocol mapping. Do not flatten unknown content to pass conversion.
+- Output already exists: use a fresh private directory; the converter never
+  overwrites retained evidence.
