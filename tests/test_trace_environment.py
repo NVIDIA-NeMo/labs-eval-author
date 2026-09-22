@@ -1117,10 +1117,12 @@ def test_summary_captures_ground_truth_and_proprietary_software(tmp_path: Path) 
     assert "availability=unavailable" in markdown
 
 
-def test_candidate_rejects_required_unavailable_software(tmp_path: Path) -> None:
+@pytest.mark.parametrize("state_basis", ["recorded", "reconstructed"])
+def test_candidate_rejects_required_unavailable_software(tmp_path: Path, state_basis: str) -> None:
     task_dir, _ = _workspace(tmp_path)
     _candidate(
         task_dir,
+        state_basis=state_basis,
         software_requirements=[
             {
                 "name": "ExampleCAD",
@@ -2932,6 +2934,23 @@ def test_reconstructed_state_basis_flows_to_the_public_product(tmp_path: Path) -
     assert product["technical_validation"]["check_evidence"] == "per_check"
     markdown = (task_dir / "summary.md").read_text(encoding="utf-8")
     assert "State basis: `reconstructed`" in markdown
+
+
+def test_reconstruction_without_historical_truth_or_proof_stays_unproven(tmp_path: Path) -> None:
+    task_dir, _ = _workspace(tmp_path)
+    _candidate(task_dir, state_basis="reconstructed")
+    _ready_environment(task_dir, record_validation=False)
+    _review_privacy(task_dir)
+
+    code, result = _run("finalize", "--task-dir", str(task_dir), "--status", "candidate")
+
+    assert code == 0, result
+    assert result["environment_status"] == "unproven"
+    summary = json.loads((task_dir / "summary.json").read_text())
+    assert summary["candidate"]["ground_truth"]["availability"] == "absent"
+    assert summary["environment"]["technical_status"] == "not_run"
+    code, result = _run("check", "--task-dir", str(task_dir))
+    assert code == 0, result
 
 
 def test_state_basis_rejects_unknown_values(tmp_path: Path) -> None:

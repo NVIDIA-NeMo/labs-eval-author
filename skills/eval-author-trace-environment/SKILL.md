@@ -1,6 +1,6 @@
 ---
 name: eval-author-trace-environment
-version: 1.3.0
+version: 1.3.1
 description: >-
   Experimental workflow. Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace
   evidence to derive a private, reproducible Harbor environment candidate.
@@ -184,12 +184,21 @@ binaries into the task.
 
 ## Step 5: decide candidate or no_candidate
 
-Read only `safe/trace.atif.json`. Later user corrections outrank earlier turns.
+Use `safe/trace.atif.json` as the trace evidence for this decision. Proposal or
+audit conclusions are context, not additional facts or automatic vetoes. Later
+user corrections outrank earlier turns.
 Every decision must cite real ATIF `step_id` values. Read
 [references/candidate-record.md](references/candidate-record.md) for the
 `candidate.json` shape before writing the decision.
 Run its read-only `check-candidate` command before construction; it checks
 metadata, not execution, privacy review or readiness.
+
+Read [references/construction-boundary.md](references/construction-boundary.md)
+when a proposal precedes construction or missing state, ground truth, or runtime
+access could change the decision. Apply the same construction criteria with and
+without proposals. Explain any disagreement with a recommendation in the
+candidate's existing `uncertainties` field, citing the relevant trace steps and
+specific blocker or permitted reconstruction; do not optimize for candidate yield.
 
 Most traces do not record the agent's starting workspace. When the capability,
 instruction, and expected outcome are fully evidenced but the world state is
