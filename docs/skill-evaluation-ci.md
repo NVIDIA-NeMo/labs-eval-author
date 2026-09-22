@@ -72,15 +72,14 @@ Use a new output directory each time. Skills must be clean in Git. The collector
 does not rewrite skill sources. Raw output stays local; only the summary has the
 allowlisted fields intended for fixtures ingestion.
 
-## Tier 2 and Tier 3: automatic advisory workflow
+## Tier 2 and Tier 3: approved advisory workflow
 
 `skill-evaluation-live.yml` runs automatically on same-repository pull requests
 targeting `main`, and on pushes to `main`, matching Tier 1's triggers.
-Pull requests select **Tier 2 only**. Pushes to `main` (including merges) select
-**both tiers**, so the longer Tier 3 agent A/B runs are outside PR CI.
-Automatic runs select all skills. Fork PRs are excluded. The keyless plan and
-live execution share the same tier selection; Tier 2-only runs skip Docker
-Compose installation.
+Pull requests produce a **keyless Tier 2 coverage plan only**; the live job is
+skipped. Pushes to `main` (including merges) select **both tiers** and wait for
+ASE environment approval before live execution. Automatic runs select all skills.
+Fork PRs are excluded. Tier 2-only manual runs skip Docker Compose installation.
 All live model roles use NVIDIA Inference Hub
 with the explicitly authorized CI-only credential in the `skill-evaluator`
 GitHub environment. The repository variable
@@ -95,8 +94,8 @@ live runs should not delay merging. New commits cancel superseded runs on the
 same PR or branch.
 
 Manual dispatch remains available from `main` for a selected tier and skill.
-It defaults to a keyless plan; `run_live: true` opts into execution for that
-dispatch. The plan has no environment secrets or environment-scoped model
+It defaults to a keyless plan; `run_live: true` requests execution for that
+dispatch, still subject to ASE environment approval. The plan has no environment secrets or environment-scoped model
 overrides, so it describes coverage rather than validating live configuration.
 
 Tier 2 runs `context-optimization-check` for selected skills (embeddings plus
@@ -131,20 +130,27 @@ and base images are not fully locked by this workflow.
 
 ### Setup needed
 
-Repository settings verified on 2026-09-17 include the `skill-evaluator`
-environment, its `INFERENCE_HUB_API_KEY` secret, repository enable variable
-`SKILL_EVALUATION_LIVE_ENABLED=true`, and environment model override
-`SKILL_EVAL_LLM_MODEL=azure/openai/gpt-5.6-luna`. No environment protection rules
-or deployment-branch restrictions were configured.
+The `skill-evaluator` environment protections were configured and verified on
+2026-09-22. They are GitHub settings, separate from this repository's workflow
+files, and must be retained when recreating the environment.
 
-1. Same-repository PRs run automatically, including this PR before merge.
-   Once merged, pushes to `main` also run automatically and manual dispatch is
-   available from `main`. The ordinary CI and title workflows also target `main`.
-2. Use the existing `skill-evaluator` environment. Optional deployment branch
-   restrictions and required reviewers can be configured in GitHub settings;
-   declaring an environment in YAML does not configure them. The workflow
-   requires the repository enable flag. Required reviewers or branch restrictions
-   can pause or prevent automatic live runs; configure them accordingly.
+1. Same-repository PRs run the keyless plan automatically. Pushes to `main` and
+   manual dispatch with `run_live: true` request live execution, provided the
+   repository variable `SKILL_EVALUATION_LIVE_ENABLED` is `true`.
+2. Configure the existing `skill-evaluator` environment with these protections:
+
+   | Setting | Required value |
+   | --- | --- |
+   | Required reviewers | Only `NVIDIA-NeMo/ase_team` (team ID `19455253`) |
+   | Prevent self-review | Enabled |
+   | Administrator bypass | Disabled |
+   | Deployment branches | Selected branches: `main` only; no tag or PR rules |
+
+   An ASE member other than the run initiator must approve each eligible job
+   before it receives the inference secret. Other repository writers may request
+   a run but cannot approve its credentialed execution. Repository administrators
+   can still change environment settings. CODEOWNERS and workflow conditions do
+   not replace these server-enforced controls.
 3. The environment secret **`INFERENCE_HUB_API_KEY`** must contain your NVIDIA
    Inference Hub **inference** key from
    [Hub key management](https://inference.nvidia.com/key-management). The Hub
