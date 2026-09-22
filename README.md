@@ -132,8 +132,7 @@ Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 Eval Author is licensed under the [Apache License, Version 2.0](LICENSE).
 See [NOTICE](NOTICE) for attributions and the external-materials disclaimer,
 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for dependency license
-disclosures, [dependency scope and licenses](docs/dependencies.md) for workflow
-and development dependencies, and [third_party/licenses.jsonl](third_party/licenses.jsonl) for
+disclosures, and [third_party/licenses.jsonl](third_party/licenses.jsonl) for
 the machine-readable inventory.
 
 The bundled JSON examples and synthetic test fixtures are NVIDIA-authored and

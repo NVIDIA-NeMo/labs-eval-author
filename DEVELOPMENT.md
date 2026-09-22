@@ -63,14 +63,6 @@ instructions. The individual skill files document each workflow in detail.
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Convert MLflow traces to ATIF. |
 | [`gym-to-atif`](skills/gym-to-atif/SKILL.md) | Convert one Gym Responses record or retain original Harbor ATIF from a Gym run. |
 
-## Dependency license scope
-
-See [dependency scope and licenses](docs/dependencies.md) for the direct workflow,
-development, and CI dependencies and their upstream license sources. The generated
-inventory covers the root runtime dependency set, not every package in `uv.lock`.
-When adding a direct dependency or changing how it is installed, update that
-reference as well as the applicable declaration and generated disclosures.
-
 ## Validation
 
 Run `uv sync --locked` and `make hooks` to install the DCO commit-message hook.
