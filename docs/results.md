@@ -32,9 +32,18 @@ outcomes. See [Build your first evaluations](first-evals.md).
 
 ## Coverage audits
 
+Open `.eval-author/audit-progress.md` for the current milestone, selected eval
+and trace paths, limitations, answered or pending questions, and next action.
+This workflow record lets Eval Author resume unfinished work without repeating
+completed milestones and stays separate from generated coverage evidence.
+
 Read `.eval-author/audit.md` to see the behaviors and evidence requirements being
 measured. Measurement details live under `.eval-author/audit-measurements/`;
 `.eval-author/audit-coverage-report.json` combines the available measurements.
+Without usable traces, coverage is **unmeasured**, not 0%; the specification can
+still be completed while measurement remains pending. The unchecked **Measure
+coverage** step states the reason inline, for example “deferred — selected trace
+directory is missing,” so the limitation remains visible in later reviews.
 
 A covered item has supporting evidence under the audit's declared criteria.
 An uncovered item may lack evidence in the measured traces, or its evidence type
@@ -73,7 +82,7 @@ producing every artifact when prerequisites are missing.
 | --- | --- |
 | First evaluations | `ETHOS.md`, `.eval-author/first-eval.md`, `.eval-author/task-drafts/`, and `.eval-author/first-eval.yaml` when the agent integration supports it. |
 | Discovery and readiness | `.eval-author/discovery.md` |
-| Coverage audit | `.eval-author/audit.md`, `.eval-author/audit-measurements/`, and `.eval-author/audit-coverage-report.json` |
+| Coverage audit | `.eval-author/audit-progress.md`, `.eval-author/audit.md`, `.eval-author/audit-measurements/`, and `.eval-author/audit-coverage-report.json` |
 | Intake trace inspection | `.eval-author/traces/` |
 | Trace-derived environments (**experimental**) | A private, gitignored workspace per task under `.eval-author/trace-environments/` |
 | MLflow conversion | One `.atif.json` file per trace in the private output directory you select. |

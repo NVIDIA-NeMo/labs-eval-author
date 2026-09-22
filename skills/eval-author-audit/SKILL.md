@@ -1,6 +1,7 @@
 ---
 name: eval-author-audit
 description: >-
+  Guide coverage audits with milestone check-ins and user-confirmed trace sources.
   Generate, validate, measure, and report on an audit-spec coverage denominator
   for Eval Author. Use when the user wants a hand-editable audit.md file derived
   from Ethos, needs schema enforcement for declared tools, capabilities, failure
@@ -36,29 +37,102 @@ allowed-tools: [Bash, Read, Write, Grep, Glob]
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
+# Eval Author: audit
+
+Read `eval-author` for the shared standard, vocabulary, and boundaries. This
+sub-flow generates and validates a finite coverage denominator from Ethos and
+reviewed audit items, then can measure ATIF traces and aggregate coverage reports
+against it. It does not generate tasks yet.
+
+## Start a guided audit
+
+Read this entry procedure before issuing or batching customer-repository scans;
+loading a skill alongside a file listing does not satisfy the trace-source gate.
+After the user accepts the opening below, orient the audit using directly named
+non-trace inputs and saved progress.
+Until the user selects the trace source and location, do not run a whole-workspace
+file listing or recursive search that could expose traces. Confirmed absence
+needs no search to prove it.
+For a fresh full audit, the first deliverable is the opening below. The audit
+request already establishes permission to audit; this opening gives the user the
+path ahead and hands them the conversation before analysis begins. Do not replace
+that handoff with a statement that the request authorizes work.
+
+Send the opening as the turn-ending response (`final` when the host has channels),
+not a commentary update followed by continued work. Explain briefly that the
+audit compares intended behavior with evaluation evidence, then render the five
+steps below using literal `- [ ]` checkboxes. Retain each label and description;
+plain bullets or labels alone do not satisfy the opening. Leave every step
+unchecked and mark **Understand your agent** as **We're here**:
+
+- [ ] **Understand your agent** — agree on what your agent should do, what it should avoid, and what a good result looks like.
+- [ ] **Confirm evals and traces** — find existing evaluations and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
+- [ ] **Define what the evals should cover** — agree on the behaviors, tools, and failure cases to check.
+- [ ] **Measure coverage** — use the run records to see which of those items were exercised.
+- [ ] **Review findings and next steps** — explain gaps, what the evidence can tell us, and what to do next.
+
+End with **“Ready to get started?”**, finish the turn, and wait for the user's
+reply. Do not use an asynchronous question to keep this turn running. Before
+that reply, no repository work starts: no locating, reading, validating, creating,
+or updating Ethos; eval or trace inspection; runtime probes; progress-file writes;
+or subagent delegation. Do not batch those operations with skill loading. Keep
+the pending opening in the conversation. An existing accepted Ethos, supplied
+paths, or the initial audit request does not answer this conversation checkpoint.
+
+After acceptance, read [Guided audit milestones](references/guided-audit.md) for
+completion criteria, check-ins, missing inputs, and resumption, then begin
+**Understand your agent**. Acceptance starts that milestone; it does not complete
+Ethos review or later check-ins. On return to an audit already started, reuse the
+answered opening and established progress; resume the earliest unfinished,
+non-deferred milestone or its pending check-in, preserving agreed deferrals.
+Check in after each visible milestone. The core's authoring welcome and Harbor
+setup milestones are not audit prerequisites.
+Every opening, milestone check-in, and missing-source question hands control to
+the user: end the turn and leave no audit subagents or independent inspection
+running while the question is unanswered. Asking for trace selection while
+continuing to review eval definitions is not a paused checkpoint.
+Known inputs can shorten a milestone but do not answer its transition check-in:
+after explaining the result, pause before the next milestone unless that exact
+transition was already answered. Do not draft the specification in the opening
+turn merely because Ethos and the absence of evals or traces are already known.
+
+Explicit requests only to generate, validate, measure, or aggregate keep their
+requested scope; do not require the full checklist or unrelated milestones.
+Generation still needs the Ethos pre-flight. Existing-spec validation,
+measurement, and aggregation use their supplied inputs without a new Ethos
+interview. Every audit operation that searches for or reads traces must first
+follow [Confirm evals and traces](references/guided-audit.md#2-confirm-evals-and-traces),
+including trace inspection for runtime tool names. An explicit user-selected
+source and location already supplied in this conversation satisfies that
+confirmation; a path discovered in a file does not.
+
 ## Ethos Pre-flight
 
-For an existing-evals audit, enter here directly with the selected eval paths,
-available run evidence, and prior findings. Reuse established Ethos and review
-state. The core's authoring welcome and Harbor setup milestones are not audit
-prerequisites; this procedure owns the intent needed for coverage work.
+Use this procedure within **Understand your agent** after the guided opening is
+accepted, or for a scoped generation request. Carry selected eval paths,
+user-confirmed evidence locations, and prior findings forward. Reuse established
+Ethos and review state. Merely loading this reference does not start the Ethos
+milestone; for a fresh guided audit, return the opening first and wait for its
+answer before any checks, including checks of an existing Ethos.
 
 Before drafting audit items or generating `audit.md`, require the selected agent's
 established Ethos to define what the audit should cover. An explicit
 `--ethos <path>` overrides any prior handoff path; otherwise pass the established
 path supplied by first-eval when available.
 
+For a full audit, introduce Ethos in plain language and link its documentation
+before checking or creating it, even when a file already exists. Follow
+[Understand your agent](references/guided-audit.md#1-understand-your-agent) to
+surface an existing document promptly and offer edits at the milestone check-in.
+
 Follow [Local Ethos](../eval-author/references/local-ethos.md) to locate, check,
 reuse, or create and review the document. That procedure owns the document
 prerequisite and its recovery. Use its exact returned path as `<ethos_path>` and
-resume audit-item drafting only after the prerequisite is complete.
+resume audit-item drafting only after the prerequisite is complete. For a full
+audit, check in before **Confirm evals and traces**. In that next milestone,
+report the existing evaluations and their locations before asking about traces.
 
-# Eval Author: audit
-
-Read `eval-author` for the shared standard, vocabulary, and boundaries. This
-sub-flow generates and validates a finite coverage denominator from `<ethos_path>`
-and reviewed audit items, then can measure one ATIF trace and aggregate coverage
-reports against it. It does not generate tasks yet.
+## Coverage specification
 
 The audit-spec approach has three item kinds in v1:
 
@@ -117,6 +191,10 @@ tools named in Ethos prose. If Ethos describes a generic tool such as `sqlite`
 but measurement traces expose `execute_sql` and `submit_sql`, declare the
 runtime tool names and connect capabilities or failure cases to those names.
 Do not invent tool names that will not appear in the measurement surface.
+Read traces for this purpose only after user confirmation of their source and
+location. Without usable traces, use an authoritative tool registry or agent
+configuration; keep unresolved names as open questions rather than inventing
+tool items. Explain any resulting limits on the proposed specification.
 
 Save the reviewed item proposals as `.eval-author/audit-items.yaml`. The items
 file may be either a mapping with an `items` key or the item list itself. It
@@ -232,9 +310,12 @@ complete or correct.
 
 ## Step 4: Measure One ATIF Trace
 
-After validation, measure one completed trial directory or one ATIF trajectory
-file. Use `--measure` to select one or more comma-separated measurement methods;
-the default is `tool_calls`.
+After validation and the guided audit's specification review (when applicable),
+measure one completed trial directory or one ATIF trajectory file from the
+user-confirmed source. If that input is missing or unusable, follow the guided
+audit's unavailable-evidence guidance; do not search elsewhere without the
+user selecting another location. Use `--measure` to select one or more
+comma-separated measurement methods; the default is `tool_calls`.
 
 ```bash
 uv run --with-requirements <skill_dir>/requirements.txt \
@@ -357,7 +438,9 @@ writing. Use the next step to union coverage across tasks and runs.
 ## Step 5: Aggregate Coverage Reports
 
 After measuring one or more traces, aggregate the per-trace `coverage.json`
-files into a coverage report:
+files into a coverage report. For a guided audit, include only measurements from
+the selected trace set, using explicit `--coverage` files or a dedicated directory.
+The directory example below assumes it contains only the intended measurements:
 
 ```bash
 uv run --with-requirements <skill_dir>/requirements.txt \
