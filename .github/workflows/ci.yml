@@ -92,21 +92,8 @@ jobs:
           version: "0.12.3"
           python-version: ${{ matrix.python-version }}
           enable-cache: false
-      - name: Install dependencies with private Trace Intel access
-        env:
-          GH_TOKEN: ${{ secrets.TRACE_INTEL_READ_TOKEN }}
-          # Use GitHub CLI's helper only for this step; persist no credentials.
-          GIT_CONFIG_COUNT: "2"
-          GIT_CONFIG_KEY_0: credential.https://github.com.helper
-          GIT_CONFIG_VALUE_0: ""
-          GIT_CONFIG_KEY_1: credential.https://github.com.helper
-          GIT_CONFIG_VALUE_1: "!gh auth git-credential"
-        run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::error::Set TRACE_INTEL_READ_TOKEN with Contents: read access to NVIDIA-NeMo/labs-trace-intel. See DEVELOPMENT.md."
-            exit 1
-          fi
-          uv sync --locked
+      - name: Install public dependencies
+        run: uv sync --locked
 
       - name: Install OSV-Scanner
         env:
