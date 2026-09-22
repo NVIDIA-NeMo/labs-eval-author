@@ -11,7 +11,7 @@ No NeMo Platform checkout is required. See [CONTRIBUTING.md](CONTRIBUTING.md)
 for the CI tool versions and contribution requirements.
 
 This repository is not installed as a Python package. Users
-[install the skills with `npx` or load them from a checkout](docs/getting-started.md#load-the-skills).
+[install the skills with `npx`, copy them manually, or load a checkout by file path](docs/getting-started.md#load-the-skills).
 Keep runtime instructions and resources inside the skill directories, and
 preserve relative paths between sibling skills. A skill installation does not
 include repository-level documentation or tests. The bundled scripts do not
