@@ -68,4 +68,3 @@ Grading asks how an attempt performed against the task's criteria. A coverage
 audit asks which intended agent behaviors the evaluation evidence covers. Explain
 that distinction when offering the existing audit flow; the audit does not finish
 a task's grader or supply its runtime access.
-

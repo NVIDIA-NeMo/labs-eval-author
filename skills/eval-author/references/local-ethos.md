@@ -8,6 +8,19 @@ This procedure owns locating, checking, creating, and reviewing the repository's
 services, require an account/workspace, or invoke platform Ethos, exploration, or
 model-selection workflows. Capturing intent needs no installed NeMo skills, CLI,
 Harbor, or credentials. The caller owns when this prerequisite is required.
+When called from a fresh guided audit, begin only after its opening has ended
+and the user has replied to continue. Loading this procedure alongside the audit
+skill does not authorize starting its reads, validation, or generation early.
+
+## Introduce Ethos
+
+Before checking or creating the document, explain in ordinary language that
+Ethos records what the agent should do, what it should avoid, and what a good
+result looks like. Evals and audits use this as their target. Link the
+[Ethos documentation](https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos)
+and make the explanation concrete for the selected agent. This introduction also
+applies when reusing an existing file; do not assume familiarity with the term.
+Reuse an introduction already given in the current flow.
 
 ## Locate and reuse
 
@@ -15,7 +28,9 @@ Use the caller's explicit path first; otherwise prefer root `ETHOS.md`, then an
 existing `agents/<name>-ethos/ETHOS.md` matching the selected agent. Read the file
 and apply the checks below. Resolve ambiguous agent identity or multiple matching
 files with the user. A suitable unchanged document can be returned without another
-interview or content approval. File presence, empty placeholders, README content,
+interview or content approval; still honor the caller's introduction and milestone
+check-in, including a guided audit's linked summary and opportunity to edit it.
+File presence, empty placeholders, README content,
 code, traces, and intent notes do not substitute for a substantive Ethos.
 
 When onboarding has not yet identified the agent, use the user's description and
@@ -32,11 +47,7 @@ the agent, prompts, model, or runtime.
 
 ## Capture intended behavior
 
-Before the first intent question, explain in ordinary language that Ethos records
-the agent's purpose, boundaries, and success criteria so the requested evals or
-audit have a target. Link the [Ethos documentation](https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos)
-when introducing it. Use the selected agent and the caller's stated outcome to
-make that explanation concrete. Read source and documentation for implementation
+After the introduction, read source and documentation for implementation
 facts; ask focused questions only for intent they cannot establish, reusing answers
 already given. Keep the current agent, model, and runtime unless asked to change them.
 
@@ -90,8 +101,10 @@ checks do not prove evaluation coverage.
 Present newly authored or revised content for review: link the saved file,
 summarize its role, outcome, boundaries, and open questions, then name the caller's
 actual next step. For fresh onboarding, Harbor follows Ethos; for a later return,
-use the next unfinished milestone; for audit, it is drafting the coverage
-denominator. For example during onboarding:
+use the next unfinished milestone; for a guided audit, it is **Confirm evals and
+traces** unless that milestone and its check-in are already complete, then defining
+the coverage specification. A scoped audit-generation request proceeds to its
+requested drafting step. For example during onboarding:
 
 > I've generated your `ETHOS.md` for review. It describes the
 > agent's intended baggage-policy behavior and limits it to the demo policies.

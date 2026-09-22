@@ -1713,6 +1713,7 @@ def test_every_audit_spec_path_the_skill_or_reference_readme_names_exists() -> N
     docs = f"{skill_body}\n{readme_body}"
     assert "scripts/audit_spec/README.md" in skill_body
     for relative in (
+        "references/guided-audit.md",
         "scripts/audit_spec/README.md",
         "scripts/audit_spec/generate.py",
         "scripts/audit_spec/measure.py",
