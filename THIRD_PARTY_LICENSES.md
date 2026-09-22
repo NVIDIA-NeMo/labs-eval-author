@@ -10,8 +10,13 @@ version, with the original archive URLs, checksums, and file paths. SPDX express
 are inventory metadata only; upstream texts retain their own terms and notices.
 Shared standard license texts are also included under `third_party/license_texts/`.
 
-The inventory covers runtime dependencies and all optional extras, including transitive
-and platform-specific dependencies. Bundled JSON examples and synthetic test fixtures
+The inventory covers the root pyproject.toml runtime dependencies and all root optional
+extras, including transitive and platform-specific dependencies. It excludes the dev group,
+separately installed workflow dependencies, and CI tools. See
+[dependency scope and licenses](docs/dependencies.md) for those direct dependencies.
+The uv.lock file records resolved versions and artifacts; it is not a license report.
+
+Bundled JSON examples and synthetic test fixtures
 are NVIDIA-authored and covered by the root [LICENSE](LICENSE).
 
 Run `make update-licenses` after changing dependencies to collect texts automatically.

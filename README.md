@@ -132,11 +132,13 @@ Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 Eval Author is licensed under the [Apache License, Version 2.0](LICENSE).
 See [NOTICE](NOTICE) for attributions and the external-materials disclaimer,
 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for dependency license
-disclosures, and [third_party/licenses.jsonl](third_party/licenses.jsonl) for
+disclosures, [dependency scope and licenses](docs/dependencies.md) for workflow
+and development dependencies, and [third_party/licenses.jsonl](third_party/licenses.jsonl) for
 the machine-readable inventory.
 
 The bundled JSON examples and synthetic test fixtures are NVIDIA-authored and
 covered by the project license.
 
-Contributions are currently limited to the NVIDIA ASE team. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for the current policy and review requirements.
+This project is currently not accepting contributions. Internal maintenance is
+limited to the NVIDIA ASE team. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+current policy, sign-off, and review requirements.
