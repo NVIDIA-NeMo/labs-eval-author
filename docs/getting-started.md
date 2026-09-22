@@ -10,36 +10,183 @@ scripts that your agent reads to carry out the work.
 ## Load the skills
 
 Use a coding agent that can read local instructions, read and write project
-files, and run shell commands.
+files, and run shell commands. Choose either the Skills CLI or a manual copy;
+both install the same nine active skill directories. Keep the complete set
+together: skills load sibling skills and their bundled scripts, schemas,
+templates, and references. The set includes the **experimental**
+trace-to-environment workflow.
+
+Neither installation path installs Harbor, Python dependencies, a coding
+assistant, or NeMo services. Those have [workflow-specific requirements](#requirements).
 
 ### Install Eval Author with npx
 
-With Node.js 22.20+ (including npm and `npx`) and Git available, run this command
-from the repository you want to evaluate:
+Install [Node.js 22.20+](https://nodejs.org/en/download) (including npm and `npx`)
+and [Git](https://git-scm.com/downloads), and set up your coding assistant.
+Confirm the tools are available in your terminal:
+
+```bash
+node --version
+npx --version
+git --version
+```
+
+Run the installer in the root of **your agent's repository**, where you want
+evaluation help. You do not need an Eval Author checkout for this path. Internet
+access to npm and GitHub is required; if GitHub requests authentication, use a
+Git credential setup with access to the repository.
+
+Choose your assistant's identifier and installation scope before running the
+command. These are common choices; see the
+[Skills CLI's supported assistants](https://github.com/vercel-labs/skills#supported-agents)
+for the full list and current paths.
+
+| Coding assistant | `--agent` value | Project skills folder | Global skills folder (default) |
+| --- | --- | --- | --- |
+| Claude Code | `claude-code` | `.claude/skills/` | `~/.claude/skills/` |
+| Codex | `codex` | `.agents/skills/` | `~/.codex/skills/` |
+| Cursor | `cursor` | `.agents/skills/` | `~/.cursor/skills/` |
+| Pi | `pi` | `.pi/skills/` | `~/.pi/agent/skills/` |
+
+For a **project installation**, replace the path and `claude-code` as needed:
+
+```bash
+cd /path/to/your-agent-repository
+npx skills add NVIDIA-NeMo/labs-eval-author --skill '*' --agent claude-code --yes
+```
+
+This makes the skills available in this repository. For a **global installation**
+available across your projects, use this command instead:
+
+```bash
+npx skills add NVIDIA-NeMo/labs-eval-author --skill '*' --agent claude-code --global --yes
+```
+
+`--agent` selects your coding assistant (`claude-code`, not `claude`). `--yes`
+skips Skills CLI prompts; `npx` may first ask to download the CLI itself.
+`--skill '*'` installs all active Eval Author skills; the quotes prevent your
+shell from expanding the wildcard into local filenames.
+
+The [Skills CLI](https://github.com/vercel-labs/skills) copies the files into the
+selected assistant's skills folder or links them from a shared copy. The summary
+may name other assistants that read the same shared folder; it does not install
+those assistants. Add `--copy` if your environment does not support symlinks.
+Review the printed destinations to confirm your intended scope. A project
+installation also creates `skills-lock.json` to record the installed sources.
+
+If you prefer the interactive installer, run:
 
 ```bash
 npx skills add NVIDIA-NeMo/labs-eval-author --skill '*'
 ```
 
-The [Skills CLI](https://github.com/vercel-labs/skills) lets you choose your coding
-assistant and installation scope. Choose a project installation to keep the
-skills with this repository, or a global installation to use them across projects.
-Keep `--skill '*'` to install Eval Author's complete skill set together. The
-entry skill selects the appropriate supporting skills for your request. The
-installation includes the **experimental** trace-to-environment workflow.
+Use the arrow keys to move, **Space** to select or deselect assistants, then
+**Enter** to continue. Confirm your assistant is selected before continuing;
+highlighting its name alone does not select it. Choose **Project** or **Global**
+scope and a symlink or copy installation when prompted. These screens and their
+completion message belong to the Skills CLI.
 
-Open your repository in the selected coding assistant and ask:
+Verify a project installation from the same repository:
 
-```text
-Help me with the evals for my agent.
+```bash
+npx skills list --agent claude-code
 ```
 
-The installer copies the skills and their supporting files. It does not install
-Harbor or Python dependencies; those have [workflow-specific requirements](#requirements).
+For a global installation, use `npx skills list --agent claude-code --global`.
+Use the same assistant identifier you installed for, and confirm the listed
+paths match your chosen project or global destination. Expect these nine skills:
+
+```text
+eval-author
+eval-author-audit
+eval-author-discover
+eval-author-first-eval
+eval-author-inspect-trace
+eval-author-task-create
+eval-author-trace-environment
+gym-to-atif
+mlflow-to-atif
+```
+
+If none appear, check the directory, assistant identifier, and scope. Then
+[verify assistant availability and start a request](#verify-your-assistant-can-use-eval-author).
+
+### Manual installation without Node.js
+
+Use this path when you want to install local skills without Node.js, npm, or the
+Skills CLI. You need Git, access to this GitHub repository, a POSIX shell with
+`cp` and `diff` (macOS, Linux, or WSL), and a configured coding assistant.
+
+1. Clone Eval Author into a separate directory where you keep source checkouts:
+
+   ```bash
+   cd /path/to/your/checkouts
+   git clone https://github.com/NVIDIA-NeMo/labs-eval-author.git
+   cd labs-eval-author
+   pwd
+   ```
+
+2. In your agent's repository, set the source to the absolute path printed above
+   and choose the project skills folder from the assistant table. This example
+   uses Claude Code; for Codex or Cursor, set `skills_dir=.agents/skills`.
+
+   ```bash
+   cd /path/to/your-agent-repository
+   eval_author_source="/absolute/path/to/labs-eval-author"
+   skills_dir=.claude/skills
+   ```
+
+3. Copy every active skill directory, including its supporting files. Run this
+   block in the same terminal. It stops before copying if a destination already
+   exists; resolve those existing copies before retrying.
+
+   ```bash
+   (
+     set -eu
+     test -f "$eval_author_source/skills/eval-author/SKILL.md"
+     for skill_file in "$eval_author_source"/skills/*/SKILL.md; do
+       skill_dir=${skill_file%/SKILL.md}
+       skill_name=${skill_dir##*/}
+       if [ -e "$skills_dir/$skill_name" ] || [ -L "$skills_dir/$skill_name" ]; then
+         printf 'Already exists: %s\n' "$skills_dir/$skill_name" >&2
+         exit 1
+       fi
+     done
+     mkdir -p "$skills_dir"
+     for skill_file in "$eval_author_source"/skills/*/SKILL.md; do
+       cp -R "${skill_file%/SKILL.md}" "$skills_dir/"
+     done
+   )
+   ```
+
+   Copying just the entry skill or individual `SKILL.md` files is insufficient.
+   The loop selects active skills by `SKILL.md` and leaves archived, disabled
+   workflows out. Manual copies are independent of the checkout; updating the
+   checkout does not update installed copies.
+
+4. Verify all nine installed skill directories match the checkout:
+
+   ```bash
+   (
+     set -eu
+     for skill_file in "$eval_author_source"/skills/*/SKILL.md; do
+       skill_dir=${skill_file%/SKILL.md}
+       diff -r "$skill_dir" "$skills_dir/${skill_dir##*/}"
+     done
+     printf 'Eval Author skill files verified.\n'
+   )
+   ```
+
+   Expect the verification message with no differences. Then
+   [open your assistant and start a request](#verify-your-assistant-can-use-eval-author).
 
 ### Manual checkout
 
-You can also load the skills by file path without the Skills CLI:
+If you prefer to keep the skills outside your project, you can load a checkout
+by file path instead of installing copies into an assistant's skills folder.
+This requires Git and a coding assistant allowed to read both directories;
+Node.js is not required. This option does not register skills for automatic
+discovery in the assistant.
 
 1. Clone this repository and print the absolute path to the entry skill:
 
@@ -64,6 +211,33 @@ You can also load the skills by file path without the Skills CLI:
 
 Loading the skills requires no Python package installation. You need your coding
 agent's usual setup; later steps have [workflow-specific requirements](#requirements).
+
+### Verify your assistant can use Eval Author
+
+After either installation path, open your agent's repository in a new session of
+the selected coding assistant. If it has a skill picker, look for `eval-author`.
+You can check access without starting an evaluation workflow by asking:
+
+```text
+Find the installed eval-author skill, read its SKILL.md, and tell me its path.
+Confirm you can also read the sibling eval-author-discover/SKILL.md.
+```
+
+Confirm those paths belong to the installation you just verified. If the skill
+is missing, check the assistant and scope, reopen the session, or give the
+assistant the absolute path to the installed `eval-author/SKILL.md` as in the
+[checkout instructions](#manual-checkout). Listing installed files confirms
+the copy; this check confirms your assistant can read it and its supporting skills.
+
+Then start your first interaction:
+
+```text
+Use eval-author to help me with the evals for my agent.
+```
+
+With no starting point supplied, Eval Author inventories the repository and
+saves `.eval-author/discovery.md` as described below. If you already know your
+goal, use a [more specific starter prompt](../README.md#start-your-first-interaction).
 
 ## Find existing evaluations
 
