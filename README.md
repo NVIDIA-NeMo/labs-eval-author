@@ -40,9 +40,8 @@ ATIF traces requires Python 3.12+ and the
 [audit dependencies](skills/eval-author-audit/requirements.txt), including Harbor.
 
 Task execution may need Docker, application access, and model credentials,
-depending on the task and agent. Intake trace inspection requires a working
-`nemo` CLI, an explicit workspace, and read access to a configured local or remote
-NeMo Platform instance. See the [full requirements](docs/getting-started.md#requirements)
+depending on the task and agent. See the
+[full requirements](docs/getting-started.md#requirements)
 for each workflow, including local trace conversion and experimental
 environment preparation.
 
