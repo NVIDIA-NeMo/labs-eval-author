@@ -86,8 +86,8 @@ and pushes to `main` on GitHub-hosted Ubuntu runners. It uses a read-only
 `GITHUB_TOKEN`, disables persisted checkout credentials and shared dependency
 caching, pins actions to commit SHAs and uv to a version, and bounds job runtimes.
 New runs cancel older runs for the same PR or branch. See
-[advisory evaluation CI](docs/skill-evaluation-ci.md) for model configuration,
-credentials, execution limits, and report details.
+[advisory evaluation CI](docs/skill-evaluation-ci.md) for approval requirements
+and report details.
 
 Dependency installation and tests execute code from the proposed change.
 Repository writers must therefore be trusted to run code in CI. Review workflow,
