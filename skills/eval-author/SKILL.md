@@ -1,11 +1,17 @@
 ---
 name: eval-author
 description: >-
-  Use to build first evals from Ethos, discover repository evals, audit existing suites,
-  propose dataset improvements, inspect an Intake trace, or derive an experimental trace
-  environment. Routes each request to its sub-flow and defines the shared evidence
-  standard. Establishes local Ethos when required, preserves the agent implementation,
-  and saves evaluation artifacts under .eval-author/.
+  Build first evals from a required Ethos, work on existing
+  evaluation suites in a user's repository, derive an environment from trace
+  evidence (experimental), or understand an agent run from NeMo Intake. Owns the evidence
+  standard that every Eval Author sub-flow
+  follows. Use when the user asks "help me with my evals",
+  "what's the state of the eval suite here?", "what happened in this trace?", or
+  when you need to pick between bootstrapping evals, auditing existing evals,
+  finding out whether evals exist, or proposing improvements from an audit.
+  Establishes local Ethos when the selected flow needs it, without changing the
+  agent's implementation. The selected sub-flow uses the provider's supported
+  tools and saves findings under `.eval-author/`.
 triggers:
   - help me build evals for my agent
   - my agent has no evals yet

@@ -1,12 +1,17 @@
 ---
 name: eval-author-discover
 description: >-
-  Use to find repository evals and their run instructions, diagnose Harbor readiness
-  failures, or establish whether a suite can run. Checks job configs, datasets, task
-  validity, silently dropped tasks, agents, environment backends, and required host
-  variables through Harbor validators. File-only inventory remains distinct from
-  readiness validation. Preserves customer source, never starts eval jobs, and saves
-  findings in .eval-author/discovery.md.
+  Record whether a repository's Harbor evaluations are ready to run, and prove it
+  with Harbor's own validators instead of guessing. Finds every repository-owned
+  job config, dataset, and task directory, then makes Harbor judge each config:
+  schema, job resolution, agent, environment backend, per-task validity, tasks
+  Harbor silently dropped, and required host variables. Use when the user wants
+  to run an eval suite they did not write, hand a suite to a cheaper model, or
+  asks "can I run these evals?", "why won't my Harbor config resolve?", "which
+  env vars does this suite need?", "where are the evals in this repo?", or "why
+  did Harbor skip my task?". Changes none of your source, and leaves behind
+  `.eval-author/discovery.md` so your team and the next model read the verdict
+  without Harbor and without discovering again.
 triggers:
   - can I run the evals in this repo
   - where are the Harbor evals in this repository
