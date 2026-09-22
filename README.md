@@ -123,6 +123,28 @@ If you know more about your scenario, try one of these:
 
 Include the relevant file paths, trace IDs, or workspace names in your request.
 
+### Experimental trace-environment loop
+
+The [trace-environment workflow](docs/traces.md#build-an-evaluation-task) turns
+trace evidence into a private candidate task, validates it with Harbor's `nop`
+and `oracle`, and uses the findings to refine the task. It can start directly
+from a trace or be paired with [dataset proposals](docs/existing-evals.md#propose-new-evaluations):
+propose a useful scenario, construct it from supporting trace evidence, then
+validate and refine it.
+
+```text
+Use this audit report to propose an eval, then use eval-author-trace-environment
+to build a private candidate from the supporting trace. Validate it when the
+required runtime is available, and report any remaining blockers.
+```
+
+A proposal does not establish that a task can be built or that its environment
+works. The loop may produce no candidate or an unproven candidate; successful
+validation still does not measure your agent's performance. Proposal-only
+requests stop at recommendations. See the [trace guide](docs/traces.md#build-an-evaluation-task)
+for evidence requirements and validation, and the
+[publication review](docs/traces.md#sharing-generated-tasks) before sharing a task.
+
 [Development](DEVELOPMENT.md) · [Skill reference](DEVELOPMENT.md#skill-reference) · [Support](https://github.com/NVIDIA-NeMo/labs-eval-author/issues)
 
 ## License
