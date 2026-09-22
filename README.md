@@ -22,27 +22,92 @@ For example, an audit might report:
 
 This project is in alpha. Workflows and interfaces may change.
 
+## Prerequisites
+
+Harbor is required to create, validate, and run evaluation tasks. Use a Python
+environment supported by your Harbor installation; see the
+[setup guide](skills/eval-author-discover/references/harbor-setup.md) for installation
+and verification. Repository inventory and case planning can start without Harbor.
+
+First-evaluation design and coverage audits require a local **Ethos** describing
+your agent's purpose, boundaries, and success criteria.
+
+The discovery helper requires Python 3.11+. Audit generation, validation, and
+aggregation require Python 3.11+, PyYAML, and jsonschema. Measuring coverage from
+ATIF traces requires Python 3.12+ and the
+[audit dependencies](skills/eval-author-audit/requirements.txt), including Harbor.
+
+Task execution may need Docker, application access, and model credentials,
+depending on the task and agent. See the
+[full requirements](docs/getting-started.md#requirements)
+for each workflow, including local trace conversion and experimental
+environment preparation.
+
 ## Start here
 
-Install Eval Author from your agent's repository:
+### Install with npx
+
+You need a coding assistant that can read and write project files and run shell
+commands, [Node.js 22.20+](https://nodejs.org/en/download) (including npm and
+`npx`), and [Git](https://git-scm.com/downloads). In a terminal, change to the
+root of the repository containing **your agent**, then install for your assistant:
 
 ```bash
-npx skills add NVIDIA-NeMo/labs-eval-author --skill '*'
+cd /path/to/your-agent-repository
+npx skills add NVIDIA-NeMo/labs-eval-author --skill '*' --agent claude-code --yes
 ```
 
-Choose your coding assistant when prompted. This installs the complete Eval Author
-skill set, including the **experimental** trace-to-environment workflow. It requires
-Node.js 22.20+ (with `npx`) and Git; see
-[installation details and manual setup](docs/getting-started.md#load-the-skills).
+Replace `claude-code` with your assistant's identifier:
 
-Then open your agent's repository in your coding assistant and ask:
+| Coding assistant | `--agent` value |
+| --- | --- |
+| Claude Code | `claude-code` |
+| Codex | `codex` |
+| Cursor | `cursor` |
+| Pi | `pi` |
+
+See the [Skills CLI documentation](https://github.com/vercel-labs/skills#supported-agents)
+for other assistants.
+
+Installation adds nine skill directories with their instructions, scripts,
+schemas, templates, and references. Harbor and Python dependencies are separate
+[workflow requirements](docs/getting-started.md#requirements).
+
+Verify the installation from the same directory, using the same assistant value:
+
+```bash
+npx skills list --agent claude-code
+```
+
+For a global installation, add `--global` to this check too. Look for `eval-author`
+and its supporting skills. The CLI may show other assistants that share a skills
+directory; it has not installed those assistants. See the
+[installation guide](docs/getting-started.md#install-eval-author-with-npx)
+for scope, file locations, and troubleshooting.
+
+### Install without npx
+
+With Git and a POSIX shell (macOS, Linux, or WSL), you can clone this repository
+and copy its complete active skill directories into your assistant's project
+skills folder. This path requires no Node.js or npm. Follow the
+[manual installation steps](docs/getting-started.md#manual-installation-without-nodejs)
+for the destination, copy commands, and verification. You can also
+[load the checkout by file path](docs/getting-started.md#manual-checkout).
+
+### Start your first interaction
+
+Open your agent's repository in a new session of the selected coding assistant
+and ask:
 
 ```text
-Help me with the evals for my agent.
+Use eval-author to help me with the evals for my agent.
 ```
 
-Eval Author helps you find the right starting point. If you know more about your
-scenario, try one of these:
+With no starting point supplied, Eval Author inventories existing evaluations
+and saves `.eval-author/discovery.md` with what it found and documented run
+commands. Inventory can start without Harbor. If the assistant cannot find
+`eval-author`, follow the [availability check](docs/getting-started.md#verify-your-assistant-can-use-eval-author).
+If you know more about your scenario, try one of these:
 
 | Say to your coding assistant | Guide |
 | --- | --- |
@@ -59,30 +124,6 @@ scenario, try one of these:
 Include the relevant file paths, trace IDs, or workspace names in your request.
 
 [Development](DEVELOPMENT.md) · [Skill reference](DEVELOPMENT.md#skill-reference) · [Support](https://github.com/NVIDIA-NeMo/labs-eval-author/issues)
-
-## Prerequisites
-
-Harbor is required to create, validate, and run evaluation tasks. Use a Python
-environment supported by your Harbor installation; see the
-[setup guide](skills/eval-author-discover/references/harbor-setup.md) for installation
-and verification. Repository inventory and case planning can start without Harbor.
-
-First-evaluation design and coverage audits require a local **Ethos** describing
-your agent's purpose, boundaries, and success criteria. Eval Author can help you
-reuse or create one with the [Local Ethos procedure](skills/eval-author/references/local-ethos.md),
-without a NeMo service, account, or upload.
-
-The discovery helper requires Python 3.11+. Audit generation, validation, and
-aggregation require Python 3.11+, PyYAML, and jsonschema. Measuring coverage from
-ATIF traces requires Python 3.12+ and the
-[audit dependencies](skills/eval-author-audit/requirements.txt), including Harbor.
-
-Task execution may need Docker, application access, and model credentials,
-depending on the task and agent. Intake trace inspection requires a working
-`nemo` CLI, an explicit workspace, and read access to a configured local or remote
-NeMo Platform instance. See the [full requirements](docs/getting-started.md#requirements)
-for each workflow, including local trace conversion and experimental
-environment preparation.
 
 ## License
 

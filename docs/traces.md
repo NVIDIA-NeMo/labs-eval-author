@@ -59,6 +59,21 @@ when retained. The experimental trace-to-environment
 describes the supported ATIF, Gym, MLflow, Intake, and bounded JSON
 OpenTelemetry inputs and their limits.
 
+## Load shared normalized evidence
+
+The Gym and MLflow skills can also use Trace Intel's pinned `trace-ingest`
+loaders to retain normalized provider evidence in a private directory. See the
+[Gym loader guide](../skills/gym-to-atif/references/trace-intel-ingest.md) for
+native `ng_trajectory` captures and the
+[MLflow loader guide](../skills/mlflow-to-atif/references/trace-intel-ingest.md)
+for complete bounded exports. These optional commands need Python 3.12 or 3.13
+and the documented dependencies; loading makes no model calls or live queries.
+
+Their output is a Trace Intel model, not an ATIF trajectory. Keep using the
+ATIF converters for coverage measurement or experimental environment derivation.
+A capture that loads successfully can still lack sufficient interaction evidence
+for either workflow.
+
 ## Build an evaluation task
 
 **Experimental:** This workflow uses the trace-to-environment skill.

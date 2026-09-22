@@ -22,12 +22,14 @@ compatibility: >-
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
-allowed-tools: [Bash, Read, Write, Grep, Glob]
+allowed-tools: Bash Read Write Grep Glob
 ---
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Eval Author: first eval
+
+## Purpose
 
 Read `eval-author` for the shared standard and boundaries. Follow
 [Milestone check-ins](../eval-author/references/milestone-checkins.md) throughout
@@ -259,3 +261,28 @@ checks. Link actual trace artifacts when emitted; otherwise identify the adapter
 or instrumentation needed to produce them. For requested coverage accounting,
 hand the established Ethos and actual ATIF to `eval-author-audit`, then use
 `eval-author-task-create` for measured actionable gaps.
+
+## Prerequisites
+
+Establish local Ethos before case design. Planning needs agent documentation and
+intended behavior, not prior traces, coverage reports, or Harbor. Scaffolding
+requires the Harbor CLI; validation needs its Python environment. Execution
+needs the chosen backend, agent connection, and any configured provider access.
+Real-agent and paid-judge runs require authorization for execution and spend.
+
+## Limitations
+
+A starter suite establishes a baseline for the selected cases, not comprehensive
+coverage. NOP and Oracle validate task wiring and selected verifier behavior;
+they do not measure the real agent. Missing runtime access can leave useful
+plans and drafts complete while execution remains unproven.
+
+## Troubleshooting
+
+- Missing Ethos: resume the shared Local Ethos procedure before case design.
+- Harbor unavailable: retain the case plan and follow discovery's setup guidance;
+  install only when that setup is authorized.
+- Oracle fails or NOP unexpectedly passes: inspect task state, reference solution,
+  and verifier against the intended outcome; repair and rerun the controls.
+- Agent connection or credentials missing: record the verified entry point or
+  required variable name and the blocked run; never request secret values in chat.

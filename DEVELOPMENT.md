@@ -11,7 +11,7 @@ No NeMo Platform checkout is required. See [CONTRIBUTING.md](CONTRIBUTING.md)
 for the CI tool versions and contribution requirements.
 
 This repository is not installed as a Python package. Users
-[install the skills with `npx` or load them from a checkout](docs/getting-started.md#load-the-skills).
+[install the skills with `npx`, copy them manually, or load a checkout by file path](docs/getting-started.md#load-the-skills).
 Keep runtime instructions and resources inside the skill directories, and
 preserve relative paths between sibling skills. A skill installation does not
 include repository-level documentation or tests. The bundled scripts do not
@@ -33,6 +33,18 @@ The experimental trace-environment skill documents its
 [artifact contract](skills/eval-author-trace-environment/SKILL.md#artifact-contract).
 For standalone Gym trace conversion, see
 [`gym-to-atif`](skills/gym-to-atif/SKILL.md).
+
+## Public Trace Intel dependency
+
+The development dependencies include `trace-ingest[mlflow]` pinned to an exact
+commit in the public [NVIDIA-NeMo/labs-trace-intel](https://github.com/NVIDIA-NeMo/labs-trace-intel)
+repository. Local development and GitHub Actions fetch it over HTTPS with
+`uv sync --locked`; no GitHub login, token, deploy key, or separate checkout is
+required. Keep the Git revision in `pyproject.toml` and `uv.lock` synchronized
+when deliberately updating the dependency.
+
+For a stacked PR whose base is not `main`, run the same test matrix manually
+with `gh workflow run ci.yml --repo NVIDIA-NeMo/labs-eval-author --ref BRANCH`.
 
 ## Skill reference
 

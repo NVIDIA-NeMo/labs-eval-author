@@ -4,8 +4,9 @@ description: >-
   Convert one bounded Gym Responses rollout record, or a retained Harbor ATIF
   from a Gym run, into one canonical ATIF trajectory for Harbor or Eval Author's
   experimental environment derivation. Offline only: no Gym runtime, model invocation, or
-  image download.
+  image download. Also load native ng_trajectory evidence through Trace Intel without ATIF export.
 triggers:
+  - load Gym ng_trajectory evidence with Trace Intel
   - convert a Gym rollout to ATIF
   - prepare a Gym Responses trace for an ATIF consumer
   - normalize one Gym JSONL rollout line into ATIF
@@ -14,8 +15,9 @@ not-for:
   - eval-author-trace-environment (experimental; use after this skill emits ATIF to build a Harbor task environment)
   - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
 compatibility: >-
-  Offline conversion uses Python 3.11+ and the standard library. Optional
-  reference validation happens downstream in the experimental
+  Offline ATIF conversion uses Python 3.11+ and the standard library. The optional
+  Trace Intel loader requires Python 3.12 or 3.13 and the pinned trace-ingest package.
+  Optional reference validation happens downstream in the experimental
   eval-author-trace-environment workflow with Harbor. Output keeps the ATIF
   version of an explicitly supplied original.
 metadata:
@@ -31,6 +33,8 @@ allowed-tools: Bash Read Write
 
 # Convert Gym to ATIF
 
+## Purpose
+
 Gym's stored rollouts use its Responses-style format, not ATIF. This does
 **not** mean the rollout must run outside Gym. Gym's Harbor bridge can run the
 user's Harbor agent and then project its ATIF into a Gym response. Keep the
@@ -38,10 +42,11 @@ user's agent and harness; choose the best retained evidence for downstream
 processing. The bundled script writes owner-private files and prints only a
 content-free summary.
 
-This skill is a bounded local adapter. The intended long-term home for provider
-trace normalization is the Trace Intel ingestion package; see
-[references/trace-intel-ingest.md](references/trace-intel-ingest.md) (temporary
-document) before extending this adapter.
+For native `ng_trajectory` evidence, the optional shared Trace Intel loader is
+available alongside this ATIF adapter. Read
+[Trace Intel ingestion](references/trace-intel-ingest.md) before using
+`scripts/load_gym_trace.py`. It retains normalized evidence without claiming
+that the attachment is ATIF or changing the ATIF conversion boundary.
 
 ## Protect the trace
 
@@ -50,7 +55,9 @@ otherwise. Do not print trace payloads, place them in Git, or write them into a
 public or shared output directory. The script makes its output directory mode
 `0700` and its files mode `0600`, and never replaces existing outputs.
 
-## Choose the source
+## Instructions
+
+### Choose the source
 
 1. **Harbor-backed Gym run with original ATIF:** prefer that original, without a
    Gym→ATIF round trip. Supply its path explicitly with `--source-atif`.
@@ -69,7 +76,9 @@ Advertised session IDs are checked when present; the broader association remains
 an operator-supplied assertion, not cryptographic proof of equivalent
 trajectories.
 
-## Convert one record
+## Examples
+
+### Convert one record
 
 ```bash
 python scripts/gym_to_atif.py --input <private-rollout.json> \
@@ -107,14 +116,14 @@ that the original Gym record was ATIF. Batch manifests point `atif` at the
 **converted ATIF**, with `source_kind: gym` for projections. Never point that
 field at raw Gym JSONL.
 
-## ng_trajectory attachments are out of scope
+## ng_trajectory attachments use a separate loader
 
 Some Gym rollout records carry an `ng_trajectory` observability attachment
 (with `ng_model_call_capture` / `ng_agent_observations` sources); many do not.
 Emission is producer- and path-dependent: it requires `observability_enabled`
 and model calls routed through the rollout-prefixed Gym Model Server, while
 direct-provider calls bypass capture and aggregate exports omit the attachment
-entirely. This adapter converts only the Responses record
+entirely. The ATIF adapter converts only the Responses record
 (`responses_create_params`/`response`) and ignores the attachment, so its
 presence or absence does not change conversion. When present, keep it in the
 retained raw record: its per-call token counts, timing, tool durations, and
@@ -175,7 +184,7 @@ Preserving ATIF bytes does not make referenced image files portable. Keep the
 original media bundle; copying/rebasing or fetching media needs its own explicit
 authorization and provenance. The converter never follows source metadata paths.
 
-## Evidence and limitations
+## Limitations
 
 The mappings were derived from Gym revision
 `676cf1f4efe265f74455f73986a734dbda4eaec2`:
@@ -192,3 +201,31 @@ downstream `prepare` boundary. This is not a claim of complete
 Gym model validation, lossless round trips, or live Gym task execution. Unknown
 Gym fields remain in the retained raw record. No Gym/Ray dependency, provider
 credentials, Docker stack, or model invocation is required for conversion.
+
+## Prerequisites
+
+Use Python 3.11+ and one local rollout record, with a physical line number for
+JSONL. Offline conversion uses only the standard library; no Gym runtime,
+provider credentials, model invocation, Docker, or image download is needed.
+Choose a new owner-private output directory and retain the source record.
+
+## Available Scripts
+
+Run from this skill's directory, or replace the script path with its absolute
+installed location. Commands use the existing Python interpreter.
+
+| Script | Purpose | Arguments |
+|---|---|---|
+| `scripts/load_gym_trace.py` | Load native attachment evidence through pinned Trace Intel; no ATIF | `--input --output-dir`; `--row` for JSONL |
+| `scripts/gym_to_atif.py` | Convert one record and retain provenance and losses | `--input --output-dir`; `--row` for JSONL; `--source-atif` for a retained original |
+
+## Troubleshooting
+
+- Missing human instruction or incomplete history: obtain a complete supported
+  record or original ATIF; do not synthesize the missing interaction.
+- Ambiguous overlapping history: choose `--output-scope` only from the producer's
+  recorded contract; preserve uncertainty if that contract is unavailable.
+- Unsupported item or opaque image type: supply original ATIF or add a tested
+  protocol mapping. Do not flatten unknown content to pass conversion.
+- Output already exists: use a fresh private directory; the converter never
+  overwrites retained evidence.
