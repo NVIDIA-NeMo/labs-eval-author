@@ -160,5 +160,6 @@ the machine-readable inventory.
 The bundled JSON examples and synthetic test fixtures are NVIDIA-authored and
 covered by the project license.
 
-Contributions are currently limited to the NVIDIA ASE team. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for the current policy and review requirements.
+This project is currently not accepting contributions. Internal maintenance is
+limited to the NVIDIA ASE team. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+current policy, sign-off, and review requirements.
