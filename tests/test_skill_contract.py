@@ -156,7 +156,8 @@ _needs_unreadable_files = pytest.mark.skipif(
 # Bundled scripts may name only these third-party roots. Anything else would
 # become a hidden dependency for repositories that copy the skill.
 # referencing is the declared offline registry dependency of trace schema validation.
-_PERMITTED_THIRD_PARTY = frozenset({"harbor", "jsonschema", "pydantic", "referencing", "yaml"})
+# trace_ingest is the pinned standalone library used by the optional provider loaders.
+_PERMITTED_THIRD_PARTY = frozenset({"harbor", "jsonschema", "pydantic", "referencing", "trace_ingest", "yaml"})
 
 
 def _not_for_names(frontmatter: dict) -> set[str]:
@@ -4362,7 +4363,7 @@ def test_audit_report_rejects_empty_coverage_set_without_writing(tmp_path: Path)
 
 
 def test_bundled_scripts_never_import_the_platform() -> None:
-    """The boundary that makes the skill copyable: Harbor is fine, NeMo is not."""
+    """The copyable boundary permits standalone libraries, not the platform application."""
     offenders: dict[str, set[str]] = {}
     for scripts_dir in _SCRIPT_DIRS:
         permitted = _local_roots(scripts_dir) | sys.stdlib_module_names | _PERMITTED_THIRD_PARTY

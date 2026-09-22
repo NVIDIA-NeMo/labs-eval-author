@@ -137,3 +137,12 @@ def test_scans_every_skill_and_preserves_failed_collection(tmp_path, monkeypatch
     assert "PRIVATE-SENTINEL" not in (out / "skillevaluator-summary.json").read_text()
     with pytest.raises(FileExistsError):
         collector.collect(repo, out, "skillevaluator", 5)
+
+
+def test_unit_test_job_installs_public_dependencies_without_secrets():
+    workflow = Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml"
+    job = yaml.safe_load(workflow.read_text())["jobs"]["test"]
+    assert "secrets." not in json.dumps(job)
+    checkout = next(step for step in job["steps"] if step.get("uses", "").startswith("actions/checkout@"))
+    assert checkout["with"]["persist-credentials"] is False
+    assert any(step.get("run") == "uv sync --locked" for step in job["steps"])

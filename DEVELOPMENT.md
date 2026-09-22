@@ -34,6 +34,18 @@ The experimental trace-environment skill documents its
 For standalone Gym trace conversion, see
 [`gym-to-atif`](skills/gym-to-atif/SKILL.md).
 
+## Public Trace Intel dependency
+
+The development dependencies include `trace-ingest[mlflow]` pinned to an exact
+commit in the public [NVIDIA-NeMo/labs-trace-intel](https://github.com/NVIDIA-NeMo/labs-trace-intel)
+repository. Local development and GitHub Actions fetch it over HTTPS with
+`uv sync --locked`; no GitHub login, token, deploy key, or separate checkout is
+required. Keep the Git revision in `pyproject.toml` and `uv.lock` synchronized
+when deliberately updating the dependency.
+
+For a stacked PR whose base is not `main`, run the same test matrix manually
+with `gh workflow run ci.yml --repo NVIDIA-NeMo/labs-eval-author --ref BRANCH`.
+
 ## Skill reference
 
 Start with `eval-author`; it selects the appropriate workflow and loads supporting

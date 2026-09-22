@@ -91,8 +91,10 @@ credentials, execution limits, and report details.
 
 Dependency installation and tests execute code from the proposed change.
 Repository writers must therefore be trusted to run code in CI. Review workflow,
-dependency, build, and test changes with that in mind. Unit-test jobs remain
-credential-free; model-evaluation jobs use a dedicated CI inference credential.
+dependency, build, and test changes with that in mind. Unit-test dependencies,
+including the pinned public Trace Intel package, install without repository
+credentials; see [setup](DEVELOPMENT.md#public-trace-intel-dependency).
+Model-evaluation jobs use a dedicated CI inference credential.
 Same-repository PR authors must be trusted with that credential. Fork PRs are
 excluded. Keep unrelated secrets, cloud credentials, self-hosted runners, and
 internal application access out of these jobs. Do not use

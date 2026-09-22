@@ -8,6 +8,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -75,7 +76,7 @@ jobs:
     # Defense in depth only: PRs can edit this workflow. This condition does not
     # enforce repository access; see CONTRIBUTING.md.
     if: >-
-      github.event_name == 'push' ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -91,7 +92,8 @@ jobs:
           version: "0.12.3"
           python-version: ${{ matrix.python-version }}
           enable-cache: false
-      - run: uv sync --locked
+      - name: Install public dependencies
+        run: uv sync --locked
 
       - name: Install OSV-Scanner
         env:
