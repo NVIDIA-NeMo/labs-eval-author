@@ -46,11 +46,7 @@ Replace `claude-code` with your assistant's identifier:
 | Pi | `pi` |
 
 See the [Skills CLI documentation](https://github.com/vercel-labs/skills#supported-agents)
-for other assistants. `--yes` skips installer prompts; keep the quotes around
-`'*'` to select the complete Eval Author skill set. The command installs into
-this project. Add `--global` to make the skills available across your projects.
-For interactive selection instead, omit `--agent claude-code --yes`; use
-**Space** to select an assistant and **Enter** to continue.
+for other assistants.
 
 Installation adds nine skill directories with their instructions, scripts,
 schemas, templates, and references, including the **experimental**
