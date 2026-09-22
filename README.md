@@ -49,8 +49,7 @@ See the [Skills CLI documentation](https://github.com/vercel-labs/skills#support
 for other assistants.
 
 Installation adds nine skill directories with their instructions, scripts,
-schemas, templates, and references, including the **experimental**
-trace-to-environment workflow. Harbor and Python dependencies are separate
+schemas, templates, and references. Harbor and Python dependencies are separate
 [workflow requirements](docs/getting-started.md#requirements).
 
 Verify the installation from the same directory, using the same assistant value:
