@@ -113,4 +113,3 @@ Their absence changes no readiness checks, `proven`, `runnable`, or exit code.
 The script cannot determine host skill availability. Return these observations
 with prerequisite-only findings; include them separately from evidence JSON in
 the later full discovery report as described in [Step 6](../SKILL.md#step-6-save-the-report).
-

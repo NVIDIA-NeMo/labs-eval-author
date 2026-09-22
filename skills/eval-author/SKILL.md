@@ -69,9 +69,16 @@ routes, not four stages everyone must complete:
 | Starting situation and request | Route | First action and deliverable |
 |---|---|---|
 | The user has no evals and wants to bootstrap them | [First eval](../eval-author-first-eval/SKILL.md) | Use the authoring welcome below, then build a small working suite through the shared milestones. The user's statement settles the starting point; no discovery pass is required to prove absence. |
-| The user has evals and wants them audited | [Audit](../eval-author-audit/SKILL.md) | Carry the selected eval paths and available evidence directly into the audit's own pre-flight and coverage workflow. Explain what that evidence can establish; do not substitute a readiness report for the requested audit. |
+| The user wants a coverage audit, with existing evals or a specification to guide future evals | [Audit](../eval-author-audit/SKILL.md) | Show the audit's five-step checklist with descriptions and ask whether to begin; wait before Ethos work or repository inspection. Reuse an answered opening and prior progress on return. Explain what the evidence can establish; do not substitute a readiness report for the requested audit. |
 | The user is unsure whether or where evals exist | [Discovery inventory](../eval-author-discover/SKILL.md#inventory-an-uncertain-starting-point) | Report what evals exist, what they test, and their documented run instructions before Ethos or runtime setup. Finish discovery, then ask whether the user wants an audit; do not infer that next step from a general request for help. |
 | The user wants new eval recommendations based on an audit | [Dataset proposals](../eval-author-task-create/SKILL.md#step-1-propose-dataset-improvements) | Reuse the audit and its evidence for ranked proposals. A proposal-only request stops before scaffolding or execution. |
+
+For a fresh audit, the next deliverable is its opening checklist with descriptions
+and a question that ends the turn. Load the audit skill and return that opening
+before inspecting the repository, starting Ethos work, or delegating a review.
+The user's audit request establishes permission to work; it does not replace the
+guided conversation's initial handoff. Put it in the final response, rather than
+showing it in commentary and continuing behind an asynchronous question.
 
 Adaptation is temporarily disabled. Do not route to `eval-author-adapt` or load
 its archived instructions. For an explicit request to convert existing evals to
@@ -80,7 +87,9 @@ that request as first-eval authoring or treat existing material as absent.
 
 An explicit audit or proposal request keeps that purpose even when an input is
 missing: locate the missing source or follow the selected sub-flow's prerequisite
-guidance, then resume that request. A missing report does not mean the user has no
+guidance, then resume that request. For an audit, confirm the trace source and
+location with the user before searching for or reading traces; reuse an explicit
+selection already supplied. A missing report does not mean the user has no
 evals. A generic request such as “help me with my evals” with no established
 starting point uses discovery inventory first. If the material is known but the
 desired outcome is unclear, ask one focused question about that outcome.
