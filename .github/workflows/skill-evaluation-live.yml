@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       run_live:
-        description: Run live evaluation for this manual dispatch (automatic CI runs live)
+        description: Request live evaluation on main (requires ASE environment approval)
         type: boolean
         default: false
       tier:
@@ -28,7 +28,7 @@ permissions:
   contents: read
 
 env:
-  # PR feedback stays fast; full agent A/B evaluations run after merge.
+  # PRs only plan Tier 2 coverage; live evaluation requires main and ASE approval.
   EVALUATION_TIER: ${{ github.event_name == 'pull_request' && '2' || inputs.tier || 'both' }}
 
 concurrency:
@@ -65,11 +65,9 @@ jobs:
     needs: plan
     if: >-
       vars.SKILL_EVALUATION_LIVE_ENABLED == 'true' &&
-      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-       (github.event_name == 'pull_request' &&
-        github.event.pull_request.head.repo.full_name == github.repository) ||
-       (github.event_name == 'workflow_dispatch' && inputs.run_live &&
-        github.ref == 'refs/heads/main'))
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && inputs.run_live))
     environment: skill-evaluator
     runs-on: ubuntu-24.04
     timeout-minutes: 120

@@ -128,16 +128,19 @@ and pushes to `main` on GitHub-hosted Ubuntu runners. It uses a read-only
 `GITHUB_TOKEN`, disables persisted checkout credentials and shared dependency
 caching, pins actions to commit SHAs and uv to a version, and bounds job runtimes.
 New runs cancel older runs for the same PR or branch. See
-[advisory evaluation CI](docs/skill-evaluation-ci.md) for model configuration,
-credentials, execution limits, and report details.
+[advisory evaluation CI](docs/skill-evaluation-ci.md) for approval requirements
+and report details.
 
 Dependency installation and tests execute code from the proposed change.
 Repository writers must therefore be trusted to run code in CI. Review workflow,
 dependency, build, and test changes with that in mind. Unit-test dependencies,
 including the pinned public Trace Intel package, install without repository
 credentials; see [setup](DEVELOPMENT.md#public-trace-intel-dependency).
-Model-evaluation jobs use a dedicated CI inference credential.
-Same-repository PR authors must be trusted with that credential. Fork PRs are
+Model-evaluation jobs use a dedicated CI inference credential in the protected
+`skill-evaluator` environment. That environment permits only `main`, requires
+approval from `NVIDIA-NeMo/ase_team`, prevents self-approval, and disables
+administrator bypass. PR checks do not receive this credential. These controls
+must be configured in GitHub settings, not only in workflow YAML. Fork PRs are
 excluded. Keep unrelated secrets, cloud credentials, self-hosted runners, and
 internal application access out of these jobs. Do not use
 `pull_request_target` or a privileged `workflow_run` to execute PR code.
