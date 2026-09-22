@@ -15,6 +15,7 @@ import tomllib
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import TypedDict
+from urllib.parse import parse_qs, urlsplit
 
 import yaml
 from collect_license_texts import Artifact, Document, collect, render_texts
@@ -99,9 +100,46 @@ def _scan_licenses(requirements_path: Path, output_path: Path) -> None:
         raise RuntimeError(f"OSV-Scanner failed with exit code {result.returncode}")
 
     raw = json.loads(output_path.read_text(encoding="utf-8"))
+    _include_git_packages(raw, requirements_path)
     for scan_result in raw.get("results", []):
         scan_result.get("source", {}).pop("path", None)
     output_path.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
+
+
+def _include_git_packages(raw: dict, requirements_path: Path) -> None:
+    """OSV skips Git requirements; include only Git packages in the exported scope."""
+    lock = tomllib.loads((PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8"))
+    packages = {_canonicalize(p["name"]): p for p in lock["package"] if "git" in p["source"]}
+    for name, requirement in re.findall(
+        r"^([\w.-]+) @ (git\+\S+)", requirements_path.read_text(encoding="utf-8"), re.MULTILINE
+    ):
+        package = packages[_canonicalize(name)]
+        source = urlsplit(package["source"]["git"])
+        revision = source.fragment
+        if source.hostname != "github.com" or not re.fullmatch(r"[0-9a-f]{40}", revision):
+            raise RuntimeError(f"Expected commit-pinned GitHub dependency: {name}")
+        repository = f"https://github.com{source.path.removesuffix('.git')}"
+        subdirectory = parse_qs(source.query).get("subdirectory", [""])[0]
+        expected = f"git+{repository}.git@{revision}"
+        if subdirectory:
+            expected += f"#subdirectory={subdirectory}"
+        if requirement != expected:
+            raise RuntimeError(f"Exported Git requirement differs from uv.lock: {name}")
+        # Git package license metadata comes from the reviewed override, not PyPI.
+        raw.setdefault("results", []).append(
+            {
+                "packages": [
+                    {
+                        "package": {
+                            "name": name,
+                            "version": package["version"],
+                            "url": f"{repository}/tree/{revision}/{subdirectory}".rstrip("/"),
+                        },
+                        "licenses": [],
+                    }
+                ]
+            }
+        )
 
 
 def _load_overrides() -> dict[str, str]:
@@ -151,7 +189,7 @@ def _license_records(osv_path: Path) -> list[LicenseRecord]:
                 "name": name,
                 "version": package["version"],
                 "license": license_name,
-                "package_url": f"https://pypi.org/project/{name}/{package['version']}/",
+                "package_url": package.get("url", f"https://pypi.org/project/{name}/{package['version']}/"),
                 "license_documents": ["third_party/NOTICES.txt"]
                 + [str(standard_texts[identifier].relative_to(PROJECT_ROOT)) for identifier in sorted(identifiers)],
             }
@@ -185,6 +223,13 @@ def _collect_texts(records: list[LicenseRecord]) -> str:
     packages = {(_canonicalize(p["name"]), p["version"]): p for p in lock["package"]}
     selected = [packages[(_canonicalize(r["name"]), r["version"])] for r in records]
     supplements = _supplements(records)
+    for package in selected:
+        if "git" in package["source"]:
+            source = urlsplit(package["source"]["git"])
+            prefix = f"https://raw.githubusercontent.com{source.path.removesuffix('.git')}/{source.fragment}/"
+            documents = supplements.get(package["name"], [])
+            if not documents or any(not document["url"].startswith(prefix) for document in documents):
+                raise RuntimeError(f"Review Git license documents for locked revision: {package['name']}")
     cache = PROJECT_ROOT / "tmp" / "license-archives"
     with ThreadPoolExecutor(max_workers=8) as executor:
         results = list(

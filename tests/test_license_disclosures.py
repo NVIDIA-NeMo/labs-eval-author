@@ -152,3 +152,51 @@ def test_stale_exception_requires_review(tmp_path, monkeypatch):
     monkeypatch.setattr(generator, "EXCEPTIONS_PATH", path)
     with pytest.raises(RuntimeError, match="stale license exception"):
         generator._supplements([{"name": "pkg", "version": "new"}])
+
+
+def test_git_inventory_uses_exported_scope_and_locked_revision(tmp_path, monkeypatch):
+    revision = "a" * 40
+    source = f"https://github.com/example/project.git?subdirectory=packages/loader#{revision}"
+    (tmp_path / "uv.lock").write_text(
+        '[[package]]\nname = "loader"\nversion = "1"\n'
+        f'source = {{ git = "{source}" }}\n'
+        '[[package]]\nname = "dev-only"\nversion = "1"\n'
+        f'source = {{ git = "{source}" }}\n'
+    )
+    requirements = tmp_path / "requirements.txt"
+    requirements.write_text(
+        f"loader @ git+https://github.com/example/project.git@{revision}#subdirectory=packages/loader\n"
+    )
+    monkeypatch.setattr(generator, "PROJECT_ROOT", tmp_path)
+    scan = {"results": []}
+    generator._include_git_packages(scan, requirements)
+    packages = [p for result in scan["results"] for p in result["packages"]]
+    assert packages == [
+        {
+            "package": {
+                "name": "loader",
+                "version": "1",
+                "url": f"https://github.com/example/project/tree/{revision}/packages/loader",
+            },
+            "licenses": [],
+        }
+    ]
+    requirements.write_text(requirements.read_text().replace(revision, "b" * 40))
+    with pytest.raises(RuntimeError, match="differs from uv.lock"):
+        generator._include_git_packages({"results": []}, requirements)
+
+
+def test_git_revision_change_rejects_old_license_documents(tmp_path, monkeypatch):
+    revision = "b" * 40
+    (tmp_path / "uv.lock").write_text(
+        '[[package]]\nname = "loader"\nversion = "1"\n'
+        f'source = {{ git = "https://github.com/example/project.git#{revision}" }}\n'
+    )
+    monkeypatch.setattr(generator, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(
+        generator,
+        "_supplements",
+        lambda records: {"loader": [{"url": f"https://raw.githubusercontent.com/example/project/{'a' * 40}/LICENSE"}]},
+    )
+    with pytest.raises(RuntimeError, match="Review Git license documents"):
+        generator._collect_texts([{"name": "loader", "version": "1"}])
