@@ -130,6 +130,11 @@ For each recommendation, include:
   task creation, needs manual task design, or needs more measurement. A written
   recommendation is not a generated, validated, or accepted Gym or Harbor task.
 
+For Gym recommendations, include a [version and rerun plan](references/gym-tasks.md#version-and-rerun-plan)
+in the recommendation: exact pins supported by the available evidence, unresolved
+versions, and the settings and reset procedure needed to repeat the evaluation.
+Carry the selected plan into task creation; a proposed pin is not a verified lock.
+
 Lead the proposal response with the highest-value recommendations and enough
 scenario and expected-behavior detail to act on them. Follow with supporting
 coverage counts, measurement limits, and links to the proposals and audit report.

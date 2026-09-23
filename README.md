@@ -13,6 +13,7 @@ Build a first evaluation suite, check an existing suite, or audit its coverage.
 First evaluations and readiness checks use [Harbor](https://docs.harborframework.com/).
 Task creation from an existing audit gap also supports [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/)
 through the [Gym task-authoring guide](skills/eval-author-task-create/references/gym-tasks.md).
+Gym proposals include a version-locking and rerun plan for comparable evaluations.
 
 For example, an audit might report:
 

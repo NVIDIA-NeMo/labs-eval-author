@@ -9,6 +9,40 @@ commands; the shared proposal-only boundary, evidence rules, and repeated
 measured coverage requirements still apply. Preserve the user's provider choice
 and existing suite.
 
+## Version and rerun plan
+
+During proposal work, include this plan in the Gym recommendation in
+`.eval-author/proposals/dataset-recommendations.md`. Use the repository's existing
+versions and lockfiles when available. For each item, give the exact pin or
+artifact identity, its evidence source, and whether it is observed, proposed, or
+unresolved. Do not fill missing versions with `latest` or imply that a version
+range, release label, or proposed configuration is a verified lock.
+
+| Item | What the plan fixes |
+| --- | --- |
+| Gym and runtime | Gym package version and full source commit or immutable distribution digest; Python patch version and relevant OS/architecture. A dirty checkout needs the retained changes as well as its commit. |
+| Dependencies and services | The native dependency manifest and lockfile, their SHA-256 digests, selected extras, and the command that uses the lock without resolving upgrades. Pin container images by digest when used; identify external service versions or record that they cannot be pinned. |
+| Task and grading | Resource-server and verifier code, agent code, prompts, configuration overrides, and verifier fixtures, identified by immutable revision or retained files and SHA-256 digests. Include judge model/settings when grading uses a model. |
+| Data and initial state | Dataset bytes and SHA-256 digest, split, selected rows and ordering, fixture version, and how to restore the same initial state and isolate each attempt. |
+| Model | Provider and exact model snapshot/revision where available, plus sampling settings, token limits, and supported seeds. A mutable model alias remains an explicit reproducibility limit. |
+| Run protocol | Working directory, runtime/CLI paths, exact commands, repeat count, concurrency, timeouts, retry policy, supported seeds, and output locations. Record required credential variable names, never secret values. |
+
+Keep this proportional to the proposed task; mark unused components as not
+applicable. Missing pins do not prevent a useful proposal: identify the specific
+evidence or decision needed to resolve each one. Proposal-only work records the
+plan without installing runtimes, changing dependency files, or running evals.
+
+When task creation is requested, carry the selected plan into the draft's
+`reproducibility.md`. Reuse the existing package manager's lock format. If the
+task has no dependency lock, generate one for its selected dependencies under
+the draft using that package manager; keep dependency changes scoped to the
+draft. Retain the manifest and lockfile together with a verified command that
+consumes them without updates. Preserve source provenance and
+local changes needed to reconstruct the task. Keep configuration free of secret
+values. Resolve proposed pins against the actual runtime before calling the
+environment locked; the scaffolder's `draft.json` records a Gym version but is
+not a dependency lock or proof of repeatability.
+
 ## Scaffold the native draft
 
 Require an installed Gym v0.6.0+ runtime in its separate Python 3.13.14+
@@ -60,6 +94,12 @@ behavior, not just fabricated final responses fed to a stateless verifier.
 
 ## Validate, run, and retain evidence
 
+Before validation or execution, compare the actual runtime, installed dependencies and lock,
+task/configuration, and dataset identities with `reproducibility.md`. Resolve
+unexpected drift before claiming a comparable rerun. Intentional changes create
+a new recorded plan revision; retain earlier run evidence instead of overwriting
+it. A fixed environment does not guarantee identical stochastic model outputs.
+
 From the draft root, using the verified Gym CLI:
 
 ```bash
@@ -94,6 +134,15 @@ Gym's default. In v0.6.0, end-to-end `gym eval run` without `--no-serve` uses
 prepared `train`, `validation`, or `benchmark` splits; it rejects `--input` and
 `--split example`. For that mode, declare repeats in the dataset configuration.
 The example above uses an explicit file and `--num-repeats` against running servers.
+
+For each authorized attempt, restore the planned fixture state and use the same
+locked inputs and run settings. Retain a copy of the resolved version/rerun plan
+with the run's artifacts, including actual identities, overrides, and any
+unresolved limits. Check that positive and negative controls behave as planned
+after reset, and retain results from every repeat, including errors and retries.
+Report the observed variation in rewards and outcomes; repeated execution or a
+fixed seed alone does not establish deterministic results. Hand off the exact
+rerun command and state-reset steps alongside the results.
 
 Adapt agent selection and dependencies to the inspected repository. Do not
 replace the actual agent with a reference implementation to claim gap closure.
