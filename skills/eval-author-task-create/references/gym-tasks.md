@@ -13,7 +13,8 @@ and existing suite.
 
 During proposal work, include this plan in the Gym recommendation in
 `.eval-author/proposals/dataset-recommendations.md`. Use the repository's existing
-versions and lockfiles when available. For each item, give the exact pin or
+versions and lockfiles when available. Record the intended consumer: native
+Gym, Helix Evaluator, or another explicitly selected runner. For each item, give the exact pin or
 artifact identity, its evidence source, and whether it is observed, proposed, or
 unresolved. Do not fill missing versions with `latest` or imply that a version
 range, release label, or proposed configuration is a verified lock.
@@ -34,9 +35,11 @@ plan without installing runtimes, changing dependency files, or running evals.
 
 When task creation is requested, carry the selected plan into the draft's
 `reproducibility.md`. Reuse the existing package manager's lock format. If the
-task has no dependency lock, generate one for its selected dependencies under
-the draft using that package manager; keep dependency changes scoped to the
-draft. Retain the manifest and lockfile together with a verified command that
+task has no dependency lock, generate one for its selected dependencies in
+a dedicated `reproducibility/locks/` subdirectory under the draft. Keep lock
+projects separate from Gym component roots: a root `pyproject.toml` can change
+Gym's install mode. Apply [component dependency and packaging checks](gym-packaging.md)
+so each server actually consumes the pins. Retain the manifest and lockfile together with a verified command that
 consumes them without updates. Preserve source provenance and
 local changes needed to reconstruct the task. Keep configuration free of secret
 values. Resolve proposed pins against the actual runtime before calling the
@@ -91,6 +94,10 @@ Inspect the installed Gym base request models and a comparable resources server
 when authoring. Do not assume Harbor's task.toml, solve.sh, or reward.txt protocol
 applies. Stateful tasks need controls against the same stateful tools and reset
 behavior, not just fabricated final responses fed to a stateless verifier.
+
+Before calling the task portable, follow [Component dependencies and packaging](gym-packaging.md)
+to check dependency installation and implementation selection in fresh child
+environments. Its Helix export section applies only when that consumer is selected.
 
 ## Validate, run, and retain evidence
 
