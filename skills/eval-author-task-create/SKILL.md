@@ -45,7 +45,11 @@ Read `eval-author` for the shared evidence standard and boundaries. Read
 to turn audit evidence into prioritized dataset improvements across tools,
 capabilities, and failure cases. For proposal-only requests, stop after Step 1.
 Enter that step directly from the core's proposal route, carrying existing audit
-findings and prior answers. If required audit inputs are missing, obtain those
+findings and prior answers. Accepting the audit's offer to propose tasks also
+enters Step 1 directly; reuse the reviewed Audit coverage report and agreed priorities.
+When handing off from a guided audit, wait for an explicit answer accepting that
+offer; report acceptance alone is not permission to begin proposals.
+If required audit inputs are missing, obtain those
 inputs through the audit flow and return to proposals; do not restart first-eval
 onboarding or infer permission to create or run tasks.
 For task-creation requests, continue with an eligible tool gap through the
@@ -62,10 +66,14 @@ actionable uncovered tool
 Create and prove one tool gap at a time. Keep every generated artifact under
 `.eval-author/`; do not edit existing tasks or customer source.
 
-For an existing suite without a coverage report, preserve the requested outcome:
+For an existing suite without sufficient audit findings, preserve the requested outcome:
 audit or proposal work obtains its missing coverage inputs through
 `eval-author-audit`; readiness work belongs in `eval-author-discover`. A missing
-report alone is not a first-eval request.
+report alone is not a first-eval request. A reviewed specification and Markdown
+report can support proposal-only work without measurement JSON: label such ideas
+as unmeasured candidates and carry the measurement limitation forward. Do not
+repeat an already-deferred measurement just to propose candidates. Automatic
+tool-gap task creation still requires the aggregate JSON report.
 
 ## Available Scripts
 
@@ -88,9 +96,23 @@ verdict with model judgment.
 
 ## Step 1: propose dataset improvements
 
-Read the aggregate audit report, relevant per-trace `details.json` and capability
-judgments, and the source traces or verifier results needed to explain the
-findings. Check existing task instructions, fixtures, and verifiers before
+When available, read the **Audit coverage report** (`.eval-author/audit-coverage-report.md`)
+for test mappings, findings, limitations, and agreed next actions. Check its applicability
+against the underlying specification and reports; a mapped test does not establish
+measured coverage. The Markdown report supplies context, while measurement JSON
+remains the input for deterministic tool-gap selection and verification. Its
+absence alone does not require repeating an otherwise usable audit.
+
+Keep the audit's [artifact names](../eval-author-audit/references/coverage-report.md#artifact-names)
+in proposal replies and links: Audit specification (`audit.md`), Audit coverage
+report (`audit-coverage-report.md`), and Coverage measurements (JSON)
+(`audit-coverage-report.json`). Review status does not change these names.
+
+Read available aggregate measurements, relevant per-trace `details.json` and
+capability judgments, and the selected source traces or verifier results needed
+to explain the findings. When measurement is unavailable, ground candidate
+proposals in the reviewed specification and inspected eval definitions instead.
+Check existing task instructions, fixtures, and verifiers before
 claiming a scenario is absent or proposing a duplicate. A capability covered in
 one run can still fail in another; review observed failures even when the item
 is absent from `uncovered_items`.
@@ -130,7 +152,7 @@ For each recommendation, include:
 
 Lead the proposal response with the highest-value recommendations and enough
 scenario and expected-behavior detail to act on them. Follow with supporting
-coverage counts, measurement limits, and links to the proposals and audit report.
+coverage counts, measurement limits, and links to the proposals and Audit coverage report.
 Full tool coverage or an unsupported task-generation path must not suppress
 useful capability or failure-case suggestions. Do not relabel those suggestions
 as tool gaps to pass the selector. If evidence supports no dataset change, say why

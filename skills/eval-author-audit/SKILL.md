@@ -1,7 +1,7 @@
 ---
 name: eval-author-audit
 description: >-
-  Guide coverage audits with milestone check-ins and user-confirmed trace sources.
+  Guide coverage audits with milestone check-ins and user-confirmed eval and trace sources.
   Generate, validate, measure, and report on an audit-spec coverage denominator
   for Eval Author. Use when the user wants a hand-editable audit.md file derived
   from Ethos, needs schema enforcement for declared tools, capabilities, failure
@@ -44,7 +44,8 @@ allowed-tools: Bash Read Write Grep Glob
 Read `eval-author` for the shared standard, vocabulary, and boundaries. This
 sub-flow generates and validates a finite coverage denominator from `<ethos_path>` and
 reviewed audit items, then can measure ATIF traces and aggregate coverage reports
-against it. It does not generate tasks yet.
+against it. It also writes a human-readable `audit-coverage-report.md` and reviews
+the findings with the user. It does not generate tasks yet.
 
 ## Start a guided audit
 
@@ -68,10 +69,10 @@ plain bullets or labels alone do not satisfy the opening. Leave every step
 unchecked and mark **Understand your agent** as **We're here**:
 
 - [ ] **Understand your agent** — agree on what your agent should do, what it should avoid, and what a good result looks like.
-- [ ] **Confirm evals and traces** — find existing evaluations and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
+- [ ] **Confirm evals and traces** — confirm which evaluations to audit and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
 - [ ] **Define what the evals should cover** — agree on the behaviors, tools, and failure cases to check.
 - [ ] **Measure coverage** — use the run records to see which of those items were exercised.
-- [ ] **Review findings and next steps** — explain gaps, what the evidence can tell us, and what to do next.
+- [ ] **Generate and review coverage report** — create or update `audit-coverage-report.md`, then review coverage, gaps, evidence limits, and next steps together.
 
 End with **“Ready to get started?”**, finish the turn, and wait for the user's
 reply. Do not use an asynchronous question to keep this turn running. Before
@@ -103,7 +104,7 @@ requested scope; do not require the full checklist or unrelated milestones.
 Generation still needs the Ethos pre-flight. Existing-spec validation,
 measurement, and aggregation use their supplied inputs without a new Ethos
 interview. Every audit operation that searches for or reads traces must first
-follow [Confirm evals and traces](references/guided-audit.md#2-confirm-evals-and-traces),
+follow trace-source selection in [Confirm evals and traces](references/guided-audit.md#2-confirm-evals-and-traces),
 including trace inspection for runtime tool names. An explicit user-selected
 source and location already supplied in this conversation satisfies that
 confirmation; a path discovered in a file does not.
@@ -122,17 +123,17 @@ established Ethos to define what the audit should cover. An explicit
 `--ethos <path>` overrides any prior handoff path; otherwise pass the established
 path supplied by first-eval when available.
 
-For a full audit, introduce Ethos in plain language and link its documentation
-before checking or creating it, even when a file already exists. Follow
-[Understand your agent](references/guided-audit.md#1-understand-your-agent) to
-surface an existing document promptly and offer edits at the milestone check-in.
+For a full audit, explain what `ETHOS.md` is and how this audit uses it before
+checking or creating it. Include that explanation in the first Ethos check-in,
+even when requesting format repairs. Follow [Understand your agent](references/guided-audit.md#1-understand-your-agent)
+to link the document and documentation, summarize its intent, and offer edits.
 
 Follow [Local Ethos](../eval-author/references/local-ethos.md) to locate, check,
 reuse, or create and review the document. That procedure owns the document
 prerequisite and its recovery. Use its exact returned path as `<ethos_path>` and
 resume audit-item drafting only after the prerequisite is complete. For a full
 audit, check in before **Confirm evals and traces**. In that next milestone,
-report the existing evaluations and their locations before asking about traces.
+show and confirm the evaluation suites with the user before asking about traces.
 
 ## Coverage specification
 
@@ -154,6 +155,27 @@ not declare as allowed tools.
 Write audit artifacts under `.eval-author/`. Audit operations do not edit the
 customer's source, existing evals, source-of-truth documents, or `ETHOS.md`;
 prerequisite Ethos work belongs to the shared procedure in the pre-flight above.
+
+## Audit outputs
+
+Use these names in replies and artifact links; follow [artifact naming](references/coverage-report.md#artifact-names).
+
+| Name | File under `.eval-author/` | Purpose |
+|---|---|---|
+| Audit specification | `audit.md` | Structured source of checks and required evidence, reviewed through the report's Intended coverage section |
+| Audit coverage report | `audit-coverage-report.md` | Readable intended coverage, test mappings, measured coverage, gaps, evidence limits, and next actions |
+| Coverage measurements (JSON) | `audit-coverage-report.json` | Script-generated measurements aggregated over the selected runs, when available |
+| Audit progress | `audit-progress.md` | Conversation checkpoints and resumption |
+
+For a full audit, create the Audit coverage report with the validated Audit
+specification, refresh it after measurement, and update it for final review.
+Follow the [report guidance](references/coverage-report.md) and [template](templates/audit-coverage-report.md) even when measurement is deferred.
+
+Whenever the Markdown report is created or updated, explicitly say so and link
+it in the turn-ending response, including intermediate milestone check-ins.
+
+Focused operations need this report only when requested or continuing a full
+audit; keep their scope. Read-only and `suggest` requests remain read-only.
 
 ## Scripts
 
@@ -478,11 +500,11 @@ uncovered or whether an existing task already exposes an agent failure.
 
 - For audit-generation inputs and reconciliation modes, return to
   [Step 2: Generate Or Reconcile Audit.md](#step-2-generate-or-reconcile-auditmd).
-- Report coverage by kind, observed findings, measurement limits, and artifact
-  links. Dataset recommendations belong to the proposal step in
-  [`eval-author-task-create`](../eval-author-task-create/SKILL.md). Hand off there
-  when the user requests proposals or continuation through the full workflow;
-  an audit-only request ends with the findings.
+- After the report review, offer new or improved eval task proposals using the
+  [guided handoff](references/guided-audit.md#after-review-offer-the-next-step).
+  End the turn and wait for acceptance before entering the proposal step in
+  [`eval-author-task-create`](../eval-author-task-create/SKILL.md) with the current
+  report and evidence. Proposal acceptance does not authorize task execution.
 - The proposal step considers tools, capabilities, and failure cases. Automatic
   task creation still accepts only uncovered tool items with
   `reason: not_covered_by_any_input_report`. Items with
