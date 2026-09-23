@@ -1,0 +1,56 @@
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+# Audit coverage report: <agent name>
+
+<!-- Replace authoring prompts with current findings. Remove these comments in
+the produced report. Link only artifacts that exist; explain missing inputs. -->
+
+<Lead with the main finding and whether this is a specification-only, partially
+measured, or measured audit. State the scope to which the finding applies.>
+
+## Scope and evidence
+
+- **Specification and intent:** <links to audit.md and the applicable Ethos>
+- **Evaluations inspected:** <suite and case links, or the specific limitation>
+- **Run evidence:** <selected source and runs, or why measurement is unavailable>
+- **Methods and reports:** <methods run and links to applicable JSON reports>
+- **Exclusions:** <failed, omitted, or stale inputs and their effect on findings>
+
+## Coverage summary
+
+<!-- Populate all three kinds from the specification and applicable measurements.
+Use “Unmeasured” instead of numeric measured counts when no method ran for a kind.
+A kind with no declared items is “No items declared”, not 100% covered. -->
+
+| Kind | Declared items | Measured covered | Measured but not demonstrated | Unmeasured |
+|---|---|---|---|---|
+| Tools | <total> | <count or Unmeasured> | <count or Unmeasured> | <count> |
+| Capabilities | <total> | <count or Unmeasured> | <count or Unmeasured> | <count> |
+| Failure cases | <total> | <count or Unmeasured> | <count or Unmeasured> | <count> |
+
+## Audit items, tests, and evidence
+
+Test mappings describe what existing evaluations intend to exercise. Measurement
+status describes what the selected recorded runs demonstrate.
+
+<!-- Include every current audit item, optionally grouped by kind. An uninspected
+test mapping is “Not inspected”; absence is bounded to the tests actually read. -->
+
+| Audit item | Kind | Existing tests | Measurement status | Supporting evidence and limits |
+|---|---|---|---|---|
+| <stable name> | <kind> | <case/verifier links or mapping limitation> | <Covered / Measured but not demonstrated / Unmeasured> | <task/run, method, evidence links, or specific missing evidence> |
+
+## Findings and limitations
+
+<Explain the material gaps and observed failures with evidence links. Distinguish
+missing scenarios from missing evidence or methods. Include fixture/verifier
+limitations and unresolved causes. Do not infer overall quality from coverage.>
+
+## Next actions and open questions
+
+<Recommend the next useful action and explain why. For an existing suite, lead
+with proposing new or improved eval tasks for the main gaps, naming the behaviors
+to target. Explain when evidence collection, an agent fix, or first-eval creation
+should come first. Identify decisions to review with the user. Detailed ranked
+task proposals belong to the subsequent proposal workflow.>

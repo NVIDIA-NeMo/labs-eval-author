@@ -1,0 +1,94 @@
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+# Writing the coverage report
+
+Write `.eval-author/audit-coverage-report.md` using the
+[template](../templates/audit-coverage-report.md). This is the readable audit
+output: explain what existing tests address, what selected runs demonstrate,
+what remains unknown, and what to do next. Adapt the template to the available
+evidence and replace its authoring prompts before presenting the report.
+
+## Sources and scope
+
+Use the current `audit.md`, inspected evaluation definitions and verifiers, and
+applicable measurement artifacts. Link the specification, Ethos, selected eval
+locations, and JSON report when it exists. State the trace scope, methods run,
+excluded or failed inputs, and whether the result is a specification only,
+partial measurement, or measured audit. Distinguish confirmed absence of evals
+from inaccessible or uninspected evals.
+
+The specification defines the item names and evidence requirements. The JSON
+report supplies measured counts and item coverage. Method-specific details and
+judgments explain those results; keep generated JSON unchanged. Trace paths in
+reports are references, not permission to open new sources: follow the audit's
+source-selection rule before any further trace inspection.
+
+## Coverage and test mappings
+
+Summarize tools, capabilities, and failure cases separately. For each kind, show
+the declared total and distinguish measured coverage, measured items not
+demonstrated, and unmeasured items. Copy measured counts from applicable reports;
+do not turn an unmeasured kind's zero covered count into a 0% coverage claim.
+For a kind with no declared items, show that fact without a percentage.
+
+Map every current audit item by stable `name` and kind to:
+
+- **Existing tests:** links to inspected cases, instructions, or verifiers that
+  address the item. This describes intended testing, not observed coverage. Use
+  “no match in inspected tests” or “not inspected” where appropriate, and preserve
+  the scope of that statement.
+- **Measurement status:** covered, measured but not demonstrated, or unmeasured.
+  `not_measured_by_any_method` is unmeasured; `not_covered_by_any_input_report`
+  means the selected measurements did not demonstrate the item.
+- **Supporting evidence and limits:** relevant task/run IDs, method, measurement
+  files, judgments, or trace references. The aggregate's `input_reports` links
+  covered names to task/run identities and coverage files. State the reason for
+  missing evidence rather than inventing a supporting run.
+
+Group rows by kind when helpful. Keep explanations readable, with links to
+detail instead of copying JSON. A manual mapping from task definitions can be
+useful without traces, but does not establish measured coverage. A covered item
+in one run does not erase observed failures in others or establish agent quality.
+
+## Findings, limitations, and next actions
+
+Explain material gaps with evidence: a missing scenario in inspected tests, an
+observed agent failure, or insufficient measurement evidence. Where the cause
+is unknown, say so. Missing judgments or an unverified failure trigger do not
+prove that another task is needed. Include material fixture and verifier limits,
+such as synthetic data or checks that exercise only part of the intended behavior.
+
+Without usable traces, report measurement as unmeasured and explain the needed
+input or conversion. With partial measurement, make clear that counts apply only
+to the successful subset and list the exclusions. Do not fabricate a JSON report.
+If inputs change, identify affected findings as stale until refreshed; old
+measurements must not appear current. Retain still-applicable findings and user
+corrections when updating the report.
+
+Close with a recommended next action grounded in the findings. For an existing
+suite with useful gaps to address, recommend proposing new or improved eval tasks
+and name the behaviors those proposals should target. Explain when gathering
+evidence, fixing the agent, or creating the first evals should come first.
+Detailed ranked proposals belong to `eval-author-task-create`; the report
+identifies the direction and evidence for that handoff without claiming tasks
+were created or gaps closed. Use the [guided handoff](guided-audit.md#after-review-offer-the-next-step)
+to offer this next step during review and continue when the user accepts it.
+Present that offer in the turn-ending response and wait before starting proposal
+work. A recommendation in the report or acceptance of its findings is not an
+answer to the handoff question.
+
+## Review and updates
+
+At the final guided milestone, explicitly say the report was created or updated,
+link it, and walk through the main findings, evidence limits, and next actions.
+Ask for corrections or agreement and wait. Keep **Generate and review coverage
+report** incomplete while that review is pending; resolve requested corrections
+before completing it. Reuse an answered review. Record conversational review
+state in `audit-progress.md`.
+
+Every turn-ending response after creating or updating the report must call out
+that write and link it, including earlier specification and measurement
+check-ins. For read-only requests, discuss the available findings without writing
+or claiming an update. A focused operation does not require unrelated test
+inspection or the full guided review just to fill this template.

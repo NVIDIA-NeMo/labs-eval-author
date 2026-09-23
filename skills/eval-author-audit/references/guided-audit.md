@@ -64,7 +64,9 @@ partial measurement, or measured audit. Do not store conversation progress in
 Ethos or edit generated coverage JSON. For read-only requests or before a file
 can be saved, retain this state in the conversation. Progress notes are a memory
 of decisions, not evidence that a check passed or that an unanswered question
-was accepted.
+was accepted. Keep the human-readable findings in `audit-coverage-report.md`;
+whenever it is created or updated, explicitly call out that write and link the
+report in the turn-ending response, even at an intermediate checkpoint.
 
 On return, reuse applicable answers and artifacts and resume the earliest
 unfinished, non-deferred milestone or its pending check-in. Preserve an explicit
@@ -73,7 +75,9 @@ arrives or the user asks. A selected source stays selected until the user change
 it; do not repeat its confirmation. Changed Ethos, audit items, or trace inputs
 reopen affected work and invalidate dependent measurements or judgments as
 appropriate. Recheck applicability without restarting the entire audit or
-searching beyond the selected source.
+searching beyond the selected source. Refresh the Markdown report to identify
+affected findings as stale or unmeasured until applicable evidence is available;
+do not present old counts or mappings as current after their inputs change.
 
 ## 1. Understand your agent
 
@@ -188,7 +192,12 @@ finite set of tools, capabilities, and failure cases in ordinary language before
 asking the user to review the saved specification. These items describe intended
 coverage; they are not runnable tests or proof that the existing tests cover it.
 
-Show the concrete specification and validation result before the check-in.
+Create or update `.eval-author/audit-coverage-report.md` using the
+[report guidance](coverage-report.md) and the available findings. Map audit items
+to inspected test definitions where possible, with measurement explicitly
+unmeasured until applicable results exist. Record unresolved mappings without
+inventing tests or inspecting unselected traces. Link the report with the concrete
+specification and validation result before the check-in.
 Validation proves structure and references, not completeness or agreement with
 intent. Keep review pending until the user confirms the proposed coverage;
 apply requested changes and revalidate. Do not mark it approved just because the
@@ -219,8 +228,10 @@ as well as match the current specification and trace inputs.
 Complete when the agreed measurement scope has been processed and aggregated
 successfully, even when coverage is low. If some inputs fail, report only the
 successful subset with explicit exclusions and keep the agreed milestone partial.
-Explain the result and limits, refresh the checklist, and check in before the
-final review. Reuse existing measurements only when their inputs still apply.
+Refresh `audit-coverage-report.md` with the measured subset, methods, and any
+excluded inputs. Explain the result and limits, link the updated report, refresh
+the checklist, and check in before **Generate and review coverage report**.
+Reuse existing measurements only when their inputs still apply.
 
 If traces are absent, inaccessible, invalid, or unavailable in a supported format,
 name the specific limitation and needed evidence. Keep **Measure coverage**
@@ -229,26 +240,63 @@ trace directory is missing” or “Unavailable: run records need an ATIF export
 Preserve that reason in progress notes and every later checklist until resolved.
 Do not report 0% coverage, fabricate
 measurement files, or treat the lack of traces as uncovered behavior. The
-specification and its review can still finish. At that check-in, offer **Review
-findings and next steps** as the next independent milestone and wait for the
-answer. Do not run evals or install dependencies just to fill the gap without the
+specification and its review can still finish. Record the limitation in the
+Markdown report. At that check-in, offer **Generate and review coverage report**
+as the next independent milestone and wait for the answer. Do not run evals or
+install dependencies just to fill the gap without the
 authorization required by the core.
 
-## 5. Review findings and next steps
+## 5. Generate and review coverage report
 
-Lead with what was established: a specification, partial measurement, or coverage
-measured over a named set of traces. Explain the findings, their evidence and
-limits, link the artifacts that actually exist, and leave deferred milestones
-visible. A specification-only outcome is useful planning work, not a completed
-measurement. Distinguish items not measured from measured items lacking evidence;
-neither automatically means the dataset needs another test.
+Generate or update `.eval-author/audit-coverage-report.md` following the
+[report guidance](coverage-report.md), even for a specification-only outcome.
+Then go over it with the user. Lead with what was established: a specification,
+partial measurement, or coverage measured over a named set of traces. Explain
+the findings, their evidence and limits, link the report and supporting artifacts
+that actually exist, and leave deferred milestones visible. A specification-only
+outcome is useful planning work, not a completed measurement. Distinguish items
+not measured from measured items lacking evidence; neither automatically means
+the dataset needs another test.
 
-For no evals, offer first-eval creation and explain that it will turn the agreed
-intent into cases, grading, and a runnable suite. Carry Ethos, proposed coverage,
-prior answers, and remaining setup needs into that flow if the user selects it;
-do not restart Ethos or imply Harbor setup and execution already passed. For an
-existing suite without usable traces, explain how its documented run/export path
-could supply the missing evidence. For measured audits, offer dataset proposals
-when useful. Only enter these next flows when requested or already included in
-the user's scope. Finish with the checklist and a question about the findings or
-the proposed next step.
+Keep this milestone unchecked and current while awaiting the user's review.
+Ask whether the findings need correction and offer the recommended next step below, then
+end the turn. Mark it complete only after the user has reviewed the report and
+any requested corrections are resolved. A reply accepting the findings and
+selecting a next step satisfies the review; do not add another approval prompt.
+Record the answered review in progress and refresh the report if findings change.
+
+### After review: offer the next step
+
+After the user accepts the findings, mark the report review complete and guide
+them forward. For an existing suite, lead with proposing new or improved eval
+tasks to improve coverage of the report's main gaps. Name the relevant behaviors
+and explain that the next deliverable is a ranked set of candidate scenarios,
+expected behavior, and verification plans. Avoid ending only with a generic
+invitation for questions or a bare link to another skill.
+
+For example: “The audit identified gaps around unverified account recovery.
+I recommend proposing tasks to exercise that behavior, with checks for the
+expected safe response. Would you like me to prepare those proposals?” This
+offer can be included in the report-review question. Make the handoff explicit:
+ask whether to start proposing tasks, end the turn, and wait for the user's
+answer. Do not start proposal analysis, write proposals, or leave proposal
+subagents running while the answer is pending. A broad request to audit and
+suggest improvements does not skip this checkpoint. Accepting the findings
+alone does not accept the proposal offer; a reply accepting both settles the
+handoff without a second permission question.
+
+Once accepted, enter `eval-author-task-create` at **Step 1: propose dataset
+improvements**. Carry the Markdown report, reviewed specification, available JSON
+and evidence, selected source scope, user corrections, and agreed priorities.
+Do not restart the audit or repeat settled questions. Explain that proposals
+will be saved in `.eval-author/proposals/dataset-recommendations.md`; creating
+and running tasks is a later step with its own scope. If the user declines,
+finish with the reviewed report and completed checklist.
+
+Adapt the recommendation to the findings. Without usable run evidence, explain
+what measurement needs; any task ideas based on inspected definitions remain
+unmeasured candidates. If missing evidence or an agent fix is the useful next
+action, recommend it instead of inventing tasks. With no existing evals, offer
+the first-eval workflow to turn the reviewed specification into initial cases,
+grading, and a runnable suite, reusing Ethos and prior answers. Keep deferred
+measurement visible and do not imply that setup or execution already passed.

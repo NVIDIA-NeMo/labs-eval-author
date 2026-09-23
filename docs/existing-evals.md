@@ -43,7 +43,7 @@ description of each step:
 - [ ] **Confirm evals and traces** — find existing evaluations and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
 - [ ] **Define what the evals should cover** — agree on the behaviors, tools, and failure cases to check.
 - [ ] **Measure coverage** — use the run records to see which of those items were exercised.
-- [ ] **Review findings and next steps** — explain gaps, what the evidence can tell us, and what to do next.
+- [ ] **Generate and review coverage report** — create or update `audit-coverage-report.md`, then review coverage, gaps, evidence limits, and next steps together.
 
 It then asks whether you want to continue and waits. This opening comes before
 the first milestone: no repository inspection, Ethos reading or validation, or
@@ -89,14 +89,47 @@ ATIF is a structured record of an agent's interaction. Measurements are saved
 under `.eval-author/audit-measurements/`, with an aggregate report at
 `.eval-author/audit-coverage-report.json`.
 
-Without usable traces, you can establish the audit specification, but coverage
-is **unmeasured**, not 0%. The unchecked measurement step includes the reason,
-such as “deferred — selected trace directory is missing,” including in later
+Eval Author also writes `.eval-author/audit-coverage-report.md`, a readable report
+that explains the audit scope, maps audit items to existing evaluations, and
+summarizes measured coverage, gaps, evidence limits, and next steps. It links the
+specification and available evidence. The agent authors this report using the
+shared template; it is separate from the generated JSON measurement report.
+Test mappings describe what evaluations are designed to address and do not,
+by themselves, establish measured coverage.
+
+The Markdown report can be prepared before measurement and updated as evidence
+becomes available. Without usable traces, you can establish the audit
+specification and report, but coverage is **unmeasured**, not 0%. The unchecked
+measurement step includes the reason, such as “deferred — selected trace
+directory is missing,” including in later
 check-ins and the final review. If you have no evaluations yet, Eval Author can define
 the specification and then offer the [first-eval workflow](first-evals.md).
 An uncovered item can reflect a missing scenario,
 an agent failure, or insufficient evidence. A coverage report alone does not
 identify which explanation applies or establish overall agent quality.
+
+The final checklist step includes generating the Markdown report and reviewing
+it with you. Saving it does not complete that step: the review remains pending
+until you respond to the review check-in. Whenever a session creates or updates
+the report, its final response says so and links it, including at intermediate
+checkpoints. On resume, Eval Author reconciles the report with changed inputs
+before presenting its findings as current.
+
+The review ends with a concrete offer to help with the next step. For an existing
+suite with supported gaps, Eval Author names the main gaps and offers to propose
+new or improved evaluation tasks, ranked with their expected behavior, verifier,
+and supporting evidence. It explicitly asks whether you want those proposals,
+ends the turn, and waits. Accepting the findings alone does not start proposal
+work. Accepting the findings and that offer moves directly
+into the proposal workflow, reusing the report, specification, selected sources,
+and prior answers.
+
+The offer follows the evidence. With no evaluations, it points to the
+[first-eval workflow](first-evals.md). With insufficient evidence, it recommends
+the needed measurement first; any candidate task proposals are explicitly
+unmeasured. If the findings do not support more tasks, it explains the useful
+alternative, such as addressing an observed agent failure or gathering specific
+evidence.
 
 See [Read your results](results.md) for the saved artifacts and their limits.
 
@@ -107,15 +140,22 @@ Use this audit report to propose the next evaluations to add or improve.
 Rank the recommendations and explain the evidence behind each one.
 ```
 
-Eval Author considers the audit, traces, and existing cases. Recommendations may
-include a new scenario, a stronger check, retaining a failing case as a
-regression test, or gathering more evidence. They are saved in
-`.eval-author/proposals/dataset-recommendations.md`.
+Eval Author considers the Markdown coverage report, underlying measurements,
+traces, and existing cases. Recommendations may include a new scenario, a
+stronger check, retaining a failing case as a regression test, or gathering more
+evidence. Each recommendation explains its priority, expected behavior, how a
+verifier would check it, and supporting evidence. They are saved in
+`.eval-author/proposals/dataset-recommendations.md`. You can request this directly
+or accept Eval Author's offer during the audit review; the handoff reuses the
+audit inputs and settled answers.
 
-This request produces proposals. To create a task, ask for the selected proposal
-to be implemented and validated. The current automatic creation workflow supports
-one eligible, measured tool-coverage gap at a time; other recommendations may
-need further task design or measurement.
+The coverage report's next steps provide context for this separate proposal
+workflow; they do not replace its recommendations artifact.
+Accepting the proposal offer produces recommendations. Creating, validating,
+or running tasks remains separately scoped: ask for the selected proposal to be
+implemented and validated when you are ready. The current automatic creation
+workflow supports one eligible, measured tool-coverage gap at a time; other
+recommendations may need further task design or measurement.
 
 For the complete workflows, see the [discovery](../skills/eval-author-discover/SKILL.md),
 [audit](../skills/eval-author-audit/SKILL.md), and

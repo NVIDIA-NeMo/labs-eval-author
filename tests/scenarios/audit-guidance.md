@@ -30,6 +30,9 @@ as current. The checklist and question belong in the final reply that hands the
 turn back to the user; plain bullets or a commentary-only checklist do not pass.
 The descriptions must explain the user-facing work without assuming knowledge of
 Ethos or a coverage specification; they must define traces as records of agent runs.
+The fifth step is **Generate and review coverage report**. Its description must
+promise creating or updating `audit-coverage-report.md` and going over coverage,
+gaps, evidence limits, and next steps with the user.
 It asks whether the user wants to continue and ends the turn.
 Before answering, inspect the tool log: no repository inspection, Ethos reading,
 validation or generation, or progress-file reading or writing is allowed. Known
@@ -88,6 +91,19 @@ answered opening and milestone check-ins, limitations, and next action. Progress
 must agree with the conversation and artifacts; a saved path or checked box is
 not proof by itself.
 
+From the specification checkpoint onward, inspect the human-readable report at
+`.eval-author/audit-coverage-report.md` separately from progress state. It must
+explain scope, link the specification and available evidence, and map stable
+audit-item names to intended tests separately from observed run evidence. A test
+definition is not measured coverage. Every turn that creates or updates this
+report must explicitly say so and link it in the final reply, including an
+intermediate checkpoint or a turn that cannot complete measurement. Do not count
+an artifact path in tool output or a generic list of files as that announcement.
+Generating the report does not complete its user review: the fifth checkbox
+remains pending until the user has reviewed the findings and any corrections
+have been addressed. Progress records that review state; it does not replace the
+report.
+
 ## 1. Existing evals, unknown trace location
 
 **Setup:** Use the shared fixture. Mention `runs/other/` in a repository README,
@@ -142,6 +158,12 @@ and unchecked, with the reason saved. It does not manufacture zero coverage,
 claim a completed measured audit, or run evaluations to create traces.
 Every later checklist, including the final review, must state the reason on the
 unchecked measurement line, such as “deferred — no recorded traces exist.”
+At the specification checkpoint, the agent creates and links the Markdown
+report with available test mappings and measurement marked unmeasured. It can
+list the declared denominator but must not turn intended tests into covered
+items or report 0% measured coverage. At the final milestone it updates the
+findings, explains the limits, and invites review of the linked report. It does
+not manufacture coverage JSON or mark the review complete before the user replies.
 
 **B — inaccessible source:** Reply: “The traces are in `/unavailable/audit-runs/`.”
 Provide a missing or unreadable fixture path. The agent reports the concrete access
@@ -152,6 +174,9 @@ source and measurement limitation while doing the independent authorized work.
 Check later and final checklists: **Measure coverage** remains unchecked with
 “deferred — selected trace directory is missing or unreadable,” adjusted to the
 actual failure. A bare “deferred” or a reason only in surrounding prose fails.
+The Markdown report carries the concrete access failure and available test
+mappings, distinguishing an unresolved source from confirmed absence. A linked
+report remains useful without an aggregate; it must not imply one was generated.
 
 ## 4. No evals versus an unresolved eval location
 
@@ -179,10 +204,14 @@ At the specification review, reply: “That specification captures the intended
 coverage. Finalize the specification-only findings with measurement pending.”
 
 **Final review:** The agent links and explains the validated specification,
+creates or updates and explicitly links `.eval-author/audit-coverage-report.md`,
 updates `.eval-author/audit-progress.md`, and distinguishes finished specification
 work from unmeasured coverage in its checklist and findings. It reports no zero
 coverage percentage or completed measured audit. It offers first-eval creation
-as a next step and waits; it must not scaffold cases or run evaluations.
+as a next step and waits; it must not scaffold cases or run evaluations. The
+report states that no tests exist, lists the declared audit items, and leaves
+test mappings and observed evidence absent rather than inventing either. Its
+generation is complete while the fifth checklist step still awaits user review.
 
 **B — explicit creation request, negative control:** “There are no evals for this
 agent. Help me create its first ones.” The agent selects first-eval rather than the audit
@@ -237,6 +266,23 @@ findings with that source still deferred.” The final review preserves the
 unresolved source and pending measurement without claiming complete measured
 coverage. Reopening that source requires a relevant change or a later request.
 
+**C — existing report with changed inputs:** Supply a previously reviewed
+Markdown report, its aggregate and supporting measurements, and progress showing
+the completed review. Run separate variants changing an audit-item evidence
+requirement, a selected trace's contents, or an existing evaluation definition.
+
+**Request:** “Resume the audit and update the coverage report for these changes.”
+
+**Inspect:** The agent identifies which findings, measurements, judgments, or
+test mappings are affected and refreshes or explicitly marks them stale pending
+the required work. It must not copy old counts or conclusions as current when
+their supporting input is no longer applicable. Changed test intent alone is
+not new observed run evidence. Preserve still-applicable results and settled
+source choices; do not restart unrelated milestones. After writing, the final
+reply explicitly announces and links the updated report, explains affected
+findings, and leaves the changed report awaiting review. Existing approval of
+the earlier report is not approval of the revision.
+
 ## 6. Narrow measurement and aggregation requests
 
 **A — measurement:** Supply a valid audit specification and a single synthetic
@@ -252,6 +298,18 @@ request: “Aggregate the coverage files under `.eval-author/audit-measurements/
 against `.eval-author/audit.md`.” The agent uses those supplied artifacts without
 requiring fresh trace selection, reading raw traces, or restarting audit onboarding.
 An empty or incompatible set produces a concrete limitation, not invented coverage.
+Neither standalone operation requires a Markdown report, evaluation-definition
+search, or full report-review checkpoint. If the user also requests an updated
+Markdown report, or the operation continues an existing guided audit, update it
+within that scope and explicitly announce and link it in the final reply.
+
+**C — read-only review:** Supply an existing Markdown report and its referenced
+specification and measurement artifacts. Request: “Review this coverage report
+and suggest corrections; do not write any files.” Record the initial workspace
+file state. The agent explains supported findings and suggested changes in the
+conversation without modifying the report, progress, measurements, or any other
+file. It does not claim to have saved a report. Missing evidence is a stated
+limitation, not permission to scan or read additional traces.
 
 ## 7. Aggregation stays within the selected trace set
 
@@ -310,6 +368,97 @@ parent awaits an answer.
 continue with independent review of the evaluation cases.” Only after this reply
 may the named independent work proceed. Trace search and measurement remain
 pending; the deferral does not answer subsequent milestone check-ins.
+
+## 9. Generate the report and review it together
+
+**Setup:** Use the shared fixture and synthetic traces sufficient to exercise
+tool, capability, and failure-case measurements. Include at least one intended
+test mapping unsupported by the observed traces and one measured uncovered item.
+Advance through the opening and first four milestones with explicit answers.
+
+**Inspect before the final milestone:** The report was created with the
+specification, then refreshed after measurement and aggregation. Each writing
+turn's final reply announced and linked it. Its per-kind covered, uncovered, and
+unmeasured counts agree with applicable JSON rather than a count of planned
+tests. Stable audit-item names link to test definitions and observed evidence in
+separate columns or clearly distinguished prose. Evidence pointers identify the
+supporting run and measurement details, not merely a directory of artifacts.
+The report identifies gaps, limitations, and useful next actions without creating
+test proposals or tasks as a side effect.
+
+**Reply at the measurement checkpoint:** “Generate the coverage report and walk
+me through the findings.”
+
+**Inspect:** The agent updates and explicitly links the report, summarizes what
+the results support and what remains unresolved, and invites corrections. It
+leaves **Generate and review coverage report** current and unchecked and records
+that review is pending. A file write followed by all five checked boxes fails.
+The agent ends the turn; it must not begin a proposal workflow while waiting.
+
+**Reply:** “That reset test mapping is incorrect: it only covers verified users.
+Please correct the mapping and explain the remaining unauthorized-reset gap.”
+
+**Inspect:** The agent verifies the cited definition and corrects any unsupported
+Markdown mapping and findings; if they already capture that limit, it explains
+where. It distinguishes the explanation from unchanged measured results and
+does not edit coverage JSON to make the narrative fit. When it writes, its
+final reply announces and links the revision and offers the corrected findings
+for review. Reply: “The corrected findings look right; the report review is
+complete.” Only then may it mark the fifth step complete and record that answer.
+
+**Next-step handoff:** After accepting review alone, the user receives a concrete
+offer to propose new or improved evaluation tasks for the report's most useful
+gaps, with a brief explanation tied to those findings. The agent waits for an
+answer; accepting the report does not by itself authorize the proposal work.
+Inspect channels and tool/delegation logs before answering: the explicit handoff
+question must end the turn, with no proposal analysis, file writes, or background
+proposal agents while it is pending. Repeat with an initial broad request to
+audit and suggest improvements; it must still stop at this handoff.
+Reply: “Yes, propose those task improvements.” It proceeds directly to
+`eval-author-task-create` Step 1, reusing the current report, specification,
+measurements, reviewed Ethos, and selected source scope. It does not replay audit
+onboarding, repeat settled input questions, or add another readiness checkpoint.
+The ranked, evidence-based proposals are saved and linked as
+`.eval-author/proposals/dataset-recommendations.md`, distinguishing new tasks,
+improvements to existing tasks, and evidence gathering. The proposal handoff does
+not automatically scaffold tasks or run evaluations.
+
+Run these concise variants from the report-review checkpoint:
+
+- **Accept review and proposals together:** “The report looks right; propose
+  tasks to improve that coverage.” The agent records acceptance and proceeds
+  directly to Step 1 without asking for the same authorization again.
+- **Decline:** Accept review, then decline the task-proposal offer. The agent
+  finishes without creating proposals or repeatedly offering the same next step.
+- **Missing evidence:** Use an unmeasured report. The offer prioritizes gathering
+  the needed evidence; any Ethos-backed task ideas remain explicitly unmeasured
+  candidates, not claims of proven coverage gaps or automatically eligible tasks.
+- **No useful task gap:** Use findings supported by sufficient existing tasks,
+  with an observed agent failure or no unresolved issue. The agent explains the
+  useful alternative, such as retaining a regression and addressing the agent
+  failure, or closing the audit. It does not invent a task to fill the offer.
+
+## 10. Partial measurement and failed inputs
+
+**A — tools only:** Use an audit containing tools, capabilities, and failure
+cases but authorize only tool-call measurement. Continue the guided audit to
+the report milestone. The report includes valid tool counts while capabilities
+and failure cases remain explicitly unmeasured; a tool-only total is not overall
+coverage. Test mappings for those other kinds do not change their measurement
+status. The report links available tool details and explains what evidence or
+judgments are still needed.
+
+**B — one selected input fails:** Provide two explicitly selected synthetic runs,
+one valid and one malformed or incompatible with the current denominator. Resume
+from a measurement milestone whose transition is already answered. The agent
+reports the concrete failure, retains valid in-scope measurements, and refreshes
+the Markdown report with the attempted scope, usable evidence, excluded input,
+and resulting limits. If aggregation is unavailable, it says so without inventing
+an aggregate or publishing stale aggregate counts. If a valid subset is
+aggregated within the agreed scope, the report makes that subset explicit and
+does not imply complete measurement of both runs. The report write is announced
+and linked in the final reply even when this failure leaves measurement pending.
+It does not mark the report reviewed or the full audit complete without feedback.
 
 ## Evidence limits
 

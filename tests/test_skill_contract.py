@@ -1714,6 +1714,7 @@ def test_every_audit_spec_path_the_skill_or_reference_readme_names_exists() -> N
     assert "scripts/audit_spec/README.md" in skill_body
     for relative in (
         "references/guided-audit.md",
+        "references/coverage-report.md",
         "scripts/audit_spec/README.md",
         "scripts/audit_spec/generate.py",
         "scripts/audit_spec/measure.py",
@@ -1746,6 +1747,7 @@ def test_every_audit_spec_path_the_skill_or_reference_readme_names_exists() -> N
         "examples/schemas/tool_calls.details.json",
         "requirements.txt",
         "templates/audit.md",
+        "templates/audit-coverage-report.md",
     ):
         assert relative in docs, f"audit docs no longer document {relative}"
         assert (_AUDIT_DIR / relative).exists(), f"audit docs name {relative}, which is missing on disk"

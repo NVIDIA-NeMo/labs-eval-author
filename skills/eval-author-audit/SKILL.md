@@ -44,7 +44,8 @@ allowed-tools: Bash Read Write Grep Glob
 Read `eval-author` for the shared standard, vocabulary, and boundaries. This
 sub-flow generates and validates a finite coverage denominator from `<ethos_path>` and
 reviewed audit items, then can measure ATIF traces and aggregate coverage reports
-against it. It does not generate tasks yet.
+against it. It also writes a human-readable `audit-coverage-report.md` and reviews
+the findings with the user. It does not generate tasks yet.
 
 ## Start a guided audit
 
@@ -71,7 +72,7 @@ unchecked and mark **Understand your agent** as **We're here**:
 - [ ] **Confirm evals and traces** — find existing evaluations and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
 - [ ] **Define what the evals should cover** — agree on the behaviors, tools, and failure cases to check.
 - [ ] **Measure coverage** — use the run records to see which of those items were exercised.
-- [ ] **Review findings and next steps** — explain gaps, what the evidence can tell us, and what to do next.
+- [ ] **Generate and review coverage report** — create or update `audit-coverage-report.md`, then review coverage, gaps, evidence limits, and next steps together.
 
 End with **“Ready to get started?”**, finish the turn, and wait for the user's
 reply. Do not use an asynchronous question to keep this turn running. Before
@@ -154,6 +155,27 @@ not declare as allowed tools.
 Write audit artifacts under `.eval-author/`. Audit operations do not edit the
 customer's source, existing evals, source-of-truth documents, or `ETHOS.md`;
 prerequisite Ethos work belongs to the shared procedure in the pre-flight above.
+
+## Audit outputs
+
+| Artifact under `.eval-author/` | Purpose |
+|---|---|
+| `audit.md` | The reviewed specification of what should be covered |
+| `audit-coverage-report.json` | Script-generated measurements aggregated over the selected runs, when available |
+| `audit-coverage-report.md` | Skill-authored findings: existing test mappings, measured coverage, gaps, evidence limits, and next actions |
+
+For a full audit, create the Markdown report alongside the validated specification,
+refresh it after measurement, and generate or update it for the final review with
+the user. Read [Writing the coverage report](references/coverage-report.md) and
+use [the report template](templates/audit-coverage-report.md). The report is still
+required when measurement is deferred; explain what remains unmeasured.
+`audit-progress.md` separately records conversation checkpoints and resumption.
+
+Whenever the Markdown report is created or updated, explicitly say so and link
+it in the turn-ending response, including intermediate milestone check-ins.
+
+Focused operations need this report only when requested or continuing a full
+audit; keep their scope. Read-only and `suggest` requests remain read-only.
 
 ## Scripts
 
@@ -478,11 +500,11 @@ uncovered or whether an existing task already exposes an agent failure.
 
 - For audit-generation inputs and reconciliation modes, return to
   [Step 2: Generate Or Reconcile Audit.md](#step-2-generate-or-reconcile-auditmd).
-- Report coverage by kind, observed findings, measurement limits, and artifact
-  links. Dataset recommendations belong to the proposal step in
-  [`eval-author-task-create`](../eval-author-task-create/SKILL.md). Hand off there
-  when the user requests proposals or continuation through the full workflow;
-  an audit-only request ends with the findings.
+- After the report review, offer new or improved eval task proposals using the
+  [guided handoff](references/guided-audit.md#after-review-offer-the-next-step).
+  End the turn and wait for acceptance before entering the proposal step in
+  [`eval-author-task-create`](../eval-author-task-create/SKILL.md) with the current
+  report and evidence. Proposal acceptance does not authorize task execution.
 - The proposal step considers tools, capabilities, and failure cases. Automatic
   task creation still accepts only uncovered tool items with
   `reason: not_covered_by_any_input_report`. Items with
