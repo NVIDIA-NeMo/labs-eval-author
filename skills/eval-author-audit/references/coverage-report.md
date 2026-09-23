@@ -19,6 +19,13 @@ its role. Keep the full artifact name in later links so each opens a predictable
 document. “Draft,” “approved,” “preliminary,” and “reviewed” describe status;
 they do not change the artifact's name.
 
+At specification and final-report review checkpoints, open with the actual
+artifact updates and briefly explain each document's purpose beside its link,
+before counts or findings. Keep this explanation in the turn-ending reply even
+when the roles were explained earlier or in commentary. Correct names, filenames,
+and status alone do not satisfy it. Claim only writes or validation actually
+performed; reviewing an unchanged document does not imply an update.
+
 Describe proposed work in plain language, such as “outline what your evaluations
 should check and compare that with your existing tasks.” Use the artifact names
 when referring to saved files, rather than as unexplained names for activities.
@@ -27,20 +34,35 @@ when referring to saved files, rather than as unexplained names for activities.
 **Audit coverage report** (`audit-coverage-report.md`) presents that scope and
 the findings about existing tests and available run evidence. Its **Intended
 coverage** section renders the specification for review; the two files remain
-distinct. Avoid alternate artifact labels such as “coverage specification,”
-“draft specification,” or “audit report.” In surrounding prose, “specification”
-or “report” can be shortened once its referent is clear.
+distinct. Use the Audit coverage report as the user's review document: at the
+scope checkpoint, point to **Intended coverage** and ask whether the checks and
+required evidence are right; at final review, point to the findings, evidence
+limits, and next actions. Link the Audit specification as the structured source
+behind the intended checks, without requiring a separate YAML review. Name the
+section and decision in each review request rather than leaving the user to
+choose between two file links. Avoid alternate artifact labels such as “coverage
+specification,” “draft specification,” or “audit report.” In surrounding prose,
+“specification” or “report” can be shortened once its referent is clear.
 
 Call the generated aggregate **Coverage measurements (JSON)**
 (`audit-coverage-report.json`), keeping it distinct from the Markdown report even
 though their filename stems match. Link it only when it exists. **Audit progress**
 (`audit-progress.md`) records workflow state and is not a findings report.
 
-For example after scope approval: “The Audit specification is approved; I
-updated the Audit coverage report for your review.” Link each name to its own
-file and ask about the Audit coverage report's findings. Use the actual review
-state; naming an artifact does not approve it. Preserve these names when offering
-proposals; review status does not rename it or create another report artifact.
+For example after creating the report and validating a draft:
+
+> I created the Audit coverage report, which summarizes the proposed checks,
+> what your selected evaluations test, and the gaps and evidence limits found.
+> I also validated the draft Audit specification, the structured source that
+> defines those checks and evidence requirements.
+>
+> Please review the Intended coverage section of the Audit coverage report.
+> Are these the right checks and evidence requirements, or should anything change?
+
+Link each name to its own file and include its filename on first introduction.
+Use the actual review state; validation does not approve the specification.
+At final review, ask about the Audit coverage report's findings. Preserve these
+names when offering proposals; review status does not create another artifact.
 
 ## Sources and scope
 

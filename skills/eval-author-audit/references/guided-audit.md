@@ -245,16 +245,25 @@ its intended check, and its required evidence from `audit.md`. Map audit items t
 inspected test definitions where possible, with measurement explicitly unmeasured
 until applicable results exist. Record unresolved mappings without inventing
 tests or inspecting unselected traces.
+Direct the user to this section of the Audit coverage report for the current
+review. The Audit specification is its structured source; do not require a
+second review of the YAML. Agreement with the complete, current Intended
+coverage section approves the matching specification's checks and evidence
+requirements, while review of findings remains a later decision.
 
 In the turn-ending specification check-in:
 
-- Explain both linked artifacts using their stable names: the **Audit
-  specification** (`audit.md`) is the proposed list of tools, behaviors, and
-  failure cases to check, including the evidence each requires; **draft** means
-  awaiting agreement on that scope.
-  The **Audit coverage report** (`audit-coverage-report.md`) is the readable
-  account of that scope, how existing tests map to it, and what the available
-  evidence shows. It is preliminary here.
+- Open with the actual creation or update of the **Audit coverage report** and
+  validation of the draft **Audit specification**. Attach a brief purpose to
+  each linked name in that opening, before the scope preview or findings: the
+  report explains the proposed checks, what the selected evaluations test, and
+  the findings and evidence limits; the specification defines what the
+  evaluations should check and the evidence required for each check. Include
+  this explanation in the turn-ending reply even if it appeared earlier or in
+  commentary. Names, filenames, and status words alone do not explain purpose.
+  Use the [opening example](coverage-report.md#artifact-names), adapting it to
+  the actions actually performed. **Draft** means awaiting agreement on the
+  specification; the report is preliminary here.
 - Show a short, concrete preview grouped into tools, capabilities, and failure
   cases. Describe intended checks, not just totals, item names, or gap findings.
   For a large scope, label the preview as a summary and link directly to the
@@ -262,9 +271,13 @@ In the turn-ending specification check-in:
   line link verified against the saved file, labeled **Audit coverage report —
   Intended coverage**. Name the section in the reply so the user can find it
   even if the client opens only the file.
-- Report the validation result, then ask which intended checks or evidence
-  requirements are missing or incorrect. Name the next milestone that agreement
-  would allow: measurement, or report review when measurement is deferred.
+- Report the validation result, then explicitly say what to read and decide:
+  “Please review the Intended coverage section of the Audit coverage report.
+  Are these the right checks and evidence requirements, or should anything
+  change?” Link that section directly. A generic “Does this scope look right?”
+  leaves the review target unclear even when both artifacts are linked above.
+  Name the next milestone that agreement would allow: measurement, or report
+  review when measurement is deferred.
   Approval of intended coverage does not approve the final report or establish
   that any item is covered.
 
@@ -329,7 +342,10 @@ A specification-only outcome is useful planning work, not a completed measuremen
 Distinguish items not measured from measured items lacking evidence; neither automatically means
 the dataset needs another test. Keep the [artifact names](coverage-report.md#artifact-names)
 consistent: approving the Audit specification and reviewing the Audit coverage
-report are separate decisions about those same two files.
+report's findings are separate decisions. Both user reviews use the Audit
+coverage report: first its Intended coverage section, now its findings, evidence
+limits, and next actions. Link the relevant saved sections and explicitly name
+those as the content to review; do not ask the user to reapprove intended checks.
 
 Keep this milestone unchecked and current while awaiting the user's review.
 Ask whether the Audit coverage report's findings need correction and offer the

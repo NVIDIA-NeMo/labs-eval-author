@@ -93,6 +93,15 @@ checks and evidence requirements; the **Audit coverage report**
 findings, limits, and next actions. The specification is a draft pending your
 review; the report is preliminary at this point. These names stay the same as
 their review state changes.
+The review reply opens with what was created, updated, or validated and a brief
+explanation of each document's purpose beside its link, before listing checks
+or findings. This explanation remains in the reply even if the documents were
+introduced earlier.
+For this review, read **Intended coverage** in the Audit coverage report and
+decide whether its checks and required evidence are right. The Audit specification
+is the structured source behind that section; a separate YAML review is not
+required. Later, review the findings, evidence limits, and next actions in the
+same Audit coverage report.
 
 The report's **Intended coverage** section lists every audit item's stable name
 and kind, a plain-language explanation of what should be checked, and the

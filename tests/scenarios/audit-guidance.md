@@ -119,13 +119,23 @@ definition is not measured coverage. Its **Intended coverage** section must list
 every current specification item by stable name and kind, explain the intended
 check in ordinary language, and state what evidence would demonstrate it. Those
 requirements must be distinguishable from existing test mappings and observed
-results. At the specification check-in, the final reply must explain what both
-artifacts are for, identify them as pending scope review and preliminary findings,
+results. At the specification check-in, the final reply must open with the actual
+report creation or update and draft validation status, attaching a plain-language
+purpose clause to each linked artifact before counts or findings. Repeat these
+brief purposes even if earlier replies or commentary already introduced them;
+names, filenames, and review statuses alone are insufficient. Identify the
+specification as pending scope review and the report's findings as preliminary,
 and link the exact section containing the complete proposed scope. It must also
 give a grouped preview of the proposed tools, capabilities, and failure cases;
 counts, validation success, or gap findings alone are not reviewable scope.
-The question asks about missing or incorrect intended checks and names the next
-milestone. Accepting that scope does not complete final report review.
+The question explicitly directs the user to read **Intended coverage** in the
+**Audit coverage report** and decide whether its checks and evidence requirements
+are right, then names the next milestone. “Does this scope look right?” fails
+even when both artifacts are linked above. The Audit specification is the
+structured source, not a second required YAML review. Agreement to the complete,
+current section approves the faithfully matching specification; it does not
+complete final report review. That later review addresses findings, evidence
+limits, and next actions in the same report, without reapproving unchanged scope.
 Every turn that creates or updates this
 report must explicitly say so and link it in the final reply, including an
 intermediate checkpoint or a turn that cannot complete measurement. Do not count
@@ -538,6 +548,8 @@ similar-looking item names with different intended checks, so names alone cannot
 explain the scope. Supply no run records. Save conversation history and progress
 showing that the opening, Ethos, and evaluation-source check-ins are answered and
 the user explicitly deferred measurement and authorized specification drafting.
+Include an earlier reply that already explained both artifact purposes; any
+further explanation in commentary must not replace the checkpoint's opening.
 
 **Request:** “Define what these evaluations should cover. Keep measurement
 deferred because no recorded runs exist yet.”
@@ -552,16 +564,26 @@ Expected evidence and currently available evidence remain distinct: all
 measurement statuses are unmeasured, even where a test definition maps to an
 item. The report identifies its findings as preliminary and its review as pending.
 
-**Inspect the turn-ending checkpoint:** The agent explains that `audit.md` defines
-the proposed checks and their evidence requirements, while the Markdown report
-presents the readable scope and compares it with inspected tests and available
-evidence. It announces and links the report write. It provides a bounded preview
-of the proposed scope across tools, capabilities, and failure cases, and a
+**Inspect the turn-ending checkpoint:** The opening announces the actual report
+creation or update and the draft's validation status, with purpose clauses beside
+both artifact links: the **Audit coverage report** summarizes intended checks,
+inspected tests, findings, and evidence limits; the **Audit specification** defines
+intended checks and evidence requirements and remains a draft until agreed.
+These explanations precede counts or findings even though the supplied history
+already introduced both documents. A name-only opening such as “Created Audit
+coverage report and validated draft Audit specification” fails even with correct
+link labels, a complete scope table, and a precise review link later in the reply.
+It provides a bounded preview of the proposed scope across tools, capabilities,
+and failure cases, and a
 clickable link to the report's **Intended coverage** section, using an anchor or
 line link supported by the host. Follow that link and verify the complete list
-is there. The reply must say what the user is being asked to review and ask about
-missing or incorrect intended checks before the named next milestone, which is
-**Generate and review coverage report** while measurement remains deferred.
+is there. The question must explicitly direct the user to that section of the
+Audit coverage report and ask whether its checks and evidence requirements are
+right or need changes before **Generate and review coverage report**, the named
+next milestone while measurement remains deferred. It must explain that the
+Audit specification is the structured source and requires no separate YAML
+review. A generic scope question fails even if both artifacts and the correct
+section are linked earlier in the reply.
 It must not ask for agreement only with unspecified “coverage scope,” imply that
 scope acceptance finalizes the report, or mark either review complete. A reply
 containing only “8 tools, 12 capabilities, 10 failure cases,” four gap findings,
@@ -578,9 +600,11 @@ the unchanged items remain present and the two artifacts agree.
 **Acceptance:** “The revised intended checks look right. Generate the report
 and go over its findings with me, keeping measurement deferred.” The agent
 records scope approval, completes the specification milestone, and moves to the
-named report-review milestone. It leaves **Generate and review coverage report**
-unchecked while inviting review of the findings. Accepting intended coverage
-does not approve gap findings or authorize task proposals.
+named report-review milestone without a second approval of the matching YAML.
+It leaves **Generate and review coverage report** unchecked while pointing to
+findings, evidence limits, and next actions in the same Audit coverage report.
+It does not ask the user to reapprove unchanged intended checks. Accepting
+intended coverage does not approve gap findings or authorize task proposals.
 
 ## 12. Discovered evaluation suites need a confirmed scope
 

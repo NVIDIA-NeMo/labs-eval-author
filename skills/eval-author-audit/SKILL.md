@@ -162,7 +162,7 @@ Use these names in replies and artifact links; follow [artifact naming](referenc
 
 | Name | File under `.eval-author/` | Purpose |
 |---|---|---|
-| Audit specification | `audit.md` | Proposed checks and required evidence; draft until the user agrees to the scope |
+| Audit specification | `audit.md` | Structured source of checks and required evidence, reviewed through the report's Intended coverage section |
 | Audit coverage report | `audit-coverage-report.md` | Readable intended coverage, test mappings, measured coverage, gaps, evidence limits, and next actions |
 | Coverage measurements (JSON) | `audit-coverage-report.json` | Script-generated measurements aggregated over the selected runs, when available |
 | Audit progress | `audit-progress.md` | Conversation checkpoints and resumption |
