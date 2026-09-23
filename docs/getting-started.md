@@ -281,7 +281,7 @@ you need to create, validate, or run Harbor tasks.
 | Convert exported MLflow traces | Python 3.11+ and the standard library. Live MLflow queries additionally need an existing MLflow environment and access to the store. |
 | Convert Gym traces with `gym-to-atif` | Python 3.11+ and the standard library for conversion. |
 | Prepare and validate a trace-derived environment (**experimental**) | Python 3.11+, jsonschema 4.23+, and referencing 0.28.4+ for preparation; Harbor and Docker for execution checks. |
-| Inspect NeMo Intake traces | A working `nemo` CLI, an explicit workspace, and read access to a configured local or remote NeMo Platform instance. |
+| Inspect NeMo Intake traces | A working `nemo` CLI, an explicit workspace, and read access to a configured local or remote NeMo Helix instance. |
 
 Use the Python environment supported by your installed Harbor version for
 Harbor-backed operations. This repository's development checks use Python 3.12

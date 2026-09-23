@@ -17,7 +17,7 @@ skill does not authorize starting its reads, validation, or generation early.
 Before checking or creating the document, explain in ordinary language that
 Ethos records what the agent should do, what it should avoid, and what a good
 result looks like. Evals and audits use this as their target. Link the
-[Ethos documentation](https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos)
+[Ethos documentation](https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos)
 and make the explanation concrete for the selected agent. This introduction also
 applies when reusing an existing file; do not assume familiarity with the term.
 Reuse an introduction already given in the current flow.

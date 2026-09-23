@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Generate and validate dependency license disclosures using the NeMo Platform OSV flow."""
+"""Generate and validate dependency license disclosures using the NeMo Helix OSV flow."""
 
 from __future__ import annotations
 
