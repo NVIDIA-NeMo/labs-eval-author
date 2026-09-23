@@ -209,6 +209,15 @@ For other formats or inaccessible services, explain the needed local export or
 appropriate supported conversion. Do not query Intake or start platform discovery
 from this skill. Preserve the source selection and describe the limitation.
 
+When the selected run folder is missing, explain that measurement is unavailable.
+If the confirmed evaluation definitions are accessible, offer the remaining
+work in plain language: “Should I outline what your evaluations should
+check and compare that with your selected evaluation tasks, or would you like
+to use another folder of recorded runs?” Adapt the task description to the
+confirmed suite. Use **Audit specification** when naming the saved artifact;
+the choice of next action should not require understanding “coverage
+specification” or “test mappings.” Wait for the answer before proceeding.
+
 Complete this milestone when the user has confirmed the eval suite set (or that
 none exist) and trace selection or confirmed unavailability is understood.
 Explain the selected scope, what its evidence can establish, and any missing

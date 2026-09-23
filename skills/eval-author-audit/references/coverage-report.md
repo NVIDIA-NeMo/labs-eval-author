@@ -19,6 +19,10 @@ its role. Keep the full artifact name in later links so each opens a predictable
 document. “Draft,” “approved,” “preliminary,” and “reviewed” describe status;
 they do not change the artifact's name.
 
+Describe proposed work in plain language, such as “outline what your evaluations
+should check and compare that with your existing tasks.” Use the artifact names
+when referring to saved files, rather than as unexplained names for activities.
+
 **Audit specification** (`audit.md`) defines the checks and required evidence.
 **Audit coverage report** (`audit-coverage-report.md`) presents that scope and
 the findings about existing tests and available run evidence. Its **Intended

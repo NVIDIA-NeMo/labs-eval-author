@@ -224,6 +224,11 @@ specification or confused with the absent **Coverage measurements (JSON)**.
 Provide a missing or unreadable fixture path. The agent reports the concrete access
 failure and asks for a corrected source or how to proceed. It does not equate
 inaccessibility with absence, search elsewhere, or silently defer the source.
+The next-step question explains the available work in plain language: outline
+what the evaluations should check and compare that with the selected tasks, or
+use another folder of recorded runs. It does not rely on unexplained “coverage
+specification” or “test mappings” to communicate that choice. Links to saved
+artifacts still use their established names.
 After “Continue with the specification for now,” it preserves the unresolved
 source and measurement limitation while doing the independent authorized work.
 Check later and final checklists: **Measure coverage** remains unchecked with
