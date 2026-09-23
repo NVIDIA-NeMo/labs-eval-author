@@ -41,7 +41,7 @@ Ethos file or prior review. Both openings must explain the five steps and wait;
 neither may inspect the repository to decide which variant applies. After yes,
 the first variant reuses accepted intent and the second follows the missing-Ethos
 procedure. Both must explain what Ethos records and why the audit needs it, with
-the [Ethos documentation](https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos)
+the [Ethos documentation](https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos)
 link. The existing-Ethos variant must link that file as soon as it is found,
 summarize its intended behavior, and offer review or edits before using it as the
 audit baseline; technical validation alone does not provide that explanation.

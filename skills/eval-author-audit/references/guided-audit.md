@@ -81,7 +81,7 @@ Input: the selected agent's intended purpose, boundaries, and success criteria.
 After the user accepts the opening, introduce Ethos before validation or authoring,
 including when an existing document can be reused. Explain what it is and why the
 audit needs it, with a link to the
-[Ethos documentation](https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos).
+[Ethos documentation](https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos).
 For example: “Ethos is a short document describing what your agent should do,
 what it should avoid, and what a good result looks like. We'll use it to decide
 what your evaluations should cover.” Tie this to the selected agent; do not assume

@@ -14,7 +14,7 @@ validation, and publication/export steps.
 
 ## Inspect an Intake trace
 
-Provide a trace ID and an explicit NeMo Platform workspace:
+Provide a trace ID and an explicit NeMo Helix workspace:
 
 ```text
 Use Eval Author to explain Intake trace TRACE_ID in workspace WORKSPACE.

@@ -109,7 +109,7 @@ By making a contribution to this project, I certify that:
 
 ## PR titles and commit subjects
 
-Follow nemo-platform's Conventional Commit-style PR titles:
+Follow nemo-helix's Conventional Commit-style PR titles:
 `type(optional-scope): description`, with a maximum of 100 characters.
 Examples: `fix(audit): reject missing evidence` and `docs: explain ASE access`.
 Use `!` before the colon for a breaking change. Supported types are `feat`,

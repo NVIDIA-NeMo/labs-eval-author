@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Reviewed overrides for licenses that OSV-Scanner reports as non-standard or
-# that fall outside NeMo Platform's default permissive-license allowlist.
+# that fall outside NeMo Helix's default permissive-license allowlist.
 # Identifiers verified against the locked distributions or pinned upstream texts
 # preserved in NOTICES.txt.
 overrides:

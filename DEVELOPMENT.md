@@ -7,7 +7,7 @@
 
 Development uses Python 3.12 or 3.13 and uv. Run `uv sync --locked` to prepare
 the environment, including the test runner, validators, MCP, and Harbor 0.20.0.
-No NeMo Platform checkout is required. See [CONTRIBUTING.md](CONTRIBUTING.md)
+No NeMo Helix checkout is required. See [CONTRIBUTING.md](CONTRIBUTING.md)
 for the CI tool versions and contribution requirements.
 
 This repository is not installed as a Python package. Users
