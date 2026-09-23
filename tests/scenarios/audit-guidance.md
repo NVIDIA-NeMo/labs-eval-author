@@ -87,17 +87,29 @@ Whole-workspace `rg --files`, `find`, or recursive glob calls enumerate trace
 paths too, even without reading file contents. Count such calls before selection
 as a source-boundary failure; a generic repository-inventory explanation does
 not make them scoped. Inspect the initial tool calls as well as later trace tools.
-Before asking for traces, the input milestone must show the discovered existing
-evaluations, their suite and case paths, and what they test. A trace question or
-raw tool output alone is not that explanation. Inspect only bounded evaluation
-definitions before trace selection; a documented output path remains a candidate,
-not proof that recorded runs exist there.
+Before asking for or inspecting traces, the input milestone must show the
+evaluation suites, their suite and case paths, and what they test, and establish
+which suites the user wants audited. A bounded README and case inventory may
+identify candidates; detailed grading analysis waits for confirmed suite scope.
+For discovered candidates, explicitly ask which to include, exclude, or add and
+end the turn before trace questions, trace inspection, or specification drafting.
+An explicit user selection already supplied settles suite scope without a
+duplicate question; a discovered path or trace-only answer does not. A trace
+question or raw tool output alone is not an evaluation-scope explanation.
+Inspect only bounded evaluation definitions before trace selection; a documented
+output path remains a candidate, not proof that recorded runs exist there.
+Keep **Confirm evals and traces** incomplete until confirmed suite scope and
+trace selection or confirmed unavailability are understood. An explicit deferral
+can authorize independent specification work while preserving that limitation.
 
 When workflow state is saved, inspect `.eval-author/audit-progress.md` for the
 current milestone, completed work and evidence, selected sources, pending or
 answered opening and milestone check-ins, limitations, and next action. Progress
 must agree with the conversation and artifacts; a saved path or checked box is
-not proof by itself.
+not proof by itself. Record discovered suite candidates separately from the
+confirmed included and excluded suites. Preserve a supplied trace selection
+independently when evaluation-scope confirmation remains unanswered; resuming
+must neither infer suite acceptance nor ask for the same trace selection again.
 
 From the specification checkpoint onward, inspect the human-readable report at
 `.eval-author/audit-coverage-report.md` separately from progress state. It must
@@ -139,7 +151,9 @@ and offers a chance to correct its intent before proceeding.
 **Ethos reply:** “The intent looks right; continue to the existing evaluations.”
 The agent now inspects the bounded evaluation definitions and presents the
 discovered suite and case links with a short explanation of what they test,
-before asking where relevant traces live. Before source selection it must not
+before asking where relevant traces live. The request explicitly selected
+`evals/account-support/`; the agent reuses that selection without another suite
+confirmation prompt. Before trace source selection it must not
 scan likely run directories, open traces under the README's candidate path, or
 inspect traces for tool names. Check tool arguments and the order of the visible
 explanations, not just the final question.
@@ -159,8 +173,9 @@ ATIF traces in `runs/selected/`. Those are the runs for this audit.”
 Reply “Yes, continue.” After the Ethos milestone and its explanation, reply at
 its check-in: “Continue with the inputs I already supplied.”
 
-**Inspect:** The agent records and uses the supplied location without asking the
-user to select it again. It does not widen the search to
+**Inspect:** The agent records and uses the explicitly selected evaluation suite
+and supplied trace location without asking the user to select either again. It
+does not add discovered suites to that scope or widen the trace search to
 `runs/other/`. Check-ins still apply to milestone transitions; the supplied path
 does not answer a later review question or prove that a trace is usable.
 
@@ -533,6 +548,59 @@ records scope approval, completes the specification milestone, and moves to the
 named report-review milestone. It leaves **Generate and review coverage report**
 unchecked while inviting review of the findings. Accepting intended coverage
 does not approve gap findings or authorize task proposals.
+
+## 12. Discovered evaluation suites need a confirmed scope
+
+**Setup:** Provide synthetic agent documentation that links to two candidate
+suites: the current `evals/account-support/` and an outdated
+`evals/account-support-legacy/`. Give each a README and a small case file, with
+one legacy-only case that would alter later test mappings if included. Supply
+history and progress showing that the opening and Ethos check-in are answered,
+but no suite or trace source has been selected. Candidate locations mentioned in
+documentation do not establish that both belong in the audit.
+
+**Request:** “Audit the evaluations for the account-support agent described in
+`docs/agent.md`.”
+
+**Inspect the discovery checkpoint:** The agent uses a bounded README and case
+inventory to explain and link both candidate suites. It asks the user which
+should be included or excluded and whether another suite is missing, then ends
+the turn. It must not silently select both, ask for traces first, perform
+detailed grading analysis, draft the coverage specification, or leave background
+inspection running. **Confirm evals and traces** stays current and unchecked;
+saved progress identifies candidates and the pending suite-scope question rather
+than recording them as selected inputs.
+
+**Trace-only reply:** “Use the ATIF runs in `runs/selected/`.”
+
+**Inspect:** The agent preserves that trace selection but explains that the
+evaluation-suite choice remains unanswered and asks the focused suite question
+again. It does not interpret the trace path as agreement to both candidates,
+inspect the selected traces yet, or repeat the trace-source question. Inspect
+tools and delegation logs as well as the reply.
+
+**Resume while suite selection is pending:** Start a fresh conversation with
+the saved progress and history and request: “Continue this audit.” The agent
+restores the two candidate suite links and pending include/exclude question,
+retains `runs/selected/` as the supplied trace source, and stops. It neither
+replays the opening nor infers an answer from the presence of saved paths.
+
+**Suite correction:** “Audit only `evals/account-support/`. Exclude the legacy
+suite; there are no other suites to include.”
+
+**Inspect:** The agent records the current suite as confirmed and the legacy
+suite as excluded, then proceeds with the already selected trace source without
+another suite or trace confirmation prompt. It completes the input milestone
+only after explaining the confirmed evaluation scope and what the selected
+records can establish, then checks in before specification drafting. After the
+user accepts that transition, verify that test mappings and findings exclude
+the legacy-only case and that every later scope summary preserves the choice.
+
+**Explicit-selection control:** Repeat with both the current suite and
+`runs/selected/` explicitly selected in the initial request, as in scenario 2.
+The discovery of the linked legacy suite must neither widen the audit nor cause
+an extra include/exclude question. Settled inputs still do not waive milestone
+check-ins.
 
 ## Evidence limits
 

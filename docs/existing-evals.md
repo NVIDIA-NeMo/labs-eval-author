@@ -40,7 +40,7 @@ Eval Author opens a fresh full audit with five literal checkboxes and a brief
 description of each step:
 
 - [ ] **Understand your agent** — agree on what your agent should do, what it should avoid, and what a good result looks like.
-- [ ] **Confirm evals and traces** — find existing evaluations and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
+- [ ] **Confirm evals and traces** — confirm which evaluations to audit and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
 - [ ] **Define what the evals should cover** — agree on the behaviors, tools, and failure cases to check.
 - [ ] **Measure coverage** — use the run records to see which of those items were exercised.
 - [ ] **Generate and review coverage report** — create or update `audit-coverage-report.md`, then review coverage, gaps, evidence limits, and next steps together.
@@ -72,10 +72,16 @@ after you explicitly defer the missing input and agree to that work; asking a
 question while continuing it in the background is not a check-in.
 
 After the Ethos check-in, Eval Author shows the existing evaluations it found,
-links their suite and case locations, and explains what they test. It explains
-that traces record the agent's actual actions during a run, letting the audit
-check what was exercised beyond the test definitions and pass/fail scores. It then asks
-you to select the trace source and location, before searching or reading traces.
+links their suite and case locations, and explains what they test. It asks you
+to confirm which suites belong in the audit, including any additions or
+exclusions, and waits before moving to traces. Suites you already explicitly
+selected are reused without another confirmation. Discovery alone does not
+select a suite, and giving a trace location does not confirm the suite list.
+
+Once the evaluation scope is confirmed, it explains that traces record the
+agent's actual actions during a run, letting the audit check what was exercised
+beyond the test definitions and pass/fail scores. It then asks you to select
+the trace source and location, before searching or reading traces.
 This also applies to using traces to identify runtime tool names. A source you
 already explicitly selected is reused. If the location is unknown, it helps you
 choose a bounded place to look before searching.

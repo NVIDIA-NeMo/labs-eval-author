@@ -1,7 +1,7 @@
 ---
 name: eval-author-audit
 description: >-
-  Guide coverage audits with milestone check-ins and user-confirmed trace sources.
+  Guide coverage audits with milestone check-ins and user-confirmed eval and trace sources.
   Generate, validate, measure, and report on an audit-spec coverage denominator
   for Eval Author. Use when the user wants a hand-editable audit.md file derived
   from Ethos, needs schema enforcement for declared tools, capabilities, failure
@@ -69,7 +69,7 @@ plain bullets or labels alone do not satisfy the opening. Leave every step
 unchecked and mark **Understand your agent** as **We're here**:
 
 - [ ] **Understand your agent** — agree on what your agent should do, what it should avoid, and what a good result looks like.
-- [ ] **Confirm evals and traces** — find existing evaluations and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
+- [ ] **Confirm evals and traces** — confirm which evaluations to audit and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
 - [ ] **Define what the evals should cover** — agree on the behaviors, tools, and failure cases to check.
 - [ ] **Measure coverage** — use the run records to see which of those items were exercised.
 - [ ] **Generate and review coverage report** — create or update `audit-coverage-report.md`, then review coverage, gaps, evidence limits, and next steps together.
@@ -104,7 +104,7 @@ requested scope; do not require the full checklist or unrelated milestones.
 Generation still needs the Ethos pre-flight. Existing-spec validation,
 measurement, and aggregation use their supplied inputs without a new Ethos
 interview. Every audit operation that searches for or reads traces must first
-follow [Confirm evals and traces](references/guided-audit.md#2-confirm-evals-and-traces),
+follow trace-source selection in [Confirm evals and traces](references/guided-audit.md#2-confirm-evals-and-traces),
 including trace inspection for runtime tool names. An explicit user-selected
 source and location already supplied in this conversation satisfies that
 confirmation; a path discovered in a file does not.
@@ -133,7 +133,7 @@ reuse, or create and review the document. That procedure owns the document
 prerequisite and its recovery. Use its exact returned path as `<ethos_path>` and
 resume audit-item drafting only after the prerequisite is complete. For a full
 audit, check in before **Confirm evals and traces**. In that next milestone,
-report the existing evaluations and their locations before asking about traces.
+show and confirm the evaluation suites with the user before asking about traces.
 
 ## Coverage specification
 

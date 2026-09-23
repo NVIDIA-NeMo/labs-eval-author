@@ -7,7 +7,8 @@ Use the five visible labels and literal checkboxes from the [audit skill](../SKI
 audit. The numbered script steps in that file are technical operations inside
 these milestones, not additional user check-ins. A focused generate, validate,
 measure, or aggregate request keeps its scope; the trace-source rule below still
-applies whenever traces would be searched or read.
+applies whenever traces would be searched or read. Focused operations do not
+require an eval inventory or suite confirmation unrelated to their supplied inputs.
 
 ## Opening before the first milestone
 
@@ -52,11 +53,14 @@ until the user replies, including otherwise independent source inspection.
 An input question can also serve as the transition check-in when the current
 milestone's result has been explained; do not follow a source-selection answer
 with a duplicate readiness question. The Ethos check-in offers edits before
-eval discovery; trace selection comes after the eval inventory is shown. Show the
-checklist at the opening, milestone check-ins, source-selection replies, and
+eval discovery; confirm the eval inventory before asking for trace selection.
+Show the checklist at the opening, milestone check-ins, source-selection replies, and
 resumption, rather than after every tool call. Explain what an input is needed
 for and what remains possible without it.
 
+Save candidate eval suites separately from the user-confirmed suite set, including
+exclusions and any pending selection question. Record eval selection and trace
+selection independently; an answer to one does not settle the other.
 Save the accepted opening, confirmed paths and source scope, completed work and
 supporting evidence, limitations, pending questions or answered transitions, and the next action in
 `.eval-author/audit-progress.md`. Record whether the result is a specification,
@@ -128,7 +132,7 @@ such as: “Would you like to edit anything in this Ethos, or use it as-is and l
 for existing evaluations next?” Wait for the reply. Reuse an answered edit
 opportunity and transition; do not add another readiness question. Existing Ethos
 does not by itself answer that check-in. Keep trace-location questions in the
-next milestone, after reporting the eval inventory.
+next milestone, after reporting and confirming the eval inventory.
 
 ## 2. Confirm evals and traces
 
@@ -143,8 +147,25 @@ selected eval source, or a prior inventory. Before asking about traces, report
 what was found with a clickable path to each suite's directory, runner, or README
 and a short description of what it tests. Link shared case definitions when useful,
 but do not substitute only a case-matrix link or runner names for the suite
-locations. Keep this a concise inventory; detailed grading analysis can follow
-in the later specification and findings milestones.
+locations. Treat discovered suites as candidates until the user selects them.
+Keep this a concise inventory; read bounded suite documentation and case
+definitions to identify candidates, leaving detailed grading analysis for the
+later specification and findings milestones.
+
+For a full guided audit, unless the user already explicitly selected these
+suites, end the turn with the linked inventory and a question such as: “Are these
+the evaluation suites you want to audit, or should we add or exclude any?” Keep **Confirm evals
+and traces** current and wait for the answer before asking about traces,
+inspecting even previously selected traces, or drafting coverage. Showing the
+inventory is not confirmation. A reply supplying only a trace location or saying
+there are no traces leaves suite selection pending; retain that trace answer and
+ask only the unanswered suite question.
+
+An explicit request such as “audit suites A and B at these paths” already
+selects that set; summarize it without asking again. A path supplied only as a
+place to look, a prior discovery inventory, or a saved candidate path does not.
+Apply additions and exclusions before proceeding. On resume, reuse confirmed
+choices and present any still-pending suite selection before continuing.
 
 If the user confirms no evaluations exist, say so without searching to prove it.
 If the location is unknown or inaccessible, report that limit and ask for the
@@ -188,12 +209,17 @@ For other formats or inaccessible services, explain the needed local export or
 appropriate supported conversion. Do not query Intake or start platform discovery
 from this skill. Preserve the source selection and describe the limitation.
 
-Complete this milestone when the eval starting point and trace selection or
-confirmed unavailability are understood. Explain the selected scope, what its
-evidence can establish, and any missing inputs; check in before defining coverage.
+Complete this milestone when the user has confirmed the eval suite set (or that
+none exist) and trace selection or confirmed unavailability is understood.
+Explain the selected scope, what its evidence can establish, and any missing
+inputs; check in before defining coverage.
 An inaccessible eval directory or a missing report does not establish no evals.
 Keep an unresolved eval location open and ask for an accessible source; offer
 independent specification work if useful, carrying that limitation forward.
+If the user explicitly defers suite selection and requests independent
+specification work, keep this milestone incomplete and use the accepted Ethos
+and registry. Do not present candidate suites as selected or their findings as
+findings about the user's confirmed evaluation scope.
 
 ## 3. Define what the evals should cover
 
