@@ -54,6 +54,14 @@ moving to evaluation sources, without silently changing unrelated intent.
 Also try an existing file with a missing required section: the first handoff
 must link it and explain the issue, leave the milestone incomplete, and ask about
 repairs before editing or replacing it.
+Include a variant with valid metadata and substantive intent under custom
+headings such as Mission, Tool Boundary, and Evaluation. In the first
+turn-ending Ethos reply, require a plain-language explanation of what `ETHOS.md`
+records and how the audit derives intended coverage from it before comparing
+with existing tests and selected run evidence. This must precede the format
+mismatch and repair question. A behavior summary, documentation link, parser
+result, or introduction only in commentary does not satisfy the check. Confirm
+the file remains unchanged while the repair answer is pending.
 Opening acceptance does not answer the first milestone's check-in.
 
 After acceptance, check that the visible audit checklist shows completed,

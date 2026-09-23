@@ -86,10 +86,18 @@ After the user accepts the opening, introduce Ethos before validation or authori
 including when an existing document can be reused. Explain what it is and why the
 audit needs it, with a link to the
 [Ethos documentation](https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos).
-For example: “Ethos is a short document describing what your agent should do,
-what it should avoid, and what a good result looks like. We'll use it to decide
-what your evaluations should cover.” Tie this to the selected agent; do not assume
-the user knows the term. Reuse an introduction already given in this audit.
+For example: “`ETHOS.md` describes what your agent should do, what it should
+avoid, and what a good result looks like. For this audit, we'll turn that intent
+into the behaviors, tools, and failure cases your evaluations should cover,
+then compare them with the existing tests and any selected run records.” Tie
+this to the selected agent; do not assume the user knows the term.
+
+Include this brief definition and explanation of its use in the first
+turn-ending Ethos check-in, before validation results or repair requests. Keep
+it in that reply even if an introduction appeared earlier in commentary, where
+it may be collapsed. A link or a summary of this agent's behavior alone does
+not explain what the document is for. Later check-ins can reuse this explanation
+without repeating it.
 
 Follow the audit skill's **Ethos Pre-flight**, reusing an applicable existing
 Ethos and its review state. Look for that document first using selected paths
@@ -100,6 +108,10 @@ do not delay this handoff for an exhaustive code comparison or begin rewriting
 it to match implementation. Include any document issues that need resolving in
 the same handoff, keep this milestone incomplete, and ask about the needed fixes
 before editing; an incomplete existing file is not a reason to create a replacement.
+For a format mismatch, first explain the document's purpose and audit use, then
+summarize the existing intent and the specific formatting issue. Explain the
+proposed repair in ordinary language before asking to make it; parser success
+or a list of missing headings should not lead this first handoff.
 Offer the user a chance to edit the existing intent before
 moving on, even if no edits are needed. This is the milestone check-in, not a
 fresh intent interview or a demand to rewrite an unchanged document.

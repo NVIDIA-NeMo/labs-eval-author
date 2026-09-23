@@ -60,6 +60,10 @@ audit its target. It links the [Ethos documentation](https://docs.nvidia.com/nem
 even when a document already exists. An existing Ethos is linked as soon as it is
 found, with a short explanation of its intent and an opportunity to request edits
 before it becomes the audit baseline.
+The first Ethos check-in explains both what the document is and how the audit
+uses it to define expected coverage before comparing with tests and run records.
+That explanation stays in the reply even when the file needs formatting repairs;
+it comes before validation details and the repair question.
 
 Opening, milestone, and source-selection questions hand the conversation back
 to you. Work stops while the answer is pending, including background work and

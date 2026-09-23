@@ -123,10 +123,10 @@ established Ethos to define what the audit should cover. An explicit
 `--ethos <path>` overrides any prior handoff path; otherwise pass the established
 path supplied by first-eval when available.
 
-For a full audit, introduce Ethos in plain language and link its documentation
-before checking or creating it, even when a file already exists. Follow
-[Understand your agent](references/guided-audit.md#1-understand-your-agent) to
-surface an existing document promptly and offer edits at the milestone check-in.
+For a full audit, explain what `ETHOS.md` is and how this audit uses it before
+checking or creating it. Include that explanation in the first Ethos check-in,
+even when requesting format repairs. Follow [Understand your agent](references/guided-audit.md#1-understand-your-agent)
+to link the document and documentation, summarize its intent, and offer edits.
 
 Follow [Local Ethos](../eval-author/references/local-ethos.md) to locate, check,
 reuse, or create and review the document. That procedure owns the document
