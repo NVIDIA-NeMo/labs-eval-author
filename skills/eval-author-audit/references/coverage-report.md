@@ -5,9 +5,10 @@
 
 Write `.eval-author/audit-coverage-report.md` using the
 [template](../templates/audit-coverage-report.md). This is the readable audit
-output: explain what existing tests address, what selected runs demonstrate,
-what remains unknown, and what to do next. Adapt the template to the available
-evidence and replace its authoring prompts before presenting the report.
+output: explain what the audit intends to check, what existing tests address,
+what selected runs demonstrate, what remains unknown, and what to do next. Adapt
+the template to the available evidence and replace its authoring prompts before
+presenting the report.
 
 ## Sources and scope
 
@@ -32,8 +33,17 @@ demonstrated, and unmeasured items. Copy measured counts from applicable reports
 do not turn an unmeasured kind's zero covered count into a 0% coverage claim.
 For a kind with no declared items, show that fact without a percentage.
 
-Map every current audit item by stable `name` and kind to:
+Use a section named **Intended coverage** as the complete, readable catalog of
+the scope being reviewed. State whether the user has agreed to that scope;
+successful schema validation alone does not make it approved. Map every current
+audit item by stable `name` and kind to:
 
+- **Intended check and required evidence:** explain in ordinary language what
+  must be demonstrated and what evidence would establish it. Summarize the
+  specification's tool expectations, capability behavior, or failure trigger
+  and expected safe response, together with its evidence requirements. Keep
+  these proposed criteria distinct from observed results. A stable name or test
+  mapping alone does not tell the user what they are agreeing to.
 - **Existing tests:** links to inspected cases, instructions, or verifiers that
   address the item. This describes intended testing, not observed coverage. Use
   “no match in inspected tests” or “not inspected” where appropriate, and preserve
@@ -41,15 +51,18 @@ Map every current audit item by stable `name` and kind to:
 - **Measurement status:** covered, measured but not demonstrated, or unmeasured.
   `not_measured_by_any_method` is unmeasured; `not_covered_by_any_input_report`
   means the selected measurements did not demonstrate the item.
-- **Supporting evidence and limits:** relevant task/run IDs, method, measurement
+- **Observed evidence and limits:** relevant task/run IDs, method, measurement
   files, judgments, or trace references. The aggregate's `input_reports` links
   covered names to task/run identities and coverage files. State the reason for
   missing evidence rather than inventing a supporting run.
 
-Group rows by kind when helpful. Keep explanations readable, with links to
-detail instead of copying JSON. A manual mapping from task definitions can be
-useful without traces, but does not establish measured coverage. A covered item
-in one run does not erase observed failures in others or establish agent quality.
+Group rows by kind when helpful, or use per-item lists when a table would become
+too wide. Keep the complete catalog in this section rather than maintaining
+separate scope and mapping lists that can drift. Preserve material criteria when
+summarizing; link to the specification for detail instead of copying YAML or
+JSON. A manual mapping from task definitions can be useful without traces, but
+does not establish measured coverage. A covered item in one run does not erase
+observed failures in others or establish agent quality.
 
 ## Findings, limitations, and next actions
 
@@ -89,6 +102,10 @@ state in `audit-progress.md`.
 
 Every turn-ending response after creating or updating the report must call out
 that write and link it, including earlier specification and measurement
-check-ins. For read-only requests, discuss the available findings without writing
+check-ins. At the specification check-in, follow the [guided review](guided-audit.md#3-define-what-the-evals-should-cover):
+explain both artifacts, preview the intended checks, and point directly to the
+complete **Intended coverage** section before requesting agreement. Keep that
+scope decision separate from the later review of findings and next actions.
+For read-only requests, discuss the available findings without writing
 or claiming an update. A focused operation does not require unrelated test
 inspection or the full guided review just to fill this template.

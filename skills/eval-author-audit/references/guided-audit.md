@@ -199,17 +199,37 @@ independent specification work if useful, carrying that limitation forward.
 
 Inputs: checked Ethos and authoritative tool names from the registry, agent
 configuration, or confirmed traces. Group the audit skill's **Steps 1–3** here:
-draft items, generate or reconcile `audit.md`, and validate it. Describe the
-finite set of tools, capabilities, and failure cases in ordinary language before
-asking the user to review the saved specification. These items describe intended
-coverage; they are not runnable tests or proof that the existing tests cover it.
+draft items, generate or reconcile `audit.md`, and validate it. These items
+describe intended coverage; they are not runnable tests or proof that the
+existing tests cover it.
 
 Create or update `.eval-author/audit-coverage-report.md` using the
-[report guidance](coverage-report.md) and the available findings. Map audit items
-to inspected test definitions where possible, with measurement explicitly
-unmeasured until applicable results exist. Record unresolved mappings without
-inventing tests or inspecting unselected traces. Link the report with the concrete
-specification and validation result before the check-in.
+[report guidance](coverage-report.md) and the available findings. Its **Intended
+coverage** section is the readable review surface: include every proposed item,
+its intended check, and its required evidence from `audit.md`. Map audit items to
+inspected test definitions where possible, with measurement explicitly unmeasured
+until applicable results exist. Record unresolved mappings without inventing
+tests or inspecting unselected traces.
+
+In the turn-ending specification check-in:
+
+- Explain both linked artifacts before asking for approval: `audit.md` is the
+  proposed list of tools, behaviors, and failure cases to check, including the
+  evidence each requires; **draft** means awaiting agreement on that scope.
+  `audit-coverage-report.md` is the readable account of that scope, how existing
+  tests map to it, and what the available evidence shows. It is preliminary here.
+- Show a short, concrete preview grouped into tools, capabilities, and failure
+  cases. Describe intended checks, not just totals, item names, or gap findings.
+  For a large scope, label the preview as a summary and link directly to the
+  report's complete **Intended coverage** section using a supported section or
+  line link verified against the saved file. Name the section in the reply so
+  the user can find it even if the client opens only the file.
+- Report the validation result, then ask which intended checks or evidence
+  requirements are missing or incorrect. Name the next milestone that agreement
+  would allow: measurement, or report review when measurement is deferred.
+  Approval of intended coverage does not approve the final report or establish
+  that any item is covered.
+
 Validation proves structure and references, not completeness or agreement with
 intent. Keep review pending until the user confirms the proposed coverage;
 apply requested changes and revalidate. Do not mark it approved just because the

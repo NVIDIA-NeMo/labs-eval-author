@@ -80,13 +80,27 @@ This also applies to using traces to identify runtime tool names. A source you
 already explicitly selected is reused. If the location is unknown, it helps you
 choose a bounded place to look before searching.
 
-The reviewable specification is saved in `.eval-author/audit.md`. Progress,
-selected paths, limitations, answered or pending questions, and the next action
-are saved separately in `.eval-author/audit-progress.md` after acceptance. On
-return to an already-started audit, Eval Author reuses the answered opening and
-resumes unfinished milestones with completed work and prior answers intact.
-Requests only to validate a specification or measure or aggregate coverage stay
-within that scope.
+At **Define what the evals should cover**, Eval Author explains the two review
+artifacts: `.eval-author/audit.md` specifies the proposed checks and required
+evidence, and `.eval-author/audit-coverage-report.md` presents that scope alongside
+readable test mappings and evidence findings. The specification is a draft
+pending your review; the report is preliminary at this point.
+
+The report's **Intended coverage** section lists every audit item's stable name
+and kind, a plain-language explanation of what should be checked, and the
+evidence required to establish coverage. Existing tests, observed evidence, and
+measurement status stay distinct from those intended checks. At the scope
+check-in, the reply previews the proposed checks grouped by tools, capabilities,
+and failure cases and links directly to the full **Intended coverage** section.
+It asks which intended checks are missing or incorrect and names the next
+milestone. Agreeing to this scope does not approve the final report's findings.
+
+Progress, selected paths, limitations, answered or pending questions, and the
+next action are saved separately in `.eval-author/audit-progress.md` after
+acceptance. On return to an already-started audit, Eval Author reuses the answered
+opening and resumes unfinished milestones with completed work and prior answers
+intact. Requests only to validate a specification or measure or aggregate
+coverage stay within that scope.
 
 Coverage measurement compares that specification with recorded ATIF traces.
 ATIF is a structured record of an agent's interaction. Measurements are saved

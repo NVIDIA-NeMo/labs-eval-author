@@ -103,7 +103,18 @@ From the specification checkpoint onward, inspect the human-readable report at
 `.eval-author/audit-coverage-report.md` separately from progress state. It must
 explain scope, link the specification and available evidence, and map stable
 audit-item names to intended tests separately from observed run evidence. A test
-definition is not measured coverage. Every turn that creates or updates this
+definition is not measured coverage. Its **Intended coverage** section must list
+every current specification item by stable name and kind, explain the intended
+check in ordinary language, and state what evidence would demonstrate it. Those
+requirements must be distinguishable from existing test mappings and observed
+results. At the specification check-in, the final reply must explain what both
+artifacts are for, identify them as pending scope review and preliminary findings,
+and link the exact section containing the complete proposed scope. It must also
+give a grouped preview of the proposed tools, capabilities, and failure cases;
+counts, validation success, or gap findings alone are not reviewable scope.
+The question asks about missing or incorrect intended checks and names the next
+milestone. Accepting that scope does not complete final report review.
+Every turn that creates or updates this
 report must explicitly say so and link it in the final reply, including an
 intermediate checkpoint or a turn that cannot complete measurement. Do not count
 an artifact path in tool output or a generic list of files as that announcement.
@@ -467,6 +478,61 @@ aggregated within the agreed scope, the report makes that subset explicit and
 does not imply complete measurement of both runs. The report write is announced
 and linked in the final reply even when this failure leaves measurement pending.
 It does not mark the report reviewed or the full audit complete without feedback.
+
+## 11. A concrete specification review with a larger scope
+
+**Setup:** Extend the synthetic account-support fixture so its accepted Ethos
+and authoritative registry support 8 tools, 12 capabilities, and 10 failure
+cases. Use distinct stable names and meaningful behavior and evidence requirements
+for all 30 items, including verified password reset. Provide inspected synthetic
+cases with four findings about missing scenarios or incomplete checks. Include
+similar-looking item names with different intended checks, so names alone cannot
+explain the scope. Supply no run records. Save conversation history and progress
+showing that the opening, Ethos, and evaluation-source check-ins are answered and
+the user explicitly deferred measurement and authorized specification drafting.
+
+**Request:** “Define what these evaluations should cover. Keep measurement
+deferred because no recorded runs exist yet.”
+
+**Inspect the artifacts:** The validated `.eval-author/audit.md` remains a draft
+pending content review. The Markdown report's **Intended coverage** section
+contains all 30 current items, grouped or otherwise identifiable by kind. Compare
+its stable names, intended checks, and required evidence with the specification;
+there must be no omitted item or second conflicting scope list. Each item must
+be understandable without interpreting its identifier or reading the YAML.
+Expected evidence and currently available evidence remain distinct: all
+measurement statuses are unmeasured, even where a test definition maps to an
+item. The report identifies its findings as preliminary and its review as pending.
+
+**Inspect the turn-ending checkpoint:** The agent explains that `audit.md` defines
+the proposed checks and their evidence requirements, while the Markdown report
+presents the readable scope and compares it with inspected tests and available
+evidence. It announces and links the report write. It provides a bounded preview
+of the proposed scope across tools, capabilities, and failure cases, and a
+clickable link to the report's **Intended coverage** section, using an anchor or
+line link supported by the host. Follow that link and verify the complete list
+is there. The reply must say what the user is being asked to review and ask about
+missing or incorrect intended checks before the named next milestone, which is
+**Generate and review coverage report** while measurement remains deferred.
+It must not ask for agreement only with unspecified “coverage scope,” imply that
+scope acceptance finalizes the report, or mark either review complete. A reply
+containing only “8 tools, 12 capabilities, 10 failure cases,” four gap findings,
+and links to generically labeled artifacts fails this check, even if the schema
+passes. An explanation only in commentary does not satisfy the checkpoint.
+
+**Correction:** “For verified password reset, require evidence that the reset
+targets the verified account, not just that the reset tool was called. Keep the
+other intended checks.” The agent updates and revalidates the specification,
+refreshes the same report catalog and preliminary findings, and presents the
+revised scope for review without claiming new measured coverage. Confirm that
+the unchanged items remain present and the two artifacts agree.
+
+**Acceptance:** “The revised intended checks look right. Generate the report
+and go over its findings with me, keeping measurement deferred.” The agent
+records scope approval, completes the specification milestone, and moves to the
+named report-review milestone. It leaves **Generate and review coverage report**
+unchecked while inviting review of the findings. Accepting intended coverage
+does not approve gap findings or authorize task proposals.
 
 ## Evidence limits
 

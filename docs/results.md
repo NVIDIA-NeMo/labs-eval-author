@@ -39,8 +39,22 @@ links the specification and available supporting evidence. A mapping to an
 existing test describes what that test is designed to address; it does not
 establish that a recorded run satisfied the audit's coverage criteria.
 
-Read `.eval-author/audit.md` to see the behaviors and evidence requirements being
-measured. Measurement details live under `.eval-author/audit-measurements/`;
+Use the report's **Intended coverage** section to review the proposed audit scope.
+It lists every item's stable name and kind, explains the intended check in plain
+language, and states the required evidence separately from existing tests,
+observed evidence, and measurement status. Totals and gap findings alone do not
+describe what the audit intends to check.
+
+At the scope check-in, Eval Author explains that `.eval-author/audit.md` holds
+the proposed coverage and evidence requirements, still a draft pending your
+review. The Markdown report is a preliminary, readable account of that scope
+and the available test and evidence findings. The reply previews intended checks
+grouped by tools, capabilities, and failure cases, links directly to the full
+**Intended coverage** section, and asks what is missing or incorrect before
+moving to the named next milestone. Approving this scope is separate from
+reviewing the findings at the final report milestone.
+
+Measurement details live under `.eval-author/audit-measurements/`;
 `.eval-author/audit-coverage-report.json` combines the available measurements.
 The Markdown report explains these findings; the JSON report contains the
 machine-readable measurement results.

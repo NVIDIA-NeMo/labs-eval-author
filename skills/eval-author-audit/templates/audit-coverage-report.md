@@ -29,17 +29,23 @@ A kind with no declared items is “No items declared”, not 100% covered. -->
 | Capabilities | <total> | <count or Unmeasured> | <count or Unmeasured> | <count> |
 | Failure cases | <total> | <count or Unmeasured> | <count or Unmeasured> | <count> |
 
-## Audit items, tests, and evidence
+## Intended coverage
 
-Test mappings describe what existing evaluations intend to exercise. Measurement
-status describes what the selected recorded runs demonstrate.
+**Scope review:** <Awaiting user review / Agreed with the user; note open decisions>
 
-<!-- Include every current audit item, optionally grouped by kind. An uninspected
-test mapping is “Not inspected”; absence is bounded to the tests actually read. -->
+This is the complete list of what the audit intends to check and the evidence
+each check requires. Test mappings describe what existing evaluations intend to
+exercise. Measurement status describes what selected recorded runs demonstrate.
 
-| Audit item | Kind | Existing tests | Measurement status | Supporting evidence and limits |
-|---|---|---|---|---|
-| <stable name> | <kind> | <case/verifier links or mapping limitation> | <Covered / Measured but not demonstrated / Unmeasured> | <task/run, method, evidence links, or specific missing evidence> |
+<!-- Include every current audit item, optionally grouped by kind. Use per-item
+lists if the table becomes too wide. Explain intended behavior and required
+evidence in plain language, keeping material criteria from audit.md. For failure
+cases, include the trigger and expected safe response. An uninspected test
+mapping is “Not inspected”; absence is bounded to the tests actually read. -->
+
+| Audit item | Kind | Intended check and required evidence | Existing tests | Measurement status | Observed evidence and limits |
+|---|---|---|---|---|---|
+| <stable name> | <kind> | <behavior/trigger, expected result, and evidence needed to demonstrate it> | <case/verifier links or mapping limitation> | <Covered / Measured but not demonstrated / Unmeasured> | <task/run, method, evidence links, or specific missing evidence> |
 
 ## Findings and limitations
 

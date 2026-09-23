@@ -160,9 +160,9 @@ prerequisite Ethos work belongs to the shared procedure in the pre-flight above.
 
 | Artifact under `.eval-author/` | Purpose |
 |---|---|
-| `audit.md` | The reviewed specification of what should be covered |
+| `audit.md` | Proposed checks and required evidence; draft until the user agrees to the scope |
 | `audit-coverage-report.json` | Script-generated measurements aggregated over the selected runs, when available |
-| `audit-coverage-report.md` | Skill-authored findings: existing test mappings, measured coverage, gaps, evidence limits, and next actions |
+| `audit-coverage-report.md` | Readable intended coverage, test mappings, measured coverage, gaps, evidence limits, and next actions |
 
 For a full audit, create the Markdown report alongside the validated specification,
 refresh it after measurement, and generate or update it for the final review with
