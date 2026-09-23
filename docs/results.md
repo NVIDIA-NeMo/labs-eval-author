@@ -32,12 +32,19 @@ outcomes. See [Build your first evaluations](first-evals.md).
 
 ## Coverage audits
 
-Start with `.eval-author/audit-coverage-report.md`. Eval Author authors this
-readable report to explain the audit scope, map audit items to existing
-evaluations, and summarize coverage, gaps, evidence limits, and next steps. It
-links the specification and available supporting evidence. A mapping to an
-existing test describes what that test is designed to address; it does not
-establish that a recorded run satisfied the audit's coverage criteria.
+The audit uses four artifact names consistently, regardless of review state:
+
+| Artifact | File | Role |
+| --- | --- | --- |
+| **Audit specification** | `.eval-author/audit.md` | Intended checks and evidence requirements |
+| **Audit coverage report** | `.eval-author/audit-coverage-report.md` | Readable scope, test mappings, findings, limits, and next actions |
+| **Coverage measurements (JSON)** | `.eval-author/audit-coverage-report.json` | Generated measured results aggregated over the selected runs, when available |
+| **Audit progress** | `.eval-author/audit-progress.md` | Conversation state, selected paths, pending questions, and next action |
+
+Start with the Audit coverage report. It links the specification and available
+supporting evidence. A mapping to an existing test describes what that test is
+designed to address; it does not establish that a recorded run satisfied the
+audit's coverage criteria.
 
 Use the report's **Intended coverage** section to review the proposed audit scope.
 It lists every item's stable name and kind, explains the intended check in plain
@@ -45,22 +52,20 @@ language, and states the required evidence separately from existing tests,
 observed evidence, and measurement status. Totals and gap findings alone do not
 describe what the audit intends to check.
 
-At the scope check-in, Eval Author explains that `.eval-author/audit.md` holds
-the proposed coverage and evidence requirements, still a draft pending your
-review. The Markdown report is a preliminary, readable account of that scope
-and the available test and evidence findings. The reply previews intended checks
-grouped by tools, capabilities, and failure cases, links directly to the full
+At the scope check-in, Eval Author explains these roles and states that the Audit
+specification is a draft pending your review and the Audit coverage report is
+preliminary. The reply previews intended checks grouped by tools, capabilities,
+and failure cases, links directly to the full
 **Intended coverage** section, and asks what is missing or incorrect before
 moving to the named next milestone. Approving this scope is separate from
 reviewing the findings at the final report milestone.
 
 Measurement details live under `.eval-author/audit-measurements/`;
-`.eval-author/audit-coverage-report.json` combines the available measurements.
-The Markdown report explains these findings; the JSON report contains the
-machine-readable measurement results.
+the Coverage measurements (JSON) file combines the available results. The Audit coverage
+report explains what those results mean.
 
 Without usable traces, coverage is **unmeasured**, not 0%; the specification can
-still be completed and the Markdown report prepared while measurement remains
+still be completed and the report prepared while measurement remains
 pending. The unchecked **Measure coverage** step states the reason inline,
 for example “deferred — selected trace
 directory is missing,” so the limitation remains visible in later reviews.
@@ -72,16 +77,16 @@ new evaluation. Coverage does not establish overall agent quality or prove that
 an unobserved behavior never occurs.
 
 The final checklist step, **Generate and review coverage report**, creates or
-updates the Markdown report and reviews its findings with you. The review stays
-pending until you respond to the check-in. Whenever a session creates or updates
-the report, its final response explicitly says so and links it, even if the
+updates the Audit coverage report and reviews its findings with you. The review
+stays pending until you respond to the check-in. Whenever a session creates or
+updates the report, its final response explicitly says so and links it, even if the
 audit stops at an intermediate checkpoint. When an audit resumes, changed
 inputs are reconciled with the report before its findings are treated as current.
 
-Open `.eval-author/audit-progress.md` for the current milestone, selected eval
+Open Audit progress for the current milestone, selected eval
 and trace paths, limitations, answered or pending questions, and next action.
 This workflow record lets Eval Author resume unfinished work without repeating
-completed milestones and stays separate from the coverage report and evidence.
+completed milestones and stays separate from the report and evidence.
 
 At the report review, Eval Author names the main supported gaps and offers to
 [propose new or improved evaluation tasks](existing-evals.md#propose-new-evaluations).
@@ -127,7 +132,7 @@ producing every artifact when prerequisites are missing.
 | --- | --- |
 | First evaluations | `ETHOS.md`, `.eval-author/first-eval.md`, `.eval-author/task-drafts/`, and `.eval-author/first-eval.yaml` when the agent integration supports it. |
 | Discovery and readiness | `.eval-author/discovery.md` |
-| Coverage audit | `.eval-author/audit.md`, `.eval-author/audit-coverage-report.md`, and `.eval-author/audit-coverage-report.json`; supporting artifacts: `.eval-author/audit-progress.md` and `.eval-author/audit-measurements/` |
+| Coverage audit | The four artifacts listed under [Coverage audits](#coverage-audits), plus supporting evidence in `.eval-author/audit-measurements/` |
 | Intake trace inspection | `.eval-author/traces/` |
 | Trace-derived environments (**experimental**) | A private, gitignored workspace per task under `.eval-author/trace-environments/` |
 | MLflow conversion | One `.atif.json` file per trace in the private output directory you select. |

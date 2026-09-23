@@ -239,17 +239,20 @@ tests or inspecting unselected traces.
 
 In the turn-ending specification check-in:
 
-- Explain both linked artifacts before asking for approval: `audit.md` is the
-  proposed list of tools, behaviors, and failure cases to check, including the
-  evidence each requires; **draft** means awaiting agreement on that scope.
-  `audit-coverage-report.md` is the readable account of that scope, how existing
-  tests map to it, and what the available evidence shows. It is preliminary here.
+- Explain both linked artifacts using their stable names: the **Audit
+  specification** (`audit.md`) is the proposed list of tools, behaviors, and
+  failure cases to check, including the evidence each requires; **draft** means
+  awaiting agreement on that scope.
+  The **Audit coverage report** (`audit-coverage-report.md`) is the readable
+  account of that scope, how existing tests map to it, and what the available
+  evidence shows. It is preliminary here.
 - Show a short, concrete preview grouped into tools, capabilities, and failure
   cases. Describe intended checks, not just totals, item names, or gap findings.
   For a large scope, label the preview as a summary and link directly to the
   report's complete **Intended coverage** section using a supported section or
-  line link verified against the saved file. Name the section in the reply so
-  the user can find it even if the client opens only the file.
+  line link verified against the saved file, labeled **Audit coverage report —
+  Intended coverage**. Name the section in the reply so the user can find it
+  even if the client opens only the file.
 - Report the validation result, then ask which intended checks or evidence
   requirements are missing or incorrect. Name the next milestone that agreement
   would allow: measurement, or report review when measurement is deferred.
@@ -306,20 +309,23 @@ authorization required by the core.
 
 ## 5. Generate and review coverage report
 
-Generate or update `.eval-author/audit-coverage-report.md` following the
+Generate or update the **Audit coverage report**
+(`.eval-author/audit-coverage-report.md`) following the
 [report guidance](coverage-report.md), even for a specification-only outcome.
 Then go over it with the user. Lead with what was established: a specification,
 partial measurement, or coverage measured over a named set of traces. Explain
-the findings, their evidence and limits, link the report and supporting artifacts
-that actually exist, and leave deferred milestones visible. A specification-only
-outcome is useful planning work, not a completed measurement. Distinguish items
-not measured from measured items lacking evidence; neither automatically means
-the dataset needs another test.
+the findings, their evidence and limits, link the Audit coverage report and
+supporting artifacts that actually exist, and leave deferred milestones visible.
+A specification-only outcome is useful planning work, not a completed measurement.
+Distinguish items not measured from measured items lacking evidence; neither automatically means
+the dataset needs another test. Keep the [artifact names](coverage-report.md#artifact-names)
+consistent: approving the Audit specification and reviewing the Audit coverage
+report are separate decisions about those same two files.
 
 Keep this milestone unchecked and current while awaiting the user's review.
-Ask whether the findings need correction and offer the recommended next step below, then
-end the turn. Mark it complete only after the user has reviewed the report and
-any requested corrections are resolved. A reply accepting the findings and
+Ask whether the Audit coverage report's findings need correction and offer the
+recommended next step below, then end the turn. Mark it complete only after the
+user has reviewed the report and any requested corrections are resolved. A reply accepting the findings and
 selecting a next step satisfies the review; do not add another approval prompt.
 Record the answered review in progress and refresh the report if findings change.
 
@@ -344,8 +350,9 @@ alone does not accept the proposal offer; a reply accepting both settles the
 handoff without a second permission question.
 
 Once accepted, enter `eval-author-task-create` at **Step 1: propose dataset
-improvements**. Carry the Markdown report, reviewed specification, available JSON
-and evidence, selected source scope, user corrections, and agreed priorities.
+improvements**. Carry the Audit coverage report, reviewed Audit specification,
+available Coverage measurements (JSON) and evidence, selected source scope, user
+corrections, and agreed priorities.
 Do not restart the audit or repeat settled questions. Explain that proposals
 will be saved in `.eval-author/proposals/dataset-recommendations.md`; creating
 and running tasks is a later step with its own scope. If the user declines,

@@ -135,6 +135,24 @@ remains pending until the user has reviewed the findings and any corrections
 have been addressed. Progress records that review state; it does not replace the
 report.
 
+Check artifact names across specification review, final report review, and the
+proposal handoff. Artifact links use the same full labels throughout:
+
+| Label | File under `.eval-author/` | Role explained at first introduction |
+|---|---|---|
+| Audit specification | `audit.md` | Proposed checks and evidence requirements |
+| Audit coverage report | `audit-coverage-report.md` | Readable scope, test mappings, findings, and limits |
+| Coverage measurements (JSON) | `audit-coverage-report.json` | Generated measured results, when available |
+| Audit progress | `audit-progress.md` | Workflow state and pending decisions |
+
+The first introduction also shows the filename. Draft, approved, preliminary,
+and reviewed describe status without replacing the artifact's name. Follow the
+links: **Audit coverage report** must open the Markdown file, and **Coverage
+measurements (JSON)** must open the JSON file. Internal prose may abbreviate when
+the referent is clear, but changing link labels to “coverage specification” or
+“audit report” does not meet this naming check. Do not link or claim generated
+JSON when measurement is deferred and no such artifact exists.
+
 ## 1. Existing evals, unknown trace location
 
 **Setup:** Use the shared fixture. Mention `runs/other/` in a repository README,
@@ -198,6 +216,9 @@ list the declared denominator but must not turn intended tests into covered
 items or report 0% measured coverage. At the final milestone it updates the
 findings, explains the limits, and invites review of the linked report. It does
 not manufacture coverage JSON or mark the review complete before the user replies.
+Verify that the Markdown artifact remains labeled **Audit coverage report** at
+both checkpoints despite its unmeasured status; it is not renamed as a draft
+specification or confused with the absent **Coverage measurements (JSON)**.
 
 **B — inaccessible source:** Reply: “The traces are in `/unavailable/audit-runs/`.”
 Provide a missing or unreadable fixture path. The agent reports the concrete access
@@ -427,6 +448,10 @@ me through the findings.”
 the results support and what remains unresolved, and invites corrections. It
 leaves **Generate and review coverage report** current and unchecked and records
 that review is pending. A file write followed by all five checked boxes fails.
+Compare artifact links with those at the specification checkpoint: **Audit
+specification** still targets `audit.md`, **Audit coverage report** targets the
+Markdown report, and available **Coverage measurements (JSON)** target the JSON
+results. Changes in review status must not introduce alternative artifact names.
 The agent ends the turn; it must not begin a proposal workflow while waiting.
 
 **Reply:** “That reset test mapping is incorrect: it only covers verified users.
@@ -452,6 +477,9 @@ Reply: “Yes, propose those task improvements.” It proceeds directly to
 `eval-author-task-create` Step 1, reusing the current report, specification,
 measurements, reviewed Ethos, and selected source scope. It does not replay audit
 onboarding, repeat settled input questions, or add another readiness checkpoint.
+Links to those reused artifacts retain their established labels and targets
+during the offer and accepted handoff; the report becoming reviewed does not
+rename it or make the JSON results the **Audit coverage report**.
 The ranked, evidence-based proposals are saved and linked as
 `.eval-author/proposals/dataset-recommendations.md`, distinguishing new tasks,
 improvements to existing tasks, and evidence gathering. The proposal handoff does

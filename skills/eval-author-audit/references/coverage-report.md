@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Writing the coverage report
+# Writing the Audit coverage report
 
 Write `.eval-author/audit-coverage-report.md` using the
 [template](../templates/audit-coverage-report.md). This is the readable audit
@@ -9,6 +9,34 @@ output: explain what the audit intends to check, what existing tests address,
 what selected runs demonstrate, what remains unknown, and what to do next. Adapt
 the template to the available evidence and replace its authoring prompts before
 presenting the report.
+
+## Artifact names
+
+Use the names in [Audit outputs](../SKILL.md#audit-outputs) consistently in
+user-facing replies, artifact link labels, report references, and the proposal
+handoff. On first introduction, include the filename and a brief explanation of
+its role. Keep the full artifact name in later links so each opens a predictable
+document. “Draft,” “approved,” “preliminary,” and “reviewed” describe status;
+they do not change the artifact's name.
+
+**Audit specification** (`audit.md`) defines the checks and required evidence.
+**Audit coverage report** (`audit-coverage-report.md`) presents that scope and
+the findings about existing tests and available run evidence. Its **Intended
+coverage** section renders the specification for review; the two files remain
+distinct. Avoid alternate artifact labels such as “coverage specification,”
+“draft specification,” or “audit report.” In surrounding prose, “specification”
+or “report” can be shortened once its referent is clear.
+
+Call the generated aggregate **Coverage measurements (JSON)**
+(`audit-coverage-report.json`), keeping it distinct from the Markdown report even
+though their filename stems match. Link it only when it exists. **Audit progress**
+(`audit-progress.md`) records workflow state and is not a findings report.
+
+For example after scope approval: “The Audit specification is approved; I
+updated the Audit coverage report for your review.” Link each name to its own
+file and ask about the Audit coverage report's findings. Use the actual review
+state; naming an artifact does not approve it. Preserve these names when offering
+proposals; review status does not rename it or create another report artifact.
 
 ## Sources and scope
 

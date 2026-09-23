@@ -158,18 +158,18 @@ prerequisite Ethos work belongs to the shared procedure in the pre-flight above.
 
 ## Audit outputs
 
-| Artifact under `.eval-author/` | Purpose |
-|---|---|
-| `audit.md` | Proposed checks and required evidence; draft until the user agrees to the scope |
-| `audit-coverage-report.json` | Script-generated measurements aggregated over the selected runs, when available |
-| `audit-coverage-report.md` | Readable intended coverage, test mappings, measured coverage, gaps, evidence limits, and next actions |
+Use these names in replies and artifact links; follow [artifact naming](references/coverage-report.md#artifact-names).
 
-For a full audit, create the Markdown report alongside the validated specification,
-refresh it after measurement, and generate or update it for the final review with
-the user. Read [Writing the coverage report](references/coverage-report.md) and
-use [the report template](templates/audit-coverage-report.md). The report is still
-required when measurement is deferred; explain what remains unmeasured.
-`audit-progress.md` separately records conversation checkpoints and resumption.
+| Name | File under `.eval-author/` | Purpose |
+|---|---|---|
+| Audit specification | `audit.md` | Proposed checks and required evidence; draft until the user agrees to the scope |
+| Audit coverage report | `audit-coverage-report.md` | Readable intended coverage, test mappings, measured coverage, gaps, evidence limits, and next actions |
+| Coverage measurements (JSON) | `audit-coverage-report.json` | Script-generated measurements aggregated over the selected runs, when available |
+| Audit progress | `audit-progress.md` | Conversation checkpoints and resumption |
+
+For a full audit, create the Audit coverage report with the validated Audit
+specification, refresh it after measurement, and update it for final review.
+Follow the [report guidance](references/coverage-report.md) and [template](templates/audit-coverage-report.md) even when measurement is deferred.
 
 Whenever the Markdown report is created or updated, explicitly say so and link
 it in the turn-ending response, including intermediate milestone check-ins.

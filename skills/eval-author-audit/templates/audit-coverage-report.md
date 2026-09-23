@@ -11,10 +11,12 @@ measured, or measured audit. State the scope to which the finding applies.>
 
 ## Scope and evidence
 
-- **Specification and intent:** <links to audit.md and the applicable Ethos>
+- **Audit specification:** <link labeled Audit specification to audit.md>
+- **Ethos:** <link to the applicable ETHOS.md>
 - **Evaluations inspected:** <suite and case links, or the specific limitation>
 - **Run evidence:** <selected source and runs, or why measurement is unavailable>
-- **Methods and reports:** <methods run and links to applicable JSON reports>
+- **Coverage measurements (JSON):** <link to audit-coverage-report.json when it exists, otherwise explain why unavailable>
+- **Measurement methods and evidence:** <methods run and links to applicable measurement details>
 - **Exclusions:** <failed, omitted, or stale inputs and their effect on findings>
 
 ## Coverage summary

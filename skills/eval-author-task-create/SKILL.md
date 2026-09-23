@@ -46,7 +46,7 @@ to turn audit evidence into prioritized dataset improvements across tools,
 capabilities, and failure cases. For proposal-only requests, stop after Step 1.
 Enter that step directly from the core's proposal route, carrying existing audit
 findings and prior answers. Accepting the audit's offer to propose tasks also
-enters Step 1 directly; reuse the reviewed report and agreed priorities.
+enters Step 1 directly; reuse the reviewed Audit coverage report and agreed priorities.
 When handing off from a guided audit, wait for an explicit answer accepting that
 offer; report acceptance alone is not permission to begin proposals.
 If required audit inputs are missing, obtain those
@@ -96,12 +96,17 @@ verdict with model judgment.
 
 ## Step 1: propose dataset improvements
 
-When available, read `.eval-author/audit-coverage-report.md` for the audit's test
-mappings, findings, limitations, and agreed next actions. Check its applicability
+When available, read the **Audit coverage report** (`.eval-author/audit-coverage-report.md`)
+for test mappings, findings, limitations, and agreed next actions. Check its applicability
 against the underlying specification and reports; a mapped test does not establish
 measured coverage. The Markdown report supplies context, while measurement JSON
 remains the input for deterministic tool-gap selection and verification. Its
 absence alone does not require repeating an otherwise usable audit.
+
+Keep the audit's [artifact names](../eval-author-audit/references/coverage-report.md#artifact-names)
+in proposal replies and links: Audit specification (`audit.md`), Audit coverage
+report (`audit-coverage-report.md`), and Coverage measurements (JSON)
+(`audit-coverage-report.json`). Review status does not change these names.
 
 Read available aggregate measurements, relevant per-trace `details.json` and
 capability judgments, and the selected source traces or verifier results needed
@@ -147,7 +152,7 @@ For each recommendation, include:
 
 Lead the proposal response with the highest-value recommendations and enough
 scenario and expected-behavior detail to act on them. Follow with supporting
-coverage counts, measurement limits, and links to the proposals and audit report.
+coverage counts, measurement limits, and links to the proposals and Audit coverage report.
 Full tool coverage or an unsupported task-generation path must not suppress
 useful capability or failure-case suggestions. Do not relabel those suggestions
 as tool gaps to pass the selector. If evidence supports no dataset change, say why
