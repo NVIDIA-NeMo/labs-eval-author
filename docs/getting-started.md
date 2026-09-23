@@ -16,7 +16,7 @@ together: skills load sibling skills and their bundled scripts, schemas,
 templates, and references. The set includes the **experimental**
 trace-to-environment workflow.
 
-Neither installation path installs Gym, Harbor, Python dependencies, a coding
+Neither installation path installs Harbor, Python dependencies, a coding
 assistant, or NeMo services. Those have [workflow-specific requirements](#requirements).
 
 ### Install Eval Author with npx
@@ -249,7 +249,7 @@ documented run commands. Save the findings to .eval-author/discovery.md.
 ```
 
 This request inventories the repository's documentation and source. It does not
-require Gym, Harbor, Docker, or model credentials for evaluation runs. If you already
+require Harbor, Docker, or model credentials for evaluation runs. If you already
 know your starting point, go directly to the relevant workflow guide.
 
 ### What to expect
@@ -267,16 +267,15 @@ To continue, [check an existing suite](existing-evals.md#check-readiness),
 
 ## Requirements
 
-Requirements depend on the operation. Use [Gym setup](../skills/eval-author-discover/references/gym-setup.md)
-for native Gym tasks or the
+Requirements depend on the operation. Use the
 [Harbor setup guide](../skills/eval-author-discover/references/harbor-setup.md) when
 you need to create, validate, or run Harbor tasks.
 
 | Operation | Requirements |
 | --- | --- |
-| Read repository docs, establish Ethos, and plan cases | Your coding agent and repository access. Gym and Harbor are not required for this work. |
-| Run the discovery helper | Python 3.11+; PyYAML for parsed Gym inventory. Gym native validation uses its separate interpreter. Harbor validation needs Harbor importable by the discovery interpreter. Static Gym validation does not establish runtime readiness. |
-| Create, validate, and run Gym tasks | Gym v0.6.0+ in Python 3.13.14+, scenario components, and the actual agent/model configuration. Individual tasks may need Docker or external services; neither is universally required. |
+| Read repository docs, establish Ethos, and plan cases | Your coding agent and repository access. Harbor is not required for this work. |
+| Run the discovery helper | Python 3.11+. Verified readiness requires Harbor importable by that interpreter; Docker is needed for the Docker backend check. |
+| Create a Gym task from an audit gap | An existing actionable coverage report and an installed Gym v0.6.0+ runtime in Python 3.13.14+. See the [Gym task-authoring guide](../skills/eval-author-task-create/references/gym-tasks.md). Execution needs the task components and actual agent/model configuration. |
 | Create, validate, and run Harbor tasks | Harbor and its supported Python environment. Execution also needs the selected backend and any application access, agent integration, and provider credentials required by the task. |
 | Generate or validate an audit specification; aggregate measured coverage | Python 3.11+, PyYAML, and jsonschema. These operations read local evidence and do not call NeMo services. |
 | Measure coverage from ATIF traces | Python 3.12+ and the [audit dependencies](../skills/eval-author-audit/requirements.txt), including Harbor. Measurement does not start evaluation jobs. |

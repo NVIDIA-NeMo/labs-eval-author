@@ -7,13 +7,12 @@ description: >-
   from Ethos, needs schema enforcement for declared tools, capabilities, failure
   cases, evidence, and references, wants to measure which audit items one ATIF
   trace covers, wants to aggregate coverage across measured traces, or accepts
-  a coverage audit of existing Gym or Harbor evals. Changes
+  a coverage audit of existing evals. Changes
   none of the user's source, and saves audit artifacts under `.eval-author/`.
 triggers:
   - audit my existing evals
   - generate audit.md from ETHOS.md
   - validate audit.md coverage schema
-  - measure audit.md coverage against a Gym trace
   - measure audit.md coverage against a harbor trace
   - aggregate audit.md coverage reports
   - check audit.md coverage denominator
@@ -29,7 +28,7 @@ compatibility: >-
   Python 3.11 or later for generation and validation; Python 3.12 or later for
   ATIF measurement via Harbor's trajectory model. Dependencies are listed in requirements.txt.
   Generation, validation, measurement, and aggregation read local files only;
-  they do not start Gym or Harbor jobs or call platform services.
+  they do not start Harbor jobs or call platform services.
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
@@ -46,21 +45,6 @@ Read `eval-author` for the shared standard, vocabulary, and boundaries. This
 sub-flow generates and validates a finite coverage denominator from `<ethos_path>` and
 reviewed audit items, then can measure ATIF traces and aggregate coverage reports
 against it. It does not generate tasks yet.
-
-## Gym and Harbor evidence
-
-Audit intended behaviors independently of the evaluation provider. For Gym,
-inspect the selected environment/benchmark, resources server tools and verifier,
-agent wiring, and dataset splits. Use these to propose tools, capabilities, and
-failure cases in the same audit denominator; file presence is not measured coverage.
-After the user selects trace sources, use [Gym Trace Loader evidence](../gym-to-atif/references/trace-intel-ingest.md)
-for native captures and the [Gym Responses converter](../gym-to-atif/SKILL.md)
-for supported ATIF measurement. Preserve loader receipts, losses, and missing
-interactions. Normalized Trace Intel JSON cannot be passed to `measure.py` as ATIF.
-Missing interactions leave coverage unmeasured rather than proving a dataset gap.
-Harbor's retained ATIF remains the preferred source when already available.
-Use the existing proposal flow for uncovered Gym or Harbor scenarios; separate
-missing scenarios, observed agent failures, and missing measurement evidence.
 
 ## Start a guided audit
 

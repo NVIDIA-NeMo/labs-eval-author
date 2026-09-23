@@ -2,12 +2,12 @@
 name: eval-author-task-create
 description: >-
   Propose dataset improvements from Eval Author audit findings, then optionally
-  create one Gym or Harbor task from one actionable uncovered tool. Prove the task with Gym controls and native execution or
-  Harbor's Oracle, run it repeatedly
+  create one Gym or Harbor task from one actionable uncovered tool. Prove it with
+  Gym controls and native execution or Harbor's Oracle, then run it repeatedly
   with the repository's real agent when authorized, and accept it only when
   measured ATIF closes the selected gap every time. Use when the user asks to
   suggest dataset changes, fill an eval gap, turn audit uncovered_items into a
-  Harbor task, or add missing tool coverage. Writes proposals, drafts, and
+  Gym or Harbor task, or add missing tool coverage. Writes proposals, drafts, and
   measurements only under `.eval-author/`.
 triggers:
   - create a Gym task from an audit gap
@@ -175,8 +175,8 @@ proves tool coverage separately.
 
 ## Step 4: scaffold with Gym or Harbor
 
-Select the provider from the user's request and existing suite; for new suites,
-offer Gym first. For **Gym**, follow [Author and prove a Gym evaluation](references/gym-tasks.md)
+Select the provider from the user's request and existing suite.
+For **Gym**, follow [Author and prove a Gym evaluation](references/gym-tasks.md)
 for native scaffolding, verifier controls, and real-agent runs. Keep Steps 1–3's
 selected gap and instruction, then return to the shared coverage verification
 steps. Do not apply Harbor file layouts or Oracle CLI flags to Gym.
@@ -242,11 +242,7 @@ coverage result.
 ## Step 7: measure and aggregate each trial
 
 Run `eval-author-audit`'s `measure.py` and `report.py` separately for each
-trial. For Gym, load each physical rollout row with the Trace Loader, retain
-its gaps, and convert supported Responses evidence as described in the
-[Gym guide](references/gym-tasks.md). In the command below, replace
-`--trial-dir <job-dir>/<trial-1>` with `--trace <converted-trace.atif.json>`.
-Keep repeat outputs separate so one successful run cannot hide another:
+trial. Keep repeat outputs separate so one successful run cannot hide another:
 
 ```bash
 uv run --with-requirements <audit_skill_dir>/requirements.txt \

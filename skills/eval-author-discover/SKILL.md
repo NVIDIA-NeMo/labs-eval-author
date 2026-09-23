@@ -1,8 +1,8 @@
 ---
 name: eval-author-discover
 description: >-
-  Discover a repository's Gym or Harbor evaluations and validate them with the
-  selected provider's own validators. Gym static validation is distinct from live readiness. Finds every repository-owned
+  Record whether a repository's Harbor evaluations are ready to run, and prove it
+  with Harbor's own validators instead of guessing. Finds every repository-owned
   job config, dataset, and task directory, then makes Harbor judge each config:
   schema, job resolution, agent, environment backend, per-task validity, tasks
   Harbor silently dropped, and required host variables. Use when the user wants
@@ -14,7 +14,6 @@ description: >-
   without Harbor and without discovering again.
 triggers:
   - can I run the evals in this repo
-  - where are the Gym evals, resource servers, environments, and datasets
   - where are the Harbor evals in this repository
   - why won't my Harbor job config resolve
   - which environment variables does this eval suite need
@@ -25,9 +24,8 @@ not-for:
   - nemo-experimentalist (use to run insight-driven optimization end to end, which drives the Eval Author agent itself)
   - nemo-evaluator (use to run an existing benchmark rather than establish that a Harbor suite is runnable)
 compatibility: >-
-  File inventory needs Python 3.11+; PyYAML parses Gym declarations. Native Gym
-  checks use a separate Gym v0.6.0+ interpreter (Python 3.13.14+). Harbor must be importable by the interpreter that runs the
-  script for Harbor validation to be proven; without it the script reports an unproven
+  Python 3.11 or later. Harbor must be importable by the interpreter that runs the
+  script for any finding to be proven; without it the script reports an unproven
   inventory and exits 1. Docker is needed only for the environment backend check.
 maturity: alpha
 license: Apache-2.0
@@ -43,39 +41,6 @@ allowed-tools: Bash Read Write Grep Glob
 
 The Eval Author discovery pass. Read `eval-author` for the shared standard,
 vocabulary, and boundaries.
-
-## Select the provider
-
-Use file inventory first for an unknown repository:
-
-```bash
-python scripts/discover.py --repo <repo> --inventory-only
-```
-
-Automatic detection reports Gym first and preserves Harbor findings in mixed
-repositories. `--provider gym`, `--provider harbor`, and `--provider all` select
-an explicit scope. Gym inventory covers manifests, environment/benchmark configs,
-resources servers, agent/model components, and dataset declarations, including
-splits and preparation scripts. Report malformed or inaccessible artifacts and
-search limits; a file-only result never establishes readiness.
-
-For Gym setup, follow [Get Gym ready](references/gym-setup.md). For native static
-validation, use the selected Gym interpreter without starting servers:
-
-```bash
-python scripts/discover.py --provider gym --repo <repo> --gym-python /path/to/Gym/.venv/bin/python
-```
-
-The report separates `manifest_validated`, `config_validated`, `failed`, and
-`unavailable` from `execution: not_run`. Missing model values may fail config
-validation even when a manifest validates. No Gym readiness or agent-performance
-claim follows from static validation. Use the selected workload's documented
-native run to establish execution when authorized. Preserve raw JSON and render
-it with `render_report.py` into the normal discovery findings. Exit 0 for
-`--inventory-only` means inventory completed, not that any eval is runnable.
-
-The remaining validation ladder in this skill is the **Harbor provider path**.
-Gym findings do not require Harbor setup or Harbor task conversion.
 
 Full discovery has three phases, in order. The bundled script runs all three in
 one invocation; the runtime checks below can also be used without that script.
@@ -99,12 +64,12 @@ and readiness validation:
 - **Uncertain starting point:** use **Inventory an uncertain starting point**
   below before Ethos, runtime probes, or the authoring welcome. This entry uses
   file inspection only; do not run the readiness procedure in Steps 1–6.
-- **Provider prerequisites:** during **Get Gym or Harbor ready**, use the
-  selected provider's setup reference and runtime checks. Return their findings to the
+- **Harbor prerequisites:** during **Get Harbor ready**, use only the runtime
+  checks and optional assistant-skills check below. Return their findings to the
   caller; do not run `discover.py`, inventory eval sources, or ask which evals to
   use at this stage.
-- **Understand the evaluation starting point:** after the Ethos and provider stage
-  check-ins, use Gym discovery above or Harbor Steps 1–6 for discovery and source selection, reusing
+- **Understand the evaluation starting point:** after the Ethos and Harbor stage
+  check-ins, use Steps 1–6 for full discovery and source selection, reusing
   applicable runtime evidence, only when the starting point remains unsettled.
   Follow [Milestone check-ins](../eval-author/references/milestone-checkins.md)
   for authoring transitions and deferred prerequisites.
@@ -118,8 +83,7 @@ in Step 5.
 
 Start with the supplied locations and a bounded inspection of the repository's
 README, evaluation documentation, CI/workflow commands, and likely test or eval
-directories. Look for Gym environments, benchmarks, resources servers and dataset
-declarations, Harbor configs and tasks, as well as scripts, datasets,
+directories. Look for Harbor configs and tasks as well as scripts, datasets,
 notebooks, and written cases or grading criteria. Inspect representative
 candidates to explain what agent behavior they evaluate; ordinary helper tests
 are not automatically agent evals. Follow relevant references to separate eval
@@ -136,9 +100,9 @@ describe their differences and give each supported invocation without choosing
 one silently.
 
 This entry establishes what material exists, not whether it runs. Do not require
-Ethos, install tools, probe Gym, Harbor, or Docker, or execute repository code.
-The helper may be used with `--inventory-only`; without that flag it also
-performs provider validation. Inspect only enough case or grader source to identify what a suite
+Ethos, install tools, probe Harbor or Docker, execute repository code, or invoke
+`discover.py`: that script also performs runtime validation when Harbor is
+available. Inspect only enough case or grader source to identify what a suite
 tests and how its runner works; assessing grading quality or coverage against
 Ethos belongs to a requested audit. Save paths, suite purposes, run instructions
 and their sources, inspected scope, and remaining uncertainty in

@@ -7,7 +7,7 @@ This procedure owns locating, checking, creating, and reviewing the repository's
 `ETHOS.md`. All operations are local: do not upload it, create Filesets, probe NeMo
 services, require an account/workspace, or invoke platform Ethos, exploration, or
 model-selection workflows. Capturing intent needs no installed NeMo skills, CLI,
-Gym, Harbor, or credentials. The caller owns when this prerequisite is required.
+Harbor, or credentials. The caller owns when this prerequisite is required.
 When called from a fresh guided audit, begin only after its opening has ended
 and the user has replied to continue. Loading this procedure alongside the audit
 skill does not authorize starting its reads, validation, or generation early.
@@ -36,7 +36,7 @@ code, traces, and intent notes do not substitute for a substantive Ethos.
 When onboarding has not yet identified the agent, use the user's description and
 a bounded look at the root README and directly named agent documentation or entry
 point. Ask which agent is intended if ambiguous. Do not scan eval reports, extract
-conversations, or run Gym or Harbor to establish the agent's identity and purpose.
+conversations, or run Harbor to establish the agent's identity and purpose.
 
 For a new document, default to `<repo-root>/ETHOS.md` or the user's chosen in-repo
 location under the core's narrow Ethos write exception. Preserve existing content,
@@ -100,7 +100,7 @@ checks do not prove evaluation coverage.
 
 Present newly authored or revised content for review: link the saved file,
 summarize its role, outcome, boundaries, and open questions, then name the caller's
-actual next step. For fresh onboarding, provider setup follows Ethos; for a later return,
+actual next step. For fresh onboarding, Harbor follows Ethos; for a later return,
 use the next unfinished milestone; for a guided audit, it is **Confirm evals and
 traces** unless that milestone and its check-in are already complete, then defining
 the coverage specification. A scoped audit-generation request proceeds to its
@@ -108,7 +108,7 @@ requested drafting step. For example during onboarding:
 
 > I've generated your `ETHOS.md` for review. It describes the
 > agent's intended baggage-policy behavior and limits it to the demo policies.
-> Once you confirm it, I'll introduce Gym or Harbor, the selected framework we'll use for the
+> Once you confirm it, I'll introduce Harbor, the framework we'll use for the
 > evals, and check its setup.
 >
 > Does ETHOS.md look right, or would you like to change anything before we move on?

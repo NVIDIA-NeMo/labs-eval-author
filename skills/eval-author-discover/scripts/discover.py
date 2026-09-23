@@ -2,18 +2,50 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Discover Gym and Harbor evaluations without conflating inventory with execution.
+"""Record whether a repository's Harbor evaluations are ready to run.
 
-Auto-detection reports Gym first in mixed repositories. --inventory-only reads
-files without importing either runtime. Gym native validation uses --gym-python
-in a separate process; it never starts services or establishes live readiness.
-Harbor retains its native validation ladder and v1 report for Harbor-only repos.
-Mixed reports contain both provider reports under a v2 envelope.
+Discovery exists so a later, cheaper model can run a repository's Harbor evals
+without re-deriving how. That only works when every recorded fact was proved
+rather than observed, so this command finds the repository's Harbor artifacts and
+then makes Harbor's own validators judge them.
 
-Exit 0 means inventory completed when --inventory-only is used. Otherwise it
-means the provider established readiness; Gym static checks alone cannot do so.
-Run native validation only against trusted repositories. Helpers never install
-dependencies, synchronize manifests, fetch datasets, or launch evaluation jobs.
+Three phases, in order:
+
+1. **Probe.** Standard library only. Is Harbor importable, and is its CLI on PATH?
+2. **Inventory.** Standard library only. Which config files, dataset directories,
+   and task directories does the repository own?
+3. **Judge.** Only when Harbor is importable. Run the full validation ladder:
+   schema, job resolution, agent, environment backend, CLI round trip, per-task
+   validity, dropped-task coverage, and required host variables.
+
+All three phases are provider-specific and live under ``providers/harbor/``. This
+module owns only the parts no provider changes: argument parsing, phase order,
+report assembly, and the exit code.
+
+Without Harbor, phase 3 cannot run and no claim about runnability is possible.
+The report is still emitted, every finding is marked ``"proven": false``, and the
+verdict is a required failure naming what to install. An unproven inventory is
+useful for orienting in an unfamiliar repository; it is never evidence.
+
+This skill carries no dependency of its own. Harbor is the one import beyond the
+standard library, and a repository holding Harbor evaluations has Harbor by
+construction. PyYAML, pydantic, and toml arrive with it.
+
+Usage:
+    discover.py [--repo PATH] [--compact]
+
+    --repo PATH    Repository to inspect. Defaults to the working directory.
+    --compact      Emit single-line JSON.
+
+Prints a JSON report on stdout and writes nothing. ``SKILL.md`` tells the agent
+where to save it.
+
+Exit codes:
+    0  every repository-owned config passed every required check
+    1  a required check failed, Harbor is unavailable, or the path is unusable
+
+WARNING: Run this only against a trusted repository. Validating an agent's
+import path executes module top-level code.
 """
 
 from __future__ import annotations
@@ -115,11 +147,32 @@ def _fail(message: str, hint: str) -> int:
     return 1
 
 
-async def _harbor_report(repo_root: Path, *, inventory_only: bool = False) -> dict:
-    runtime = {} if inventory_only else _probe.probe()
-    runtime_checks = [] if inventory_only else _probe.probe_checks(runtime)
+async def _main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Record whether a repository's Harbor evaluations are ready to run.")
+    parser.add_argument("--repo", type=Path, default=Path(), help="Repository to inspect.")
+    parser.add_argument("--compact", action="store_true", help="Emit single-line JSON.")
+    args = parser.parse_args(argv)
+
+    if sys.version_info < _MIN_PYTHON:
+        return _fail(
+            "Discovery needs Python {}.{} or later; this is {}.".format(
+                _MIN_PYTHON[0], _MIN_PYTHON[1], ".".join(str(part) for part in sys.version_info[:3])
+            ),
+            "Re-run with a newer interpreter, for example `python3.12 discover.py --repo .`.",
+        )
+
+    repo_root = args.repo.expanduser()
+    if not repo_root.is_dir():
+        return _fail(
+            "Not a directory: {}".format(repo_root),
+            "Pass the repository that holds your Harbor configs and task directories.",
+        )
+    repo_root = repo_root.resolve()
+
+    runtime = _probe.probe()
+    runtime_checks = _probe.probe_checks(runtime)
     scan = scan_repository(repo_root)
-    proven = not inventory_only and _probe.is_available(runtime)
+    proven = _probe.is_available(runtime)
     configs = await _judge(scan, repo_root) if proven else _unjudged(scan, repo_root)
 
     repository_checks = scan.checks if proven else _unproven(scan.checks)
@@ -146,72 +199,9 @@ async def _harbor_report(repo_root: Path, *, inventory_only: bool = False) -> di
     }
     report["run_command"] = _run_command(repo_root, configs)
 
-    return report
-
-
-async def _main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Discover Gym and Harbor evaluations and validate provider configuration."
-    )
-    parser.add_argument("--repo", type=Path, default=Path(), help="Repository to inspect.")
-    parser.add_argument("--compact", action="store_true", help="Emit single-line JSON.")
-    parser.add_argument(
-        "--provider",
-        choices=("auto", "gym", "harbor", "all"),
-        default="auto",
-        help="Detect providers; Gym appears first in mixed reports.",
-    )
-    parser.add_argument("--inventory-only", action="store_true", help="Read files without runtime validation.")
-    parser.add_argument("--gym-python", help="Python interpreter with Gym installed; never installs Gym.")
-    args = parser.parse_args(argv)
-
-    if sys.version_info < _MIN_PYTHON:
-        return _fail(
-            "Discovery needs Python {}.{} or later; this is {}.".format(
-                _MIN_PYTHON[0], _MIN_PYTHON[1], ".".join(str(part) for part in sys.version_info[:3])
-            ),
-            "Re-run with a newer interpreter, for example `python3.12 discover.py --repo .`.",
-        )
-
-    repo_root = args.repo.expanduser()
-    if not repo_root.is_dir():
-        return _fail(
-            "Not a directory: {}".format(repo_root),
-            "Pass the repository that holds your Harbor configs and task directories.",
-        )
-    repo_root = repo_root.resolve()
-
-    from providers.gym.inventory import scan as scan_gym
-    from providers.gym.inventory import validate as validate_gym
-
-    gym = scan_gym(repo_root) if args.provider != "harbor" else None
-    gym_found = gym is not None and bool(gym["configs"] or gym["manifests"] or gym["component_directories"])
-    if args.provider == "harbor" or (args.provider == "auto" and not gym_found):
-        report = await _harbor_report(repo_root, inventory_only=args.inventory_only)
-    else:
-        assert gym is not None
-        if not args.inventory_only:
-            gym = validate_gym(gym, args.gym_python or sys.executable)
-        if args.provider == "gym":
-            report = gym
-        else:
-            harbor_scan = scan_repository(repo_root)
-            providers = [gym]
-            if harbor_scan.configs or harbor_scan.task_paths or args.provider == "all":
-                providers.append(await _harbor_report(repo_root, inventory_only=args.inventory_only))
-            report = {
-                "schema_version": 2,
-                "provider": "multiple",
-                "repo_root": str(repo_root),
-                "providers": providers,
-                "runnable": False,
-                "proven": False,
-            }
-    runnable = report["runnable"]
-
     json.dump(report, sys.stdout, indent=None if args.compact else 2)
     sys.stdout.write("\n")
-    return 0 if runnable or args.inventory_only else 1
+    return 0 if runnable else 1
 
 
 def main(argv: list[str] | None = None) -> int:

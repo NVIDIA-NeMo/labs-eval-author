@@ -1,7 +1,7 @@
 ---
 name: eval-author
 description: >-
-  Build first Gym or Harbor evals from a required Ethos, work on existing
+  Build first evals from a required Ethos, work on existing
   evaluation suites in a user's repository, derive an environment from trace
   evidence (experimental), or understand an agent run from NeMo Intake. Owns the evidence
   standard that every Eval Author sub-flow
@@ -20,7 +20,6 @@ triggers:
   - suggest new evals based on this audit
   - help me with the evals in this repo
   - what is the state of the eval suite here
-  - I inherited a repo with Gym evaluations in it
   - I inherited a repo with Harbor tasks in it
   - work on my evaluation suite
   - my evals do not use Harbor
@@ -63,7 +62,7 @@ each request to the narrow sub-flow that owns it.
 ## Choose the entry route
 
 Choose the route before showing the onboarding checklist, gathering Ethos, or
-checking Gym or Harbor. Use the requested outcome, prior answers, and supplied material;
+checking Harbor. Use the requested outcome, prior answers, and supplied material;
 do not ask the user to repeat a known starting point. These are alternative entry
 routes, not four stages everyone must complete:
 
@@ -129,7 +128,7 @@ below. Plain bullets are not the checklist. Shorten descriptions as useful, but
 retain the labels:
 
 - [ ] **Understand your agent** — establish its purpose, boundaries, and what success looks like.
-- [ ] **Get Gym or Harbor ready** — explain the evaluation framework and verify the tooling.
+- [ ] **Get Harbor ready** — explain the evaluation framework and verify the tooling.
 - [ ] **Draft your first evals** — choose a few meaningful cases, expected outcomes, and grading criteria.
 - [ ] **Get the evals running** — prepare the environment, connect the agent, and validate the setup.
 - [ ] **Run and review** — evaluate the agent, explain results, and show how to rerun.
@@ -139,7 +138,7 @@ The five visible steps group the existing ten internal stages:
 | Visible step | Internal stages, in their existing order |
 | --- | --- |
 | Understand your agent | 1. Establish the agent’s Ethos |
-| Get Gym or Harbor ready | 2. Get Gym or Harbor ready |
+| Get Harbor ready | 2. Get Harbor ready |
 | Draft your first evals | 3. Understand the evaluation starting point → 4. Define the evaluation scope → 5. Prepare cases and grading |
 | Get the evals running | 6. Prepare the execution environment → 7. Connect the agent → 8. Validate the evals |
 | Run and review | 9. Evaluate the agent → 10. Review results and explain reruns |
@@ -159,7 +158,7 @@ Ethos. The opening answer does not complete that stage or waive its check-in.
 
 On return visits, reuse an answered opening and resume the saved stage. Narrow
 inventory, readiness, audit, and trace requests use their scoped sub-flow instead
-of this onboarding experience. If onboarding later finds an existing Gym or Harbor suite,
+of this onboarding experience. If onboarding later finds an existing Harbor suite,
 tailor the remaining work to that suite without restarting the completed stages.
 
 A report that a downstream model trusts has to be right. A plausible report is
@@ -171,17 +170,16 @@ worse than no report when somebody acts on it.
 
 The authority depends on the sub-flow:
 
-- For suite discovery, Gym's native config/manifest validators and Harbor's validation
-  ladder establish only the checks actually performed. File presence proves neither
-  validity nor readiness; Gym static validation does not exercise services or a model.
-- For first evals, Ethos establishes intended behavior. Gym verifier controls or Harbor NOP and Oracle check
+- For suite discovery, Harbor's validators judge runnability. A file's presence
+  doesn't prove that Harbor accepts it.
+- For first evals, Ethos establishes intended behavior. NOP and Oracle check
   basic task wiring and verifier behavior; the user's agent run establishes
   a baseline. Working setup does not establish evaluation quality or coverage,
   and a plan alone is not proof of runnability.
 - For audit-spec validation, the bundled schema and validator judge the finite
   `audit.md` coverage denominator.
-- For task creation, Gym's positive/negative verifier controls and native execution,
-  or Harbor's Oracle, check task behavior. Measured ATIF establishes whether repeated
+- For task creation, Gym's positive/negative controls and native execution, or
+  Harbor's Oracle, check task behavior. Measured ATIF proves whether repeated
   real-agent runs close the selected gap; reference controls do not measure agent ability.
 - For trace inspection, Intake establishes what happened. Local source code can
   explain behavior, but it can't replace recorded trace evidence.
@@ -202,7 +200,7 @@ The sub-flows share this language, and reports use it verbatim.
 | Advisory | A warning worth surfacing that blocks nothing |
 | Rung | One step of a provider's validation ladder, ordered so a lower rung's failure often clears once a higher one is fixed |
 | Proven | A provider judged this check. An unproven check is an observation and never evidence |
-| Provider | The evaluation framework that owns the rules: Gym or Harbor |
+| Provider | The evaluation framework that owns the rules. Harbor; Gym is also supported for task creation |
 | Finding | One trace claim categorized as `behavior`, `issue`, `recovery`, or `uncertainty`, with evidence IDs |
 | Outcome | The trace assessment: `success`, `failure`, or `unknown` |
 
@@ -213,7 +211,7 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 
 | Sub-flow | Use it to |
 |---|---|
-| `eval-author-first-eval` | Establish required Ethos, plan cases before Gym or Harbor setup, and set up a small working suite while teaching the user how to run and extend it |
+| `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and set up a small working suite while teaching the user how to run and extend it |
 | `eval-author-discover` | Establish whether a repository's evaluations run, name the rung that fails, and get the exact command to run them |
 | `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Gym or Harbor task and prove it with native controls and repeated measured runs |
@@ -249,22 +247,21 @@ about missing facts affecting the next work. Never request secret values.
 ## Route after the evaluation starting point
 
 The entry routes above own discovery performed before authoring. Within an
-authoring flow, the shared milestone procedure establishes Ethos and Gym or Harbor,
+authoring flow, the shared milestone procedure establishes Ethos and Harbor,
 then reuses the settled starting point or calls `eval-author-discover` if source
 selection is still needed. Its runtime probes can be used separately during the
-provider setup stage. Reuse completed checks and answers when their inputs are unchanged.
+Harbor stage. Reuse completed checks and answers when their inputs are unchanged.
 
-When discovery finds no evaluations for the selected provider, follow the
-discovery source-selection conversation before routing candidate material. Its
-**When no Harbor evals were found** guidance applies to an empty Harbor scan;
-check Gym findings and other documented runners before inferring no evals exist.
+When a discovery scan found no Harbor evals, follow its **When no Harbor evals
+were found** conversation before routing candidate material; an empty Harbor
+scan does not establish that no evals exist.
 An explicitly supplied source already answers source selection. Once the evaluation
-starting point is settled, carry the established Ethos, selected provider invocation, findings,
+starting point is settled, carry the established Ethos, Harbor invocation, findings,
 and answered check-ins into the selected path:
 
-- **Existing Gym or Harbor suite or tasks:** continue discovery and resolve configuration
+- **Existing Harbor suite or tasks:** continue discovery and resolve configuration
   or readiness failures. Broken evals are not a reason to start over.
-- **Other evaluation material:** report what exists and its documented run
+- **Existing non-Harbor material:** report what exists and its documented run
   instructions or missing execution details. Preserve the user's selected source
   and requested outcome. Conversion is currently unavailable; do not enter the
   disabled adaptation flow. If the desired outcome is unclear, ask one focused
@@ -300,7 +297,7 @@ user, not to you.
   the narrow local Ethos write exception above.
 - **A missing tool is a finding, not a task.** When the provider is not installed,
   say so and stop short of proving anything. Report what you found regardless, and
-  do not install the provider automatically. Use discovery's Gym or Harbor setup guidance
+  do not install the provider automatically. Use discovery's Harbor setup guidance
   to explain installation and verification. An explicit request to install is
   authorization for that setup; a broad eval request alone is not.
 - **Do not run without approval.** Discovery proves an existing suite can run and
@@ -355,7 +352,7 @@ need an issue finding.
 ## Prerequisites
 
 Routing needs the user's desired outcome and any supplied repository or trace
-location, not Gym, Harbor, or credentials. Authoring needs local Ethos; runtime
+location, not Harbor or credentials. Authoring needs local Ethos; runtime
 dependencies belong to the selected flow.
 
 ## Limitations

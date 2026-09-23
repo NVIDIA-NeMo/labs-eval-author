@@ -55,7 +55,7 @@ instructions. The individual skill files document each workflow in detail.
 | --- | --- |
 | [`eval-author`](skills/eval-author/SKILL.md) | Entry point and shared workflow guidance. |
 | [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md) | Plan, build, and validate a small starter evaluation suite. |
-| [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Inventory Gym and Harbor evaluations; retain native validation evidence. |
+| [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Inventory evaluations and check Harbor readiness. |
 | [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Define intended behavior and measure coverage against trace evidence. |
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Propose improvements from an audit and create a supported task when requested. |
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Explain an Intake trace selected through the entry skill. |
@@ -122,7 +122,7 @@ model execution is opt-in outside configured CI workflows; see
 
 Gym is an optional, isolated runtime. The baseline is release v0.6.0 at
 `3045a793346a31291d7ea4ae6af3f94a35036ce5`, requiring Python 3.13.14+.
-Follow [Gym setup](skills/eval-author-discover/references/gym-setup.md), then run:
+With that runtime already installed, run:
 
 ```bash
 EVAL_AUTHOR_GYM_PYTHON=/path/to/Gym/.venv/bin/python uv run --locked pytest -q tests/test_gym_native.py
@@ -136,9 +136,5 @@ Positive, no-action, and wrong-answer policies are explicitly scripted controls;
 their rewards do not measure model performance. The scripted endpoint emits no
 model captures or token counts, so Gym reports CLI rollout health as `unobserved`;
 the test retains and checks this limitation with no health checks ignored.
-Every control trace passes through
-the Trace Loader and the supported ATIF conversion/audit path, retaining loader
-gaps and failed controls while identifying an unused tool for the next proposal.
-File inventory tests require no Gym runtime. Skipped native tests do not establish
-Gym compatibility. A live model evaluation additionally requires the actual
+Skipped native tests do not establish Gym compatibility. A live model evaluation additionally requires the actual
 agent/model configuration and credentials.

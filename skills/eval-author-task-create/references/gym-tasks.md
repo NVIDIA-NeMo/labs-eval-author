@@ -3,18 +3,19 @@
 
 # Author and prove a Gym evaluation
 
-Use this provider path for first-eval or task-create when Gym is selected. It
-replaces Harbor-specific scaffolding, Oracle, and job commands; the shared Ethos,
-proposal-only boundary, evidence rules, milestone check-ins, and repeated measured
-coverage requirements still apply. Use Gym first for new suites unless the user's
-choice, agent integration, or existing suite requires Harbor. Do not convert
-existing suites between frameworks as an incidental setup step.
+Use this provider path to create a task from an existing actionable audit gap
+when Gym is selected. It replaces Harbor-specific scaffolding, Oracle, and job
+commands; the shared proposal-only boundary, evidence rules, and repeated
+measured coverage requirements still apply. Preserve the user's provider choice
+and existing suite.
 
-## Prepare the runtime and native draft
+## Scaffold the native draft
 
-Follow [Gym setup](../../eval-author-discover/references/gym-setup.md), retaining
-the verified Gym Python and CLI. Use the installed CLI's `--help` before invoking
-it. Keep each draft in a fresh `.eval-author/task-drafts/<task-slug>/` directory.
+Require an installed Gym v0.6.0+ runtime in its separate Python 3.13.14+
+environment. Obtain its Python and CLI paths from the existing installation;
+use the installed CLI's `--help` before invoking it. If the runtime is missing,
+report the prerequisite and retain the proposal without scaffolding.
+Keep each draft in a fresh `.eval-author/task-drafts/<task-slug>/` directory.
 For an actionable uncovered tool, the existing selector chooses the same gap:
 
 ```bash
@@ -32,12 +33,6 @@ slugs map to underscored Gym module names. **This is a draft, not a verified tas
 The generated example grader, rewards, and verifier cases are placeholders for
 the proposed scenario. Replace them; passing template tests does not prove the
 proposal works or exercises its selected tool.
-
-For first evals there is no audit-gap prerequisite. From a fresh draft root use:
-
-```bash
-/path/to/Gym/.venv/bin/gym env init --environment <python_module_name>
-```
 
 ## Complete the task without changing its intended capability
 
@@ -108,15 +103,3 @@ IDs, input digests, Gym revision/version, configured agent/model, rewards,
 exceptions, and control results. Only claim a working task after native execution
 succeeds; only claim measured gap closure after every required real-agent repeat
 closes the selected gap under the existing `verify` command.
-
-## Bring Gym evidence into the audit
-
-Use the [Gym Trace Loader](../../gym-to-atif/references/trace-intel-ingest.md) for
-native `ng_trajectory` evidence, with an explicit physical JSONL row. Preserve its
-source bytes, loader revision, digest receipt, and reported gaps. Normalized Trace
-Intel JSON is **not ATIF**. For audit measurement use the original retained ATIF
-or the [Gym Responses converter](../../gym-to-atif/SKILL.md) when its supported
-interaction evidence is available. Keep losses and unavailable methods explicit.
-A reward or attachment with no tool interactions cannot prove tool coverage.
-Review all attempted rows, including failed runs; never select only a successful
-repeat to make the proposal appear accepted.
