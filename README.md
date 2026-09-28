@@ -14,13 +14,6 @@ your agent's repository, its intended behavior, and available execution traces
 first evaluation suite, inspect existing evaluations, or plan cases with your
 coding assistant.
 
-For example, an audit might report:
-
-> **Recovery from rejected tool arguments lacks trace evidence.** The agent is
-> expected to correct an invalid argument, but the measured traces do not cover
-> that behavior. This does not establish that a recovery test is missing. Review
-> the existing cases to decide whether to add a test or collect more evidence.
-
 > [!WARNING]
 > **Research preview**
 >
@@ -28,6 +21,13 @@ For example, an audit might report:
 > Workflows and interfaces may change. Review generated cases, graders (the
 > checks that score an agent's work), and coverage findings before relying on
 > their results.
+
+For example, an audit might report:
+
+> **Recovery from rejected tool arguments lacks trace evidence.** The agent is
+> expected to correct an invalid argument, but the measured traces do not cover
+> that behavior. This does not establish that a recovery test is missing. Review
+> the existing cases to decide whether to add a test or collect more evidence.
 
 ## Questions we are exploring
 
