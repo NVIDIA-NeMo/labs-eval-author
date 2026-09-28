@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import platform
+import socket
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -33,6 +34,12 @@ def digest(data):
 
 def git(*args, root=ROOT):
     return subprocess.check_output(["git", "-C", str(root), *args], text=True).strip()
+
+
+def check_local_http():
+    """Detect sandbox infrastructure restrictions before interpreting test failures."""
+    with socket.socket() as server:
+        server.bind(("127.0.0.1", 0))
 
 
 def test_results(path):
@@ -122,6 +129,7 @@ def run(output, gym_python, gym_root, gym_revision, timeout, source_root=ROOT):
     summary = output / "gym-summary.json"
     summary.write_text(json.dumps(report, indent=2) + "\n")
     try:
+        check_local_http()
         runtime = json.loads(
             subprocess.check_output(
                 [
@@ -172,7 +180,7 @@ def run(output, gym_python, gym_root, gym_revision, timeout, source_root=ROOT):
             report.update(summarize(output, result.returncode))
             report["reason"] = {
                 "passed": "controls_passed",
-                "failed": "control_regression",
+                "failed": "native_test_failure",
                 "incomplete": "missing_or_invalid_evidence",
             }[report["status"]]
     except (OSError, subprocess.SubprocessError, ValueError, KeyError):

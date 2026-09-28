@@ -88,3 +88,16 @@ def test_runtime_failure_still_writes_summary(tmp_path):
     assert report["finished_at"] is not None
     with pytest.raises(FileExistsError):
         collector.run(output, "/nonexistent/python", tmp_path, "a" * 40, 1)
+
+
+def test_socket_restriction_is_infrastructure_not_a_control_failure(tmp_path, monkeypatch):
+    def blocked():
+        raise PermissionError("socket unavailable")
+
+    monkeypatch.setattr(collector, "check_local_http", blocked)
+    output = tmp_path / "restricted"
+    assert collector.run(output, "/unused/python", tmp_path, "a" * 40, 1) == 1
+    report = json.loads((output / "gym-summary.json").read_text())
+    assert report["status"] == "incomplete"
+    assert report["reason"] == "runtime_or_test_execution_error"
+    assert set(report["checks"].values()) == {"missing"}
