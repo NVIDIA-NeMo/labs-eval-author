@@ -117,3 +117,24 @@ Ethos parser compatibility test skips without the NeMo Agents plugin. Live
 model execution is opt-in outside configured CI workflows; see
 [trace fixture checks](docs/trace-derived-fixtures.md#regression-checks) and
 [skill evaluation CI](docs/skill-evaluation-ci.md).
+
+## Gym compatibility checks
+
+Gym is an optional, isolated runtime. The baseline is release v0.6.0 at
+`3045a793346a31291d7ea4ae6af3f94a35036ce5`, requiring Python 3.13.14+.
+With that runtime already installed, run:
+
+```bash
+EVAL_AUTHOR_GYM_PYTHON=/path/to/Gym/.venv/bin/python uv run --locked pytest -q tests/test_gym_native.py
+```
+
+These tests invoke the real scaffolder and validators, including missing-dataset
+and overwrite failures. They complete a synthetic ledger proposal, exercise its
+verifier cases and HTTP tools with Gym's SimpleAgent, and collect repeated runs
+through `gym eval run --no-serve` with aggregation and health checks enabled.
+Positive, no-action, and wrong-answer policies are explicitly scripted controls;
+their rewards do not measure model performance. The scripted endpoint emits no
+model captures or token counts, so Gym reports CLI rollout health as `unobserved`;
+the test retains and checks this limitation with no health checks ignored.
+Skipped native tests do not establish Gym compatibility. A live model evaluation additionally requires the actual
+agent/model configuration and credentials.

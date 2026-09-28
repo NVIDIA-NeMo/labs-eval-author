@@ -10,8 +10,10 @@ execution traces.
 Bring your agent's repository and use the skills with your own coding agent.
 Build a first evaluation suite, check an existing suite, or audit its coverage.
 
-Evaluations run with [Harbor](https://docs.harborframework.com/), the framework
-Eval Author uses to validate tasks, execute agents, and grade results.
+First evaluations and readiness checks use [Harbor](https://docs.harborframework.com/).
+Task creation from an existing audit gap also supports [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/)
+through the [Gym task-authoring guide](skills/eval-author-task-create/references/gym-tasks.md).
+Gym proposals include a version-locking and rerun plan for comparable evaluations.
 
 For example, an audit might report:
 
@@ -24,7 +26,7 @@ This project is in alpha. Workflows and interfaces may change.
 
 ## Prerequisites
 
-Harbor is required to create, validate, and run evaluation tasks. Use a Python
+Harbor is required for first-evaluation authoring and Harbor task execution. Use a Python
 environment supported by your Harbor installation; see the
 [setup guide](skills/eval-author-discover/references/harbor-setup.md) for installation
 and verification. Repository inventory and case planning can start without Harbor.
@@ -115,6 +117,7 @@ If you know more about your scenario, try one of these:
 | "I don't have evals yet. Help me build my first ones." | [Build your first evaluations](docs/first-evals.md) |
 | "Check whether my Harbor evals are ready to run." | [Check readiness](docs/existing-evals.md#check-readiness) |
 | "Audit my evals against my agent's intended behavior using these traces." | [Audit coverage](docs/existing-evals.md#audit-coverage) |
+| "Create a Gym evaluation from this audit gap." | [Author and prove a Gym task](skills/eval-author-task-create/references/gym-tasks.md) |
 | "Use this audit report to propose the next evals to add." | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
 | "Explain Intake trace TRACE_ID in workspace WORKSPACE." | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
 | "Turn this local trace into a Harbor eval task." | **Experimental** · [Build a task from a trace](docs/traces.md#build-an-evaluation-task) |

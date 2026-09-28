@@ -30,7 +30,7 @@ not-for:
   - eval-author-first-eval (use to establish Ethos and build first evals without prior coverage or traces)
   - eval-author-discover (use to run the discovery pass and get a runnable verdict)
   - eval-author-audit (use to generate, validate, measure, or aggregate audit.md coverage)
-  - eval-author-task-create (use to propose dataset improvements; when task creation is requested, create and prove an eligible Harbor task)
+  - eval-author-task-create (use to propose dataset improvements; when task creation is requested, create and prove an eligible Gym or Harbor task)
   - eval-author-inspect-trace (use after this skill selects the trace sub-flow)
   - eval-author-trace-environment (experimental; use to derive a Harbor environment from canonical ATIF evidence)
   - nemo-intake (use to instrument agents, ingest telemetry, or query Intake outside Eval Author)
@@ -41,7 +41,7 @@ not-for:
 compatibility: >-
   The core can save the local Ethos; execution is delegated to sub-flows.
   Discovery, audit, and task creation use the local checkout.
-  Task execution requires Harbor and may require Docker and provider
+  Task execution requires the selected Gym or Harbor runtime and may require Docker and provider
   credentials. Trace inspection requires the nemo CLI, an explicit workspace,
   and read access to configured Intake.
 maturity: alpha
@@ -178,8 +178,9 @@ The authority depends on the sub-flow:
   and a plan alone is not proof of runnability.
 - For audit-spec validation, the bundled schema and validator judge the finite
   `audit.md` coverage denominator.
-- For task creation, Harbor's Oracle judges task solvability and verifier
-  correctness; measured ATIF proves whether repeated runs close the selected gap.
+- For task creation, Gym's positive/negative controls and native execution, or
+  Harbor's Oracle, check task behavior. Measured ATIF proves whether repeated
+  real-agent runs close the selected gap; reference controls do not measure agent ability.
 - For trace inspection, Intake establishes what happened. Local source code can
   explain behavior, but it can't replace recorded trace evidence.
 - For experimental trace-derived environments, canonical ATIF establishes the request and
@@ -199,7 +200,7 @@ The sub-flows share this language, and reports use it verbatim.
 | Advisory | A warning worth surfacing that blocks nothing |
 | Rung | One step of a provider's validation ladder, ordered so a lower rung's failure often clears once a higher one is fixed |
 | Proven | A provider judged this check. An unproven check is an observation and never evidence |
-| Provider | The evaluation framework that owns the rules. Harbor today |
+| Provider | The evaluation framework that owns the rules. Harbor; Gym is also supported for task creation |
 | Finding | One trace claim categorized as `behavior`, `issue`, `recovery`, or `uncertainty`, with evidence IDs |
 | Outcome | The trace assessment: `success`, `failure`, or `unknown` |
 
@@ -213,7 +214,7 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 | `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and set up a small working suite while teaching the user how to run and extend it |
 | `eval-author-discover` | Establish whether a repository's evaluations run, name the rung that fails, and get the exact command to run them |
 | `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
-| `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Harbor task and prove it with Oracle and repeated measured runs |
+| `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Gym or Harbor task and prove it with native controls and repeated measured runs |
 | `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
 | `eval-author-trace-environment` | **Experimental.** Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor task when evidence supports it |
 
@@ -223,7 +224,7 @@ coverage reports. `eval-author-task-create` owns the proposal step: prioritize
 dataset improvements from those findings across tools, capabilities, and failure
 cases while preserving their measured or unmeasured status. Proposal-only
 requests stop there. Its subsequent task-creation path consumes only actionable
-tool gaps and uses Harbor's native task scaffolder rather than guessing a task
+tool gaps and uses the selected Gym or Harbor native scaffolder rather than guessing a task
 layout. For a requested full workflow, proceed from audit to proposals even when
 there are no eligible tool gaps; an audit-only request ends with the findings.
 
@@ -300,7 +301,7 @@ user, not to you.
   to explain installation and verification. An explicit request to install is
   authorization for that setup; a broad eval request alone is not.
 - **Do not run without approval.** Discovery proves an existing suite can run and
-  hands over the command. Task creation may run Oracle locally, then starts
+  hands over the command. Task creation may run Gym verifier controls or Harbor Oracle locally, then starts
   real-agent jobs only when the user explicitly asked for or approved that spend.
   First-eval authoring may run local task sanity checks when task creation is requested;
   real-agent or paid-judge runs require authorization for that execution and spend.

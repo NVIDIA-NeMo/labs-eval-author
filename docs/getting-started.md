@@ -275,6 +275,7 @@ you need to create, validate, or run Harbor tasks.
 | --- | --- |
 | Read repository docs, establish Ethos, and plan cases | Your coding agent and repository access. Harbor is not required for this work. |
 | Run the discovery helper | Python 3.11+. Verified readiness requires Harbor importable by that interpreter; Docker is needed for the Docker backend check. |
+| Create a Gym task from an audit gap | An existing actionable coverage report and an installed Gym v0.6.0+ runtime in Python 3.13.14+. See the [Gym task-authoring guide](../skills/eval-author-task-create/references/gym-tasks.md). Execution needs the task components and actual agent/model configuration. |
 | Create, validate, and run Harbor tasks | Harbor and its supported Python environment. Execution also needs the selected backend and any application access, agent integration, and provider credentials required by the task. |
 | Generate or validate an audit specification; aggregate measured coverage | Python 3.11+, PyYAML, and jsonschema. These operations read local evidence and do not call NeMo services. |
 | Measure coverage from ATIF traces | Python 3.12+ and the [audit dependencies](../skills/eval-author-audit/requirements.txt), including Harbor. Measurement does not start evaluation jobs. |

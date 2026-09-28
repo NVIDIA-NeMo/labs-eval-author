@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Select actionable audit gaps, scaffold Harbor drafts, and verify closure."""
+"""Select actionable audit gaps, scaffold Gym or Harbor drafts, and verify closure."""
 
 from __future__ import annotations
 
@@ -163,8 +163,10 @@ def _scaffold(
     description: str,
     author: str,
     instruction_file: Path,
+    provider: str = "harbor",
+    gym_python: str | None = None,
 ) -> dict[str, Any]:
-    """Initialize a Harbor-native draft and install the supplied instruction."""
+    """Initialize a provider-native draft and install the supplied instruction."""
     report = _read_json(report_path)
     task_slug = _task_slug_for_target(report, target)
     _require_draft_destination(output)
@@ -182,6 +184,31 @@ def _scaffold(
         raise PipelineError(f"cannot read instruction {instruction_file}: {exc}") from exc
     if not instruction.strip():
         raise PipelineError("instruction file is empty")
+    if provider == "gym":
+        if not gym_python:
+            raise PipelineError("--gym-python must select an existing Gym runtime")
+        command = [
+            gym_python,
+            str(Path(__file__).with_name("gym_scaffold.py")),
+            "--out",
+            str(output.resolve()),
+            "--name",
+            task_slug.replace("-", "_"),
+            "--instruction-file",
+            str(instruction_file.resolve()),
+            "--description",
+            description,
+            "--author",
+            author,
+        ]
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=90, check=False)
+            payload = json.loads(result.stdout)
+        except (OSError, subprocess.TimeoutExpired, ValueError) as exc:
+            raise PipelineError("Gym scaffolder unavailable or returned no report") from exc
+        if result.returncode or not isinstance(payload, dict) or not payload.get("written"):
+            raise PipelineError("Gym scaffolding failed; inspect the selected runtime and destination")
+        return {**payload, "target_tool": target, "task_slug": task_slug, "paths": _artifact_paths(task_slug)}
     harbor = shutil.which("harbor")
     if harbor is None:
         raise PipelineError("harbor executable is not available")
@@ -297,7 +324,9 @@ def _parser() -> argparse.ArgumentParser:
     select.add_argument("--report", type=Path, required=True)
     select.add_argument("--target")
 
-    scaffold = subparsers.add_parser("scaffold", help="initialize a Harbor-native task draft")
+    scaffold = subparsers.add_parser("scaffold", help="initialize a Gym or Harbor native task draft")
+    scaffold.add_argument("--provider", choices=("gym", "harbor"), default="harbor")
+    scaffold.add_argument("--gym-python", help="Existing Gym Python interpreter (required for Gym)")
     scaffold.add_argument("--report", type=Path, required=True)
     scaffold.add_argument("--target", required=True)
     scaffold.add_argument("--out", type=Path, required=True)
@@ -329,6 +358,8 @@ def main(argv: list[str] | None = None) -> int:
                 description=args.description,
                 author=args.author,
                 instruction_file=args.instruction_file,
+                provider=args.provider,
+                gym_python=args.gym_python,
             )
             exit_code = 0
         else:

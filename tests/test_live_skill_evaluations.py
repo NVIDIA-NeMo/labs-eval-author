@@ -369,7 +369,7 @@ def test_live_workflow_limits_inference_to_main_and_is_advisory():
 
 
 def test_seed_datasets_are_bounded_and_have_negative_cases(live):
-    for name in ("eval-author", "mlflow-to-atif"):
+    for name in ("eval-author", "mlflow-to-atif", "eval-author-task-create"):
         skill = ROOT / "skills" / name
         assert live.dataset_cases(skill) == 4
         cases = json.loads((skill / "evals/evals.json").read_text())["evals"]
