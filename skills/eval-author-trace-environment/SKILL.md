@@ -1,12 +1,13 @@
 ---
 name: eval-author-trace-environment
-version: 1.3.1
+version: 1.4.0
 description: >-
   Experimental workflow. Use Gym, MLflow, Intake, OpenTelemetry, or ATIF trace
-  evidence to derive a private, reproducible Harbor environment candidate.
+  evidence to derive a private, reproducible Harbor or native NeMo Gym task candidate.
 triggers:
   - create an evaluation environment from a trace
   - turn ATIF into a Harbor task environment
+  - turn a trace into a native Gym task
   - derive an eval task from Gym MLflow Intake or OpenTelemetry data
 not-for:
   - eval-author (use for the shared standard and routing)
@@ -16,11 +17,12 @@ not-for:
   - eval-author-inspect-trace (use to explain an Intake trace without creating an environment)
 compatibility: >-
   Python 3.11+, jsonschema 4.23+, referencing 0.28.4+; mlflow-to-atif for MLflow; gym-to-atif for Gym; nemo CLI for Intake; Harbor and
-  Docker for proof. Use Harbor's Python environment. NOP/Oracle need no model;
-  native-agent checks use the agent's configured provider.
+  Docker for Harbor proof. Gym output uses the sibling eval-author-task-create
+  scaffolder and an existing Gym v0.6.0+ runtime in Python 3.13.14+.
+  Native-agent checks use the agent's configured provider.
 metadata:
   author: Andrew Suter-Morris <asutermorris@nvidia.com>
-  tags: [evaluation, harbor, traces]
+  tags: [evaluation, harbor, gym, traces]
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
@@ -39,18 +41,24 @@ to the user.
 ## Purpose
 
 Read `eval-author` for the shared evidence standard and boundaries. Turn one
-recorded interaction into a reproducible Harbor task with privacy scrubbing,
-machine-checked proof, and gated publication.
+recorded interaction into a reproducible Harbor or native Gym task with privacy
+scrubbing and provider-native validation.
 
 ## Instructions
 
-Follow steps 1-7 in order, one task workspace per trace. Commands are in
+Choose the output provider independently of the trace source. Preserve an
+explicit Gym or Harbor choice; otherwise use the existing suite's provider,
+defaulting to Harbor when neither is specified. A Gym source does not imply Gym
+output. Follow shared steps 1-5, then the selected provider's construction path
+in Step 6, one task workspace per trace. Commands are in
 `## Available Scripts`; an end-to-end run is in `## Examples`. Trace payloads,
 credentials, and task workspaces never go into Git.
 
 ## Artifact contract
 
-Use one workspace per task. Paths below are generated workspace artifacts, not
+Use one workspace per task. The tree below describes Harbor output; the
+[Gym extension](references/gym-output.md) adds a native `gym/` draft and its own
+report in the same private workspace. Paths are generated workspace artifacts, not
 bundled skill files; `extra.*` names elsewhere are ATIF fields, not file paths.
 
 ```text
@@ -75,9 +83,9 @@ bundled skill files; `extra.*` names elsewhere are ATIF fields, not file paths.
     summary.md
 ```
 
-Source, evidence, ground truth, and Harbor jobs stay ignored; only the
-whitelist-only `export` command publishes. `init` writes the parent
-`.gitignore`, makes directories owner-only, refuses to replace an existing
+Source, evidence, ground truth, and jobs stay ignored. Harbor's whitelist-only
+`export` command publishes reviewed Harbor products; Gym handoff stays private.
+`init` writes the parent `.gitignore`, makes directories owner-only, refuses to replace an existing
 workspace, and prints content-free JSON summaries.
 
 ## Step 1: create the private task workspace
@@ -140,7 +148,10 @@ After privacy review, when at least one decision is mock, run
 Select `real`, `mock`, or `none` for every scoped tool; candidate finalization
 requires complete decisions. Never substitute silently. The fixture reference
 defines reviewed schema overrides for traces that record calls without schemas.
-Copy generated fixtures into the task image and merge `integration.toml` into
+For Gym output, follow the native tool wiring in
+[references/gym-output.md](references/gym-output.md); the generated MCP adapter
+and `integration.toml` are Harbor-specific. For Harbor, copy generated fixtures
+into the task image and merge `integration.toml` into
 `task.toml`; finalization checks the wiring. Preserve the user's harness and model;
 check registration and prove discovery/calls as the fixture reference specifies. The MCP adapter performs
 exact-match replay. Fixtures are agent-visible and cannot hold verifier truth.
@@ -222,12 +233,19 @@ but its absence must be explicit. Use
 software inventory blocks reproducibility.
 
 For batch failures, use the reference's specific source or construction
-`reason_codes` instead of `insufficient_trace_evidence`, and record the failed
-command or contract check through Step 7's `finalize --did-not-work`.
+`reason_codes` instead of `insufficient_trace_evidence`. Record failed commands
+or contract checks in the Gym report or Step 7's `finalize --did-not-work`,
+according to the selected output path.
 
 ## Step 6: author and prove a candidate environment
 
-Skip this step for no_candidate. Under `<task-dir>/task/`, create the smallest
+For `no_candidate`, skip construction and use Step 7's no-candidate finalization
+for either provider. For Gym output, read and follow
+[references/gym-output.md](references/gym-output.md) for construction, native
+validation, and handoff. It replaces the Harbor-specific instructions below,
+Step 7's candidate finalization, and Harbor batch/publication reporting.
+
+For Harbor output, under `<task-dir>/task/`, create the smallest
 Harbor task that reproduces the initial state and objectively verifies the
 generalized outcome. Read and follow `references/task-contract.md` for the
 required layout, the separate no-network verifier contract, and the
@@ -275,7 +293,7 @@ is `unproven`; do not describe it as ready. The integrity reference defines the
 conditions for technical status `passed` and the limits of that claim; passing
 proof does not establish human review.
 
-## Step 7: finalize and verify the summary
+## Step 7: finalize Harbor or no_candidate and verify the summary
 
 Record concise facts about the conversion and construction with `finalize`
 (`--status candidate --human-reviewed --worked-well ... --did-not-work ...`, or
@@ -292,7 +310,7 @@ unproven candidate. The human-review flag means a human supplied or reviewed
 Relevant experience and the generalized task. It is distinct from the earlier
 contextual privacy review by an agent or human.
 
-## Batch and publication
+## Harbor batch and publication
 
 For a multi-task run, write a checked-in manifest with stable task IDs and
 source paths. This makes the denominator explicit and reruns idempotent:
@@ -329,7 +347,8 @@ Harbor is the authority for whether the task actually runs.
 
 ## Examples
 
-Steps 1–7 cover the complete authoring flow. For retained proof commands, use
+Steps 1–7 cover Harbor authoring; the [Gym extension](references/gym-output.md)
+contains the native scaffold and validation example. For retained Harbor proof commands, use
 [the repeat-run example](references/environment-integrity.md#repeat-and-negative-control-proof);
 for transcription controls, use
 [the copy-probe example](references/check-grammar.md#executed-copy-probes).
@@ -366,7 +385,10 @@ the sibling `gym-to-atif` skill; put its owner-private output under
 Python 3.11+ with jsonschema 4.23+ and referencing 0.28.4+ for the helper; the
 sibling `mlflow-to-atif` skill for MLflow sources; the sibling `gym-to-atif`
 skill for Gym sources; the `nemo` CLI for Intake
-sources; an existing Harbor installation plus Docker for probes and proof.
+sources; an existing Harbor installation plus Docker for Harbor probes and proof.
+For Gym output, use the existing separate Gym runtime and sibling
+`eval-author-task-create` resources described in the Gym extension; Harbor and
+Docker are not required unless the selected Gym components need them.
 
 ## Limitations
 
@@ -374,14 +396,15 @@ sources; an existing Harbor installation plus Docker for probes and proof.
 - Execution verification with binary rewards only: no model judge, rubric, or graded scoring.
 - One bounded trace per task; no merging, deduplication, or corpus triage.
 - Cannot prove unrecorded side effects, subjective outcomes, unavailable software, or private and live external state.
-- Probes and proof run on the local Harbor+Docker runtime; no remote, cluster, or GPU execution route.
+- Harbor probes and proof run on the local Harbor+Docker runtime; Gym uses its native local runtime.
+- Gym output has native validation and a private report; Harbor's automated proof, batch readiness, and publication/export commands do not cover Gym products.
 - Reconstructed-state tasks generalize the recorded capability; they never recover unrecorded state.
 
 ## Troubleshooting
 
 - On a contract failure, preserve the artifacts and record the exact failed
-  command with `finalize --did-not-work`; never bypass privacy, isolation, or
-  proof gates.
+  command in the Gym report or Harbor's `finalize --did-not-work`; never bypass
+  privacy, isolation, or proof gates.
 - `validate-task` exits 1: fix each listed issue; hints name the contract. Rerun after every edit.
 - `probe` reports `not_run`: Harbor is missing; probing is optional, proof is not.
 - `record-validation` fails with `missing_check_evidence`: apply

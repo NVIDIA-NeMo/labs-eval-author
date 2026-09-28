@@ -59,7 +59,7 @@ instructions. The individual skill files document each workflow in detail.
 | [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Define intended behavior and measure coverage against trace evidence. |
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Propose improvements from an audit and create a supported task when requested. |
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Explain an Intake trace selected through the entry skill. |
-| [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | **Experimental.** Derive and validate a private Harbor environment from trace evidence. |
+| [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | **Experimental.** Derive and validate a private Harbor or native Gym task from trace evidence. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Convert MLflow traces to ATIF. |
 | [`gym-to-atif`](skills/gym-to-atif/SKILL.md) | Convert one Gym Responses record or retain original Harbor ATIF from a Gym run. |
 
@@ -128,8 +128,9 @@ With that runtime already installed, run:
 EVAL_AUTHOR_GYM_PYTHON=/path/to/Gym/.venv/bin/python uv run --locked pytest -q tests/test_gym_native.py
 ```
 
-These tests invoke the real scaffolder and validators, including missing-dataset
-and overwrite failures. They complete a synthetic ledger proposal, exercise its
+These tests invoke the real scaffolder and validators from both an audit gap
+and a privacy-reviewed trace candidate, including missing-dataset and overwrite
+failures. They complete a synthetic ledger scenario, exercise its
 verifier cases and HTTP tools with Gym's SimpleAgent, and collect repeated runs
 through `gym eval run --no-serve` with aggregation and health checks enabled.
 Positive, no-action, and wrong-answer policies are explicitly scripted controls;

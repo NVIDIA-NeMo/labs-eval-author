@@ -56,9 +56,134 @@ def scaffold_draft(tmp_path):
     return output, instruction, command, receipt
 
 
-def test_native_proposal_scaffold_and_validation(tmp_path):
+def scaffold_trace_draft(tmp_path):
+    """Follow the trace extension without creating an audit or selecting a coverage gap."""
     assert GYM_PYTHON is not None
-    output, instruction, command, receipt = scaffold_draft(tmp_path)
+    helper = ROOT / "skills/eval-author-trace-environment/scripts/trace_environment.py"
+
+    def trace_command(*args):
+        result = subprocess.run(
+            [sys.executable, str(helper), *map(str, args)], capture_output=True, text=True, timeout=30
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        return json.loads(result.stdout)
+
+    initialized = trace_command(
+        "init", "--root", tmp_path / ".eval-author/trace-environments", "--task-id", "cover-ledger-total"
+    )
+    task_dir = Path(initialized["task_dir"])
+    instruction_text = "Use ledger_total and report the total for each list: [7, -2, 13] and [0, 6, -10]."
+    source = task_dir / "private/input.atif.json"
+    source.write_text(
+        json.dumps(
+            {
+                "schema_version": "ATIF-v1.7",
+                "session_id": "synthetic-ledger",
+                "agent": {"name": "fixture-agent", "version": "1"},
+                "steps": [
+                    {"step_id": 1, "source": "user", "message": instruction_text},
+                    {
+                        "step_id": 2,
+                        "source": "agent",
+                        "message": "Compute the totals.",
+                        "tool_calls": [
+                            {
+                                "tool_call_id": "call-1",
+                                "function_name": "ledger_total",
+                                "arguments": {"amounts": [7, -2, 13]},
+                            }
+                        ],
+                        "observation": {"results": [{"source_call_id": "call-1", "content": '{"total":18}'}]},
+                    },
+                ],
+            }
+        )
+    )
+    trace_command("prepare", "--task-dir", task_dir, "--atif", source, "--source-kind", "atif")
+    trace_command(
+        "review-privacy", "--task-dir", task_dir, "--reviewer-kind", "agent", "--note", "Synthetic test data reviewed."
+    )
+    trace_command("inventory-tool-calls", "--task-dir", task_dir)
+    trace_command("plan-tool-call-access", "--task-dir", task_dir)
+    decisions = task_dir / "private/decisions.json"
+    decisions.write_text(
+        json.dumps(
+            {
+                "schema": "nemo.eval_author.trace_environment_tool_access_decisions.v1",
+                "decisions": [
+                    {
+                        "name": "ledger_total",
+                        "access": "real",
+                        "adapter": None,
+                        "note": "Implement the evidenced integer summation in the native resources server.",
+                    }
+                ],
+            }
+        )
+    )
+    trace_command(
+        "resolve-tool-call-access", "--task-dir", task_dir, "--decisions", decisions, "--reviewer-kind", "agent"
+    )
+    candidate = {
+        "schema": "nemo.eval_author.trace_environment_candidate.v2",
+        "status": "candidate",
+        "decision_basis": "safe_atif_only",
+        "instruction": instruction_text,
+        "requirements": [{"description": "Call ledger_total and return the integer sum.", "evidence_steps": [1, 2]}],
+        "verification_mode": "execution",
+        "evidence_steps": [1, 2],
+        "state_basis": "reconstructed",
+        "uncertainties": ["Starting application state was not captured; construct a stateless summation tool."],
+        "reason_codes": [],
+        "ground_truth": {
+            "availability": "absent",
+            "use": "none",
+            "artifacts": [],
+            "absence_reason": "No independent reference; integer summation is verifiable from the supplied operands.",
+        },
+        "software_requirements": [],
+    }
+    (task_dir / "candidate.json").write_text(json.dumps(candidate))
+    checked = trace_command("check-candidate", "--task-dir", task_dir)
+    assert checked["valid"] and not checked["execution_verified"]
+    instruction = task_dir / "private/gym-instruction.md"
+    instruction.write_text(candidate["instruction"])
+    output = task_dir / "gym"
+    command = [
+        GYM_PYTHON,
+        str(ROOT / "skills/eval-author-task-create/scripts/gym_scaffold.py"),
+        "--out",
+        str(output),
+        "--name",
+        "cover_ledger_total",
+        "--instruction-file",
+        str(instruction),
+        "--description",
+        "Trace-derived integer summation",
+        "--author",
+        "Eval Author test fixture",
+    ]
+    result = subprocess.run(command, capture_output=True, text=True, timeout=90, umask=0o077)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert trace_command("check", "--task-dir", task_dir)["valid"]
+    # Native drafts must not manufacture Harbor proof or finalize a pending preparation record.
+    summary = json.loads((task_dir / "summary.json").read_text())
+    assert summary["status"] == "pending"
+    assert summary["environment"]["technical_status"] == "not_run"
+    assert not (task_dir / "validation.json").exists()
+    assert not (tmp_path / "coverage.json").exists()
+    assert not (output / "task.toml").exists()
+    return output, instruction, command, json.loads(result.stdout)
+
+
+@pytest.fixture(params=[scaffold_draft, scaffold_trace_draft], ids=["audit", "trace"])
+def native_draft(request, tmp_path):
+    return request.param(tmp_path)
+
+
+def test_native_scaffold_and_validation(native_draft):
+    assert GYM_PYTHON is not None
+    output, instruction, command, receipt = native_draft
     assert receipt["provider"] == "gym" and receipt["written"]
     assert not receipt["runnable"]
     assert (output / "instruction.md").read_text() == instruction.read_text()
@@ -83,10 +208,10 @@ def test_native_proposal_scaffold_and_validation(tmp_path):
     assert validation.returncode != 0
 
 
-def test_native_http_execution_controls(tmp_path):
+def test_native_http_execution_controls(tmp_path, native_draft):
     """Exercise real tool HTTP calls, native rollouts, and positive and negative controls."""
     assert GYM_PYTHON is not None
-    draft, _, _, _ = scaffold_draft(tmp_path)
+    draft, _, _, _ = native_draft
     resource_app = draft / "resources_servers/cover_ledger_total/app.py"
     resource_app.write_bytes((ROOT / "tests/fixtures/gym_ledger/app.py").read_bytes())
     (resource_app.parent / "tests/verifier_cases.jsonl").write_bytes(
