@@ -44,7 +44,7 @@ Ethos file or prior review. Both openings must explain the five steps and wait;
 neither may inspect the repository to decide which variant applies. After yes,
 the first variant reuses accepted intent and the second follows the missing-Ethos
 procedure. Both must explain what Ethos records and why the audit needs it, with
-the [shared Ethos skill](https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/776d12a477c29ffed5276eaebcf8ace66378f896/.agents/skills/ethos/SKILL.md)
+the [bundled Ethos skill](../../skills/ethos/SKILL.md)
 link. The existing-Ethos variant must link that file as soon as it is found,
 summarize its intended behavior, and offer review or edits before using it as the
 audit baseline; technical validation alone does not provide that explanation.

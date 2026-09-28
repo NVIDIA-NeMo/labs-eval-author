@@ -34,17 +34,20 @@ The experimental trace-environment skill documents its
 For standalone Gym trace conversion, see
 [`gym-to-atif`](skills/gym-to-atif/SKILL.md).
 
-## Shared Ethos authoring
+## Ethos authoring
 
-Eval Author's [local Ethos handoff](skills/eval-author/references/local-ethos.md)
-points to Trace Intel's portable
-[`ethos` skill](https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/776d12a477c29ffed5276eaebcf8ace66378f896/.agents/skills/ethos/SKILL.md),
-pinned to a specific source revision. It combines the former NeMo Platform
-exploration and authoring skills into one local workflow. The bundled procedure
-and template remain an offline fallback, so installing Eval Author alone still
-works. No Python dependency or platform service is added. When updating the pin,
-review its schema and local-only contract and update the handoff, user guidance,
-and audit recovery link together.
+The portable [`ethos` skill](skills/ethos/SKILL.md) lives in Eval Author and
+ships with its other skills. It combines exploration, intent questions, local
+`ETHOS.md` authoring, and review in one file, including the schema-v1 outline.
+Other projects, including Trace Intel, can use this skill from Eval Author;
+no second repository or platform service is needed.
+
+Adapted from NeMo Platform's `nemo-explore`, `nemo-ethos`, and
+`nemo-ethos/references/templates/ethos.md` at commit
+`08128e6d0e1248928d4d4152a39bc06360ca74b1` (September 18, 2026), under
+`packages/nemo_platform_ext/src/nemo_platform_ext/skills/`. Original source
+files remain unchanged. The copy retains the fifteen-section schema and removes
+platform setup, model selection, Filesets uploads, and build handoffs.
 
 ## Public Trace Intel dependency
 
@@ -65,6 +68,7 @@ instructions. The individual skill files document each workflow in detail.
 
 | Skill | Purpose |
 | --- | --- |
+| [`ethos`](skills/ethos/SKILL.md) | Explore intended behavior and author or update a local ETHOS.md. |
 | [`eval-author`](skills/eval-author/SKILL.md) | Entry point and shared workflow guidance. |
 | [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md) | Plan, build, and validate a small starter evaluation suite. |
 | [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Inventory evaluations and check Harbor readiness. |

@@ -64,7 +64,9 @@ _INSPECT_DIR = _SKILLS_DIR / "eval-author-inspect-trace"
 _MLFLOW_TO_ATIF_DIR = _SKILLS_DIR / "mlflow-to-atif"
 _GYM_TO_ATIF_DIR = _SKILLS_DIR / "gym-to-atif"
 _TRACE_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-trace-environment"
+_ETHOS_DIR = _SKILLS_DIR / "ethos"
 _SKILL_DIRS = (
+    _ETHOS_DIR,
     _CORE_DIR,
     _DISCOVER_DIR,
     _AUDIT_DIR,
@@ -1781,6 +1783,9 @@ def test_local_ethos_handoff_resources_are_self_contained() -> None:
         links = re.findall(r"\[Local Ethos\]\(([^)]+)\)", body)
         assert links, f"{skill_dir.name} has no local Ethos handoff"
         assert all((skill_dir / link).resolve() == reference.resolve() for link in links)
+    skill_links = re.findall(r"\[ethos skill\]\(([^)]+)\)", reference.read_text())
+    assert len(skill_links) == 1
+    assert (reference.parent / skill_links[0]).resolve() == (_ETHOS_DIR / "SKILL.md").resolve()
     links = re.findall(r"\[the local template\]\(([^)]+)\)", reference.read_text())
     assert len(links) == 1
     assert (reference.parent / links[0]).resolve() == template.resolve()
@@ -1790,6 +1795,11 @@ def test_local_ethos_handoff_resources_are_self_contained() -> None:
     assert {"name", "created_timestamp", "author"} <= front.keys()
     headings = re.findall(r"^## (.+)$", body, re.MULTILINE)
     assert len(headings) == len(set(headings)) == 15
+    _, ethos_body = _frontmatter_and_body(_ETHOS_DIR)
+    inline_template = ethos_body.split("```markdown\n", 1)[1].split("\n```", 1)[0]
+    inline_headings = re.findall(r"^## (.+)$", inline_template, re.MULTILINE)
+    assert len(inline_headings) == len(set(inline_headings)) == 15
+    assert set(inline_headings) == set(headings)
 
 
 def test_local_ethos_template_is_compatible_with_existing_parser() -> None:
@@ -2389,7 +2399,7 @@ def test_audit_generate_rejects_outputs_outside_eval_author(tmp_path: Path) -> N
     assert out.read_text(encoding="utf-8") == "customer source must stay intact\n"
 
 
-def test_audit_generate_explains_missing_ethos_with_shared_skill_link(tmp_path: Path) -> None:
+def test_audit_generate_explains_missing_ethos_with_bundled_skill_path(tmp_path: Path) -> None:
     items = tmp_path / "items.yaml"
     _write_audit_items(items, _template_payload()["items"])
     out = tmp_path / ".eval-author" / "audit.md"
@@ -2410,8 +2420,7 @@ def test_audit_generate_explains_missing_ethos_with_shared_skill_link(tmp_path: 
     assert "before it can generate an audit coverage report" in result.stderr
     assert "ETHOS.md records intended behavior" in result.stderr
     assert "Missing file:" in result.stderr
-    assert "Ethos skill: https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/" in result.stderr
-    assert "/.agents/skills/ethos/SKILL.md" in result.stderr
+    assert f"Ethos skill: {_ETHOS_DIR / 'SKILL.md'}" in result.stderr
     assert "Next steps:\n" in result.stderr
     assert "rerun this command with --ethos <path>" in result.stderr
     assert "docs.nvidia.com" not in result.stderr
@@ -2425,7 +2434,7 @@ def test_audit_generate_explains_missing_ethos_with_shared_skill_link(tmp_path: 
 
 
 @pytest.mark.skipif(os.name == "nt", reason="chmod-based unreadable-file check is POSIX-specific")
-def test_audit_generate_explains_unreadable_ethos_with_shared_skill_link(tmp_path: Path) -> None:
+def test_audit_generate_explains_unreadable_ethos_with_bundled_skill_path(tmp_path: Path) -> None:
     ethos = tmp_path / "ETHOS.md"
     ethos.write_text("# Ethos\n", encoding="utf-8")
     items = tmp_path / "items.yaml"
@@ -2450,8 +2459,7 @@ def test_audit_generate_explains_unreadable_ethos_with_shared_skill_link(tmp_pat
     assert result.stderr.startswith("Unreadable Ethos\n\n")
     assert "needs a source of truth for how the agent is supposed to behave" in result.stderr
     assert "Unreadable file:" in result.stderr
-    assert "Ethos skill: https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/" in result.stderr
-    assert "/.agents/skills/ethos/SKILL.md" in result.stderr
+    assert f"Ethos skill: {_ETHOS_DIR / 'SKILL.md'}" in result.stderr
     assert "Next steps:\n" in result.stderr
     assert "- Fix read access for the Ethos file, then rerun this command." in result.stderr
     assert "- Or pass a readable Ethos path with --ethos <path>." in result.stderr
