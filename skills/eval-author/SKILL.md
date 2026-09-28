@@ -68,7 +68,7 @@ routes, not four stages everyone must complete:
 
 | Starting situation and request | Route | First action and deliverable |
 |---|---|---|
-| The user has no evals and wants to bootstrap them | [First eval](../eval-author-first-eval/SKILL.md) | Use the authoring welcome below, then build a small working suite through the shared milestones. The user's statement settles the starting point; no discovery pass is required to prove absence. |
+| The user has no evals and wants to bootstrap them | [First eval](../eval-author-first-eval/SKILL.md) | Use the authoring welcome below, then build a suite at the agreed scope through the shared milestones. The user's statement settles the eval starting point; no discovery pass is required to prove absence. |
 | The user wants a coverage audit, with existing evals or a specification to guide future evals | [Audit](../eval-author-audit/SKILL.md) | Show the audit's five-step checklist, including generating and reviewing `audit-coverage-report.md`, and ask whether to begin; wait before Ethos work or repository inspection. Reuse an answered opening and prior progress on return. Explain what the evidence can establish; do not substitute a readiness report for the requested audit. |
 | The user is unsure whether or where evals exist | [Discovery inventory](../eval-author-discover/SKILL.md#inventory-an-uncertain-starting-point) | Report what evals exist, what they test, and their documented run instructions before Ethos or runtime setup. Finish discovery, then ask whether the user wants an audit; do not infer that next step from a general request for help. |
 | The user wants new eval recommendations based on an audit | [Dataset proposals](../eval-author-task-create/SKILL.md#step-1-propose-dataset-improvements) | Reuse the audit and its evidence for ranked proposals. A proposal-only request stops before scaffolding or execution. |
@@ -111,6 +111,12 @@ their existing sub-flow and scope. On return visits, resume the requested flow
 and reuse its completed work. Never turn an audit or recommendation request into
 the full authoring experience merely because it is the user's first visit.
 
+A request to add examples to a starter suite created by first-eval returns to
+that flow's scope stage, reusing its saved plan and source selection. Review the
+affected behaviors' breadth, difficulty, grading, and cost before expansion;
+do not restart onboarding or require an audit unless coverage measurement is
+requested. Audit-based gap creation still uses `eval-author-task-create`.
+
 ## Show the path ahead
 
 Use this opening for a fresh authoring request after selecting first-eval.
@@ -129,7 +135,7 @@ retain the labels:
 
 - [ ] **Understand your agent** — establish its purpose, boundaries, and what success looks like.
 - [ ] **Get Harbor ready** — explain the evaluation framework and verify the tooling.
-- [ ] **Draft your first evals** — choose a few meaningful cases, expected outcomes, and grading criteria.
+- [ ] **Draft your first evals** — agree on examples, coverage scope, expected outcomes, and grading criteria.
 - [ ] **Get the evals running** — prepare the environment, connect the agent, and validate the setup.
 - [ ] **Run and review** — evaluate the agent, explain results, and show how to rerun.
 
@@ -147,8 +153,9 @@ Render only the five visible steps in the user checklist. This grouping changes
 presentation only: preserve every internal stage's order, work, check-ins, and
 authorization requirements. Mark a visible step `[x]` only when all its internal
 stages are complete; mark the step containing the current internal stage
-**We're here**. A starting point already settled by the user or discovery completes that
-internal stage, but does not complete **Draft your first evals**.
+**We're here**. Reuse a starting point already settled by the user or discovery;
+first-eval also settles which traces, if any, to use before completing that
+internal stage. This does not complete **Draft your first evals**.
 
 End with “Ready to get started?” and wait. Do not follow the opening with tool
 calls in the same turn. After acceptance, read
@@ -211,7 +218,7 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 
 | Sub-flow | Use it to |
 |---|---|
-| `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and set up a small working suite while teaching the user how to run and extend it |
+| `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and build or expand a starter suite at the agreed breadth while teaching the user how to run it |
 | `eval-author-discover` | Establish whether a repository's evaluations run, name the rung that fails, and get the exact command to run them |
 | `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Gym or Harbor task and prove it with native controls and repeated measured runs |

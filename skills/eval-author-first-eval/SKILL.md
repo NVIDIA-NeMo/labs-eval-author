@@ -1,13 +1,14 @@
 ---
 name: eval-author-first-eval
 description: >-
-  Help a user with no evals establish a required Ethos, plan evaluation cases,
-  and set up a small working Harbor suite while explaining its parts. No prior
+  Establish a required Ethos, plan evaluation cases, and build first evals or
+  expand a starter Harbor suite while explaining its parts. No prior
   traces or coverage reports are required. Missing Harbor blocks scaffolding
   and execution, not planning.
 triggers:
   - help me build my first evals
   - my agent has no evals yet
+  - expand the starter eval suite we created
   - create an evaluation suite from scratch
 not-for:
   - eval-author (use for the shared standard and routing)
@@ -43,12 +44,19 @@ milestone; inventory alone does not establish Ethos or Harbor readiness. Enter
 stage 4 only when the first three milestones and applicable check-ins are settled.
 Do not repeat completed work or restart an existing intent interview.
 
+When the user asks to expand a starter suite created here, resume at scope
+planning for the affected behaviors. Reuse the saved plan, corpus, Ethos, setup,
+and accepted cases; recheck prerequisites only where the change affects them.
+Do not restart onboarding or require an audit merely to add agreed examples.
+Requested coverage measurement still belongs to `eval-author-audit`.
+
 No evals is a normal starting state. Do not require a previous run or manufacture
 a coverage report to enter `eval-author-task-create`. The initial deliverable is
-a small working suite the user understands and can rerun. Modest coverage is
-acceptable: comprehensive coverage, difficult cases, repeated agent success, and
-trace-driven optimization are not prerequisites. A working suite and strong
-evaluation quality are separate claims.
+a working suite at the agreed breadth that the user understands and can rerun.
+A minimal pilot is acceptable when explicitly chosen; comprehensive coverage,
+repeated agent success, and trace-driven optimization are not prerequisites.
+Include difficult cases when relevant to the agreed behavior and purpose.
+A working suite and strong evaluation quality are separate claims.
 
 ## 1. Establish the agent’s Ethos
 
@@ -75,6 +83,15 @@ outcome concretely: a starter eval set of customer scenarios
 with criteria for scoring responses, which the user can rerun after changes to
 detect improvement or regression.
 
+Read [Corpus and coverage planning](../eval-author/references/coverage-planning.md#select-trace-evidence-before-using-it)
+before trace search or inspection. Present already-known source candidates and
+confirm the intended source and corpus, or reuse the user's explicit selection.
+Support proceeding without traces. Knowing there are no evals does not settle
+the trace choice. Carry the selected paths, bounds, exclusions, and inspected
+counts into the plan; repository examples must not become the full corpus by
+default. Save this selection and current progress in `.eval-author/first-eval.md`
+as soon as established, even before the case plan is complete.
+
 Use “starter eval set” for the collection and “eval case” for each scenario.
 Introduce a case as a request with criteria for scoring the response. Reserve
 “sanity checks” for validation of the cases themselves; use Harbor's technical
@@ -83,9 +100,11 @@ term “task” when discussing its files or CLI.
 ## 4. Define the evaluation scope
 
 Read the agent entry point, tool definitions, and usage docs to understand how
-the actual agent runs. Aim for two or three simple representative cases from Ethos,
-adjusting to the user's scope and available resources rather than enforcing a quota:
-the user request, initial fixture, expected observable outcome, a meaningful
+the actual agent runs. Follow [Corpus and coverage planning](../eval-author/references/coverage-planning.md)
+to propose breadth per behavior from Ethos and the selected evidence. Explain
+a minimal pilot or broader coverage in terms of distinct examples, meaningful
+variations and difficulty, positive and negative scenarios, and remaining gaps.
+Include the request, initial fixture, expected observable outcome, a meaningful
 failure example, and the Ethos requirement each case tests. Ask only for intent
 or invocation details not already established. Do not make the user supply
 Harbor YAML or choose a framework.
@@ -95,13 +114,17 @@ process, use [Execution dependencies](../eval-author/references/execution-depend
 to establish the selected cases' runtime and result-collection requirements.
 
 Save `.eval-author/first-eval.md` with the Ethos path and requirement references,
-cases, agent invocation, planned verifiers, prerequisites,
-and unresolved questions. This is an **evaluation plan**, not a coverage report
+selected corpus (or no-trace choice), per-behavior scope and example counts,
+outcomes and grading, priorities, exclusions, task/attempt mapping, cost
+implications, agent invocation, prerequisites, and unresolved questions.
+Separate proposed choices from the user's agreement and record subsequent feedback.
+This is an **evaluation plan**, not a coverage report
 or runnable evals.
 
-Start with a reproducible happy path, then a useful variation or expected failure
-when supported by Ethos. Grade an observable result rather than a specific tool
-call or exact prose. Simple assertions are acceptable if their limits are clear.
+Use reproducible inputs and variations supported by Ethos and the agreed scope,
+including semantically justified difficult negatives where relevant. Grade an
+observable result rather than a specific tool call or exact prose. Simple
+assertions are acceptable if their limits are clear.
 Do not replace subjective quality with brittle string
 matching or mock away the behavior under test. If the requested case cannot be
 tested with available resources, explain the limitation and select a supported
@@ -111,12 +134,18 @@ Without Harbor, the deliverable at this point is the evaluation plan; native
 task creation remains blocked on setup.
 
 Present the plan using the shared [scope checkpoint](../eval-author/references/milestone-checkins.md#scope-checkpoint).
+Settle unresolved scope choices and incorporate changes before preparing cases.
+When expanding, record retained and added examples and the new unique totals;
+the pilot's size does not determine the expansion's scope.
 
 ## 5. Prepare cases and grading
 
 Require a working Harbor CLI and Python environment. Read its
 `harbor task init --help` and `harbor run --help` before using options. Use an
-unused descriptive slug for each selected case under `.eval-author/task-drafts/`.
+unused descriptive slug for each planned task under `.eval-author/task-drafts/`.
+Create the agreed examples and map their stable IDs to tasks; one task may
+contain several examples. Keep source provenance and expected-label rationale
+in the plan or verifier-only data, outside the agent's starting environment.
 Start with one representative task and check its available parts before reusing
 the pattern. If its live environment or agent connection is pending, continue
 independent case and grading work for the other selected tasks. For each task:
@@ -166,7 +195,9 @@ performance of the user's agent remains unmeasured.
 
 When supported, write `.eval-author/first-eval.yaml` using the installed Harbor
 JobConfig schema: explicitly select the working starter tasks, the actual agent
-and model settings, one attempt per task, and jobs under `.eval-author/jobs/`.
+and model settings, the agreed attempts per task, and jobs under `.eval-author/jobs/`.
+Propose one attempt for an initial baseline unless the purpose needs repeats;
+record the choice and its cost during scope planning. Repeats do not add examples.
 Do not include unrelated drafts merely because they share a parent directory.
 Resolve paths from the repository
 root and reference credential environment variables rather than embedding secrets.
@@ -211,8 +242,10 @@ is runnable from YAML presence.
 ## 9. Evaluate the agent
 
 Confirm that the resolved task set matches the selected starter tasks. Explain
-the selected task count and where rewards and errors will appear.
-Once validated, show the tasks, agent, model, and one-attempt-per-task command.
+the selected task count, distinct examples, attempts, execution-cost assumptions,
+and where rewards and errors will appear. Check that task packaging still
+executes the agreed examples. Once validated, show the tasks, agent, model,
+and command with the agreed attempt settings.
 For authorized execution, run from the repository root:
 
 ```bash
@@ -228,6 +261,13 @@ Update `.eval-author/first-eval.md` with exact commands, artifact paths, control
 results, per-task agent rewards and exceptions, and remaining blockers. Show how
 to rerun the suite, inspect one result, and add or modify a task. Label rerun
 commands as task sanity checks or actual agent evaluation.
+
+Reconcile agreed versus delivered examples per behavior using
+[Expand and reconcile](../eval-author/references/coverage-planning.md#expand-and-reconcile).
+Separate generated, validated, and executed counts and name omissions, changed
+fixtures, and remaining gaps. Repeated attempts never increase example totals.
+Render the final five-step checklist, checking every completed step and leaving
+blocked or partial steps open with their next action.
 
 The working-suite deliverable is reached when the selected starter tasks execute
 and record rewards through a validated config, even if the agent scores poorly

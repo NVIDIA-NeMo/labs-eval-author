@@ -98,6 +98,13 @@ verdict with model judgment.
 
 ## Step 1: propose dataset improvements
 
+Use the shared [Coverage planning](../eval-author/references/coverage-planning.md)
+procedure for source scope, priorities, and proposed example breadth. Reuse the
+audit's confirmed corpus and exclusions when inspecting evidence; a discovered
+path is not permission to include another corpus. Ask about an unresolved source
+before searching or reading it. Proposal-only work can use the available reviewed
+findings without requiring new traces or a creation-scope checkpoint.
+
 When available, read the **Audit coverage report** (`.eval-author/audit-coverage-report.md`)
 for test mappings, findings, limitations, and agreed next actions. Check its applicability
 against the underlying specification and reports; a mapped test does not establish
@@ -136,7 +143,9 @@ measurement status. Failure cases remain ineligible for automatic tool-gap gener
 Write recommendations to `.eval-author/proposals/dataset-recommendations.md` as
 skill-authored analysis; keep the generated coverage JSON unchanged. Rank by
 expected value and strength of evidence, explaining why the first action comes
-first. Prefer a short, useful list over one suggestion per uncovered item.
+first. Apply established user priorities, including cost when relevant, and
+distinguish them from suggested priorities still awaiting review. Prefer a short,
+useful list over one suggestion per uncovered item.
 For each recommendation, include:
 
 - **Change and scenario:** add a task, strengthen a named existing task, retain
@@ -148,6 +157,10 @@ For each recommendation, include:
 - **Basis and evidence:** the category above, stable audit item names, and task,
   run, trace-step, judgment, or verifier references supporting the recommendation.
   Mark proposed fixture details as proposals, not observed facts.
+- **Proposed breadth:** the distinct input examples, behavior variations,
+  difficulty, positive and negative scenarios, expected outcomes, exclusions,
+  and cost assumptions that would make this recommendation useful. Label counts
+  and tradeoffs as provisional until agreed; repeated runs are not new examples.
 - **Next action:** say whether the suggestion is eligible for automatic tool-gap
   task creation, needs manual task design, or needs more measurement. A written
   recommendation is not a generated, validated, or accepted Gym or Harbor task.
@@ -185,6 +198,29 @@ measurement directories. Use those paths verbatim for the rest of this flow.
 Do not invent alternate slugs or filenames.
 
 ## Step 3: design the smallest objective task
+
+Before generating task instructions, fixtures, or scaffolds, use the shared
+[coverage-planning checkpoint](../eval-author/references/coverage-planning.md).
+Resolve Gym or Harbor from the user's request and existing suite when mapping
+the scope to execution counts; Gym repeats selected dataset rows, while Harbor
+repeats tasks. Keep estimates conditional if that choice remains open.
+Present the proposed priorities and breadth for review, including an option to
+start with a minimal pilot and expand. Reuse already agreed scope rather than
+asking again. Save the agreement in
+`.eval-author/proposals/dataset-recommendations.md`: selected corpus and exclusions,
+priorities and cost constraints, distinct input-example counts per behavior,
+variations and difficulty, positive and negative scenarios, expected outcomes,
+and pilot or expansion status. Keep this planning record out of the agent-facing
+instruction file. Answer questions or complete scoped detours, then resume this
+checkpoint with the existing decisions intact.
+
+Explain how the agreement maps to the selected tool gap. The deterministic
+pipeline creates one tool-gap draft at a time; repeated runs test closure on
+the selected inputs and do not add distinct input examples. Keep any agreed
+examples beyond the current draft visible as pending work. A capability or
+failure-case proposal outside the generator's support remains an explicit gap
+requiring manual design, not a completed example or a relabeled tool gap.
+If the reviewed priorities change the target, return to Step 2 before generation.
 
 Read the selected item's `description`, `focus`, `needed_tools`, and
 `evidence_required`. Read one nearby task for domain conventions only. Do not
@@ -289,6 +325,10 @@ uv run --with-requirements <audit_skill_dir>/requirements.txt \
 
 Repeat for trial 2.
 
+These newly generated trials are evidence for the selected draft. Retain their
+relationship to the agreed examples separately from the original selected
+corpus; do not silently add them to or replace that corpus in an audit report.
+
 ## Step 8: accept only deterministic closure
 
 ```bash
@@ -302,6 +342,16 @@ uv run <skill_dir>/scripts/task_pipeline.py verify \
 Accept the draft only when `accepted` is `true`. Report native control rewards, both
 real-agent rewards, both run/trace paths, and the verify JSON. If either repeat
 misses the tool, revise the task and rerun both attempts.
+
+At the handoff, reconcile agreed scope with delivered examples in
+`.eval-author/proposals/dataset-recommendations.md`, including partial or blocked
+work. Show planned and delivered distinct input counts per behavior, links to
+their tasks, and generated, validated, and actually executed examples separately.
+Include completed checks and run evidence, remaining variations or outcomes,
+and any changed exclusions or cost constraints. Separate deterministic tool-gap
+closure from the wider behavior coverage agreement. Reuse the shared planning
+checkpoint before an expansion changes scope; keep pending expansion visible
+without claiming the pilot completes it.
 
 ## Prerequisites
 
@@ -317,9 +367,10 @@ before starting those jobs.
 
 The generator handles one eligible tool gap at a time; capabilities and failure
 cases can inform proposals but are not automatic task-generation inputs.
-Two passing measured repeats prove closure only for those runs. An uncovered
-item alone cannot distinguish missing scenarios, missing evidence, and agent
-failure. Proposal-only requests end before scaffolding or execution.
+Two passing measured repeats prove closure only for those runs; distinct example
+counts come from the task's inputs, not its repeats. An uncovered item
+alone cannot distinguish missing scenarios, missing evidence, and agent failure.
+Proposal-only requests end before scaffolding or execution.
 
 ## Troubleshooting
 
