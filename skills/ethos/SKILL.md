@@ -8,7 +8,7 @@ triggers:
 not-for:
   - eval-author (use for evaluation workflow routing)
   - eval-author-audit (use to measure coverage against an existing Ethos)
-compatibility: Local Markdown authoring; no platform services, credentials, or runtime dependencies required.
+compatibility: Local Markdown authoring with file reading and writing tools.
 maturity: alpha
 license: Apache-2.0
 user-invocable: true
@@ -24,11 +24,10 @@ how to judge success. Implementation and traces show what it currently does;
 they do not establish what its owner intends. Explore the implementation, ask
 for missing intent, then write and review the document in this one workflow.
 
-This skill works locally with an existing or proposed agent. It requires no
-NeMo Platform account, CLI, Filesets, Harbor, model selection, or deployment.
-The local file is the output. Do not upload it or change the agent, model,
-runtime, or evaluation scoring as part of capturing intent. Recording change
-permissions does not authorize exercising them. Do not commit automatically.
+This skill works locally with an existing or proposed agent and saves the result
+as `ETHOS.md`. Keep changes scoped to that document, preserving the agent, model,
+runtime, and evaluation scoring. Recording change permissions does not authorize
+exercising them. Do not commit automatically.
 
 When another workflow calls this skill, honor its selected agent, explicit
 paths, write boundaries, and review checkpoints. Return to that workflow's
@@ -36,16 +35,15 @@ next unfinished step; do not start an optimization or build workflow yourself.
 
 ## Locate and explore
 
-1. Use an explicit Ethos path first, then root `ETHOS.md`, then a matching
-   `agents/<name>-ethos/ETHOS.md`. Resolve ambiguous agent identity with the
-   user. Reuse a substantive existing document and its review state; a request
-   to update one section does not require restarting the interview. Preserve
+1. Use an explicit Ethos path when supplied; otherwise use root `ETHOS.md`.
+   Resolve ambiguous agent identity with the user. Reuse a substantive existing
+   document and its review state; a request to update one section does not require
+   restarting the interview. Preserve
    custom sections, unknown frontmatter keys, and unrelated user edits.
 2. For a missing or incomplete document, read the root README, directly named
    product docs, prompts, entrypoints, tool registrations, and runtime config
    relevant to this agent. Keep the scan bounded. For a proposed agent, work
-   from the user's description and any design documents. Existing
-   `AGENT-SPEC.md` files and prior interview notes are useful starting answers.
+   from the user's description, design documents, and prior interview notes.
 3. Separate implementation facts from intended behavior. Infer Tools, Harness,
    and existing Evaluation Setup from source, and label their provenance. A
    framework import is not evidence of how the harness executes. Existing
@@ -212,7 +210,7 @@ or _(none)_.>
 Default to `<repo-root>/ETHOS.md`, or the caller's chosen local path. Make
 focused edits to existing documents. Do not replace custom content with the
 outline. If the requested path is not writable, keep the answers and provide
-the complete proposed content plus the local error; do not fall back to uploads.
+the complete proposed content plus the local error.
 
 Read back the exact saved file and verify:
 
@@ -226,8 +224,7 @@ Read back the exact saved file and verify:
    answers. Inferences and unknowns remain visible.
 
 Use an existing safe YAML parser if available, otherwise perform structural
-inspection and report that limitation. Do not install a platform parser or
-contact services solely to check a document. These checks establish structure
+inspection and report that limitation. These checks establish structure
 and consistency, not evaluation coverage.
 
 Present a short summary of role, mission, scope, principles, and direction, link

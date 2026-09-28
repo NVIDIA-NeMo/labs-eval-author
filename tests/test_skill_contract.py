@@ -2426,7 +2426,6 @@ def test_audit_generate_explains_missing_ethos_with_bundled_skill_path(tmp_path:
     assert "docs.nvidia.com" not in result.stderr
     assert "skills/eval-author/references/local-ethos.md" in result.stderr
     assert "Save ETHOS.md in the repository and review its contents" in result.stderr
-    assert "No platform service or upload is required" in result.stderr
     assert "nemo-explore" not in result.stderr
     assert "nemo-ethos" not in result.stderr
     assert "Traceback" not in result.stderr

@@ -154,7 +154,7 @@ def _read_ethos(path: Path) -> bytes:
             "- Use Eval Author's Local Ethos procedure "
             "(skills/eval-author/references/local-ethos.md), or follow the bundled Ethos skill listed above.\n"
             "- Save ETHOS.md in the repository and review its contents before generating audit items.\n"
-            "- Then rerun this command with --ethos <path>. No platform service or upload is required."
+            "- Then rerun this command with --ethos <path>."
         ) from exc
     except OSError as exc:
         raise AuditSpecError(
