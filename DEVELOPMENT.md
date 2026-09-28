@@ -39,15 +39,6 @@ For standalone Gym trace conversion, see
 The portable [`ethos` skill](skills/ethos/SKILL.md) lives in Eval Author and
 ships with its other skills. It combines exploration, intent questions, local
 `ETHOS.md` authoring, and review in one file, including the schema-v1 outline.
-Other projects, including Trace Intel, can use this skill from Eval Author;
-no second repository or platform service is needed.
-
-Adapted from NeMo Platform's `nemo-explore`, `nemo-ethos`, and
-`nemo-ethos/references/templates/ethos.md` at commit
-`08128e6d0e1248928d4d4152a39bc06360ca74b1` (September 18, 2026), under
-`packages/nemo_platform_ext/src/nemo_platform_ext/skills/`. Original source
-files remain unchanged. The copy retains the fifteen-section schema and removes
-platform setup, model selection, Filesets uploads, and build handoffs.
 
 ## Public Trace Intel dependency
 
