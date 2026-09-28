@@ -4,30 +4,39 @@
 # Local Ethos for Eval Author
 
 This procedure owns locating, checking, creating, and reviewing the repository's
-`ETHOS.md`. All operations are local: do not upload it, create Filesets, probe NeMo
-services, require an account/workspace, or invoke platform Ethos, exploration, or
-model-selection workflows. Capturing intent needs no installed NeMo skills, CLI,
-Harbor, or credentials. The caller owns when this prerequisite is required.
+`ETHOS.md`. Read and write the document locally. The caller owns when this
+prerequisite is required.
 When called from a fresh guided audit, begin only after its opening has ended
 and the user has replied to continue. Loading this procedure alongside the audit
 skill does not authorize starting its reads, validation, or generation early.
+
+## Bundled authoring skill
+
+For new or revised intent, load the sibling [ethos skill](../../ethos/SKILL.md).
+It combines repository exploration, intent questions, authoring, and review in
+one file with an inline schema-v1 outline. Pass the selected agent, existing
+answers, chosen local path, and review state. The procedure below supplies
+Eval Author's introduction, write boundaries, and milestone checkpoints; use
+one interview and preserve those caller-specific requirements. Return with the
+saved path, gaps, checks, and review state before continuing Eval Author.
+An already suitable Ethos can go directly through the locate-and-reuse checks.
+The skill ships with Eval Author.
 
 ## Introduce Ethos
 
 Before checking or creating the document, explain in ordinary language that
 Ethos records what the agent should do, what it should avoid, and what a good
 result looks like. Evals and audits use this as their target. Link the
-[Ethos documentation](https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos)
+[bundled Ethos skill](../../ethos/SKILL.md)
 and make the explanation concrete for the selected agent. This introduction also
 applies when reusing an existing file; do not assume familiarity with the term.
 Reuse an introduction already given in the current flow.
 
 ## Locate and reuse
 
-Use the caller's explicit path first; otherwise prefer root `ETHOS.md`, then an
-existing `agents/<name>-ethos/ETHOS.md` matching the selected agent. Read the file
-and apply the checks below. Resolve ambiguous agent identity or multiple matching
-files with the user. A suitable unchanged document can be returned without another
+Use the caller's explicit path when supplied; otherwise use root `ETHOS.md`.
+Read the file and apply the checks below. Resolve ambiguous agent identity with
+the user. A suitable unchanged document can be returned without another
 interview or content approval; still honor the caller's introduction and milestone
 check-in, including a guided audit's linked summary and opportunity to edit it.
 File presence, empty placeholders, README content,
@@ -41,7 +50,7 @@ conversations, or run Harbor to establish the agent's identity and purpose.
 For a new document, default to `<repo-root>/ETHOS.md` or the user's chosen in-repo
 location under the core's narrow Ethos write exception. Preserve existing content,
 custom sections, and edits. Reuse prior interview answers, including saved
-`.eval-author/intent-notes.md`; a failed upload does not invalidate a local file.
+`.eval-author/intent-notes.md`.
 Do not commit automatically. Recording change permissions does not itself change
 the agent, prompts, model, or runtime.
 
@@ -92,11 +101,10 @@ Read back the exact file and check:
    implementation references do not establish user approval.
 
 If the caller has execution tools and an existing local interpreter supports YAML,
-use its safe loader for frontmatter; otherwise use structural inspection. Do not
-load an execution sub-flow solely to obtain a parser, install a platform validator,
-or contact a service. Report whether checks were structural inspection or
-parser-backed, and fix local errors before calling the document complete. These
-checks do not prove evaluation coverage.
+use its safe loader for frontmatter; otherwise use structural inspection.
+Report whether checks were structural inspection or parser-backed, and fix local
+errors before calling the document complete. These checks do not prove evaluation
+coverage.
 
 Present newly authored or revised content for review: link the saved file,
 summarize its role, outcome, boundaries, and open questions, then name the caller's
@@ -123,8 +131,7 @@ review state to the caller, which handles its next milestone.
 
 If writing fails, preserve confirmed answers in the conversation or an existing
 writable `.eval-author/intent-notes.md`. Explain the local error, provide the
-complete proposed content and the Ethos documentation link above, and ask for the
+complete proposed content and the bundled Ethos skill link above, and ask for the
 saved path if the user must save it themselves. A user who prefers to create the
-file can also supply that path. The linked platform documentation does not change
-this local-only procedure. Missing intent calls for a focused question; local
-filesystem problems call for local recovery, not a platform restart or upload.
+file can also supply that path. Missing intent calls for a focused question;
+filesystem problems call for local recovery.

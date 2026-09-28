@@ -18,8 +18,7 @@ Show me the plan first, and explain the cases and how they will be graded.
 
 Eval Author first helps you establish an **Ethos**: a local document describing
 your agent's purpose, boundaries, and success criteria. It can reuse an existing
-`ETHOS.md` or help you create and review one. This step needs no NeMo Helix
-account or service.
+`ETHOS.md` or help you create and review one.
 
 The initial plan usually contains two or three representative cases. Each case
 defines a request, the starting data or environment, an expected outcome, and
