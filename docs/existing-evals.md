@@ -56,7 +56,7 @@ does not answer that question.
 
 After acceptance, Eval Author explains **Ethos**: the document recording what
 your agent should do, its boundaries, and what success means, which gives the
-audit its target. It links the [Ethos documentation](https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos)
+audit its target. It links the [shared Ethos skill](https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/776d12a477c29ffed5276eaebcf8ace66378f896/.agents/skills/ethos/SKILL.md)
 even when a document already exists. An existing Ethos is linked as soon as it is
 found, with a short explanation of its intent and an opportunity to request edits
 before it becomes the audit baseline.

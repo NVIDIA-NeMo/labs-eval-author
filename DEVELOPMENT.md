@@ -34,6 +34,18 @@ The experimental trace-environment skill documents its
 For standalone Gym trace conversion, see
 [`gym-to-atif`](skills/gym-to-atif/SKILL.md).
 
+## Shared Ethos authoring
+
+Eval Author's [local Ethos handoff](skills/eval-author/references/local-ethos.md)
+points to Trace Intel's portable
+[`ethos` skill](https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/776d12a477c29ffed5276eaebcf8ace66378f896/.agents/skills/ethos/SKILL.md),
+pinned to a specific source revision. It combines the former NeMo Platform
+exploration and authoring skills into one local workflow. The bundled procedure
+and template remain an offline fallback, so installing Eval Author alone still
+works. No Python dependency or platform service is added. When updating the pin,
+review its schema and local-only contract and update the handoff, user guidance,
+and audit recovery link together.
+
 ## Public Trace Intel dependency
 
 The development dependencies include `trace-ingest[mlflow]` pinned to an exact

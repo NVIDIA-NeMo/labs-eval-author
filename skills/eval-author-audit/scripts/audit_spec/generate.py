@@ -24,7 +24,10 @@ _MARKED_BLOCK_RE = re.compile(
     rf"(?ms)^(?P<begin>[ \t]*{re.escape(BEGIN_MARKER)}[ \t]*\n).*?"
     rf"^(?P<end>[ \t]*{re.escape(END_MARKER)}[ \t]*$)"
 )
-ETHOS_DOCS_URL = "https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos"
+ETHOS_SKILL_URL = (
+    "https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/"
+    "776d12a477c29ffed5276eaebcf8ace66378f896/.agents/skills/ethos/SKILL.md"
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -149,10 +152,10 @@ def _read_ethos(path: Path) -> bytes:
             f"Missing file: {path}\n\n"
             "ETHOS.md records intended behavior, mission, constraints, success and failure criteria, "
             "and what may change.\n\n"
-            f"Docs: {ETHOS_DOCS_URL}\n\n"
+            f"Ethos skill: {ETHOS_SKILL_URL}\n\n"
             "Next steps:\n"
             "- Use Eval Author's Local Ethos procedure "
-            "(skills/eval-author/references/local-ethos.md), or author ETHOS.md from the documentation.\n"
+            "(skills/eval-author/references/local-ethos.md), or follow the shared Ethos skill linked above.\n"
             "- Save ETHOS.md in the repository and review its contents before generating audit items.\n"
             "- Then rerun this command with --ethos <path>. No platform service or upload is required."
         ) from exc
@@ -163,7 +166,7 @@ def _read_ethos(path: Path) -> bytes:
             "generate an audit coverage report.\n\n"
             f"Unreadable file: {path}\n"
             f"Error: {exc}\n\n"
-            f"Docs: {ETHOS_DOCS_URL}\n\n"
+            f"Ethos skill: {ETHOS_SKILL_URL}\n\n"
             "Next steps:\n"
             "- Fix read access for the Ethos file, then rerun this command.\n"
             "- Or pass a readable Ethos path with --ethos <path>."

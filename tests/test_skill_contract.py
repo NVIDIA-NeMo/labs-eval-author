@@ -2389,7 +2389,7 @@ def test_audit_generate_rejects_outputs_outside_eval_author(tmp_path: Path) -> N
     assert out.read_text(encoding="utf-8") == "customer source must stay intact\n"
 
 
-def test_audit_generate_explains_missing_ethos_with_docs_link(tmp_path: Path) -> None:
+def test_audit_generate_explains_missing_ethos_with_shared_skill_link(tmp_path: Path) -> None:
     items = tmp_path / "items.yaml"
     _write_audit_items(items, _template_payload()["items"])
     out = tmp_path / ".eval-author" / "audit.md"
@@ -2410,10 +2410,11 @@ def test_audit_generate_explains_missing_ethos_with_docs_link(tmp_path: Path) ->
     assert "before it can generate an audit coverage report" in result.stderr
     assert "ETHOS.md records intended behavior" in result.stderr
     assert "Missing file:" in result.stderr
-    assert "Docs: https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos" in result.stderr
+    assert "Ethos skill: https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/" in result.stderr
+    assert "/.agents/skills/ethos/SKILL.md" in result.stderr
     assert "Next steps:\n" in result.stderr
     assert "rerun this command with --ethos <path>" in result.stderr
-    assert "https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos" in result.stderr
+    assert "docs.nvidia.com" not in result.stderr
     assert "skills/eval-author/references/local-ethos.md" in result.stderr
     assert "Save ETHOS.md in the repository and review its contents" in result.stderr
     assert "No platform service or upload is required" in result.stderr
@@ -2424,7 +2425,7 @@ def test_audit_generate_explains_missing_ethos_with_docs_link(tmp_path: Path) ->
 
 
 @pytest.mark.skipif(os.name == "nt", reason="chmod-based unreadable-file check is POSIX-specific")
-def test_audit_generate_explains_unreadable_ethos_with_docs_link(tmp_path: Path) -> None:
+def test_audit_generate_explains_unreadable_ethos_with_shared_skill_link(tmp_path: Path) -> None:
     ethos = tmp_path / "ETHOS.md"
     ethos.write_text("# Ethos\n", encoding="utf-8")
     items = tmp_path / "items.yaml"
@@ -2449,7 +2450,8 @@ def test_audit_generate_explains_unreadable_ethos_with_docs_link(tmp_path: Path)
     assert result.stderr.startswith("Unreadable Ethos\n\n")
     assert "needs a source of truth for how the agent is supposed to behave" in result.stderr
     assert "Unreadable file:" in result.stderr
-    assert "Docs: https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos" in result.stderr
+    assert "Ethos skill: https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/" in result.stderr
+    assert "/.agents/skills/ethos/SKILL.md" in result.stderr
     assert "Next steps:\n" in result.stderr
     assert "- Fix read access for the Ethos file, then rerun this command." in result.stderr
     assert "- Or pass a readable Ethos path with --ethos <path>." in result.stderr

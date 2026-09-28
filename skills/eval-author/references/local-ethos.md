@@ -12,12 +12,28 @@ When called from a fresh guided audit, begin only after its opening has ended
 and the user has replied to continue. Loading this procedure alongside the audit
 skill does not authorize starting its reads, validation, or generation early.
 
+## Shared authoring skill
+
+For new or revised intent, use Trace Intel's
+[shared `ethos` skill](https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/776d12a477c29ffed5276eaebcf8ace66378f896/.agents/skills/ethos/SKILL.md).
+It combines repository exploration, intent questions, authoring, and review in
+one file with an inline schema-v1 outline. Load an installed `ethos` skill or
+read that pinned file when available. Pass the selected agent, existing answers,
+chosen local path, and review state; preserve this caller's write boundaries and
+milestone checkpoints. Return here with the saved path, gaps, checks, and review
+state before continuing the Eval Author workflow.
+
+If the shared skill cannot be read or the session is offline, use the bundled
+procedure and template below. Do not require an installation or network access
+just to capture intent, and do not run both interviews. An already suitable
+Ethos can go directly through the locate-and-reuse checks below.
+
 ## Introduce Ethos
 
 Before checking or creating the document, explain in ordinary language that
 Ethos records what the agent should do, what it should avoid, and what a good
 result looks like. Evals and audits use this as their target. Link the
-[Ethos documentation](https://docs.nvidia.com/nemo-helix/documentation/agents/optimize-agents/ethos)
+[shared Ethos skill](https://github.com/NVIDIA-NeMo/labs-trace-intel/blob/776d12a477c29ffed5276eaebcf8ace66378f896/.agents/skills/ethos/SKILL.md)
 and make the explanation concrete for the selected agent. This introduction also
 applies when reusing an existing file; do not assume familiarity with the term.
 Reuse an introduction already given in the current flow.
@@ -123,8 +139,8 @@ review state to the caller, which handles its next milestone.
 
 If writing fails, preserve confirmed answers in the conversation or an existing
 writable `.eval-author/intent-notes.md`. Explain the local error, provide the
-complete proposed content and the Ethos documentation link above, and ask for the
+complete proposed content and the shared Ethos skill link above, and ask for the
 saved path if the user must save it themselves. A user who prefers to create the
-file can also supply that path. The linked platform documentation does not change
+file can also supply that path. The linked skill does not change
 this local-only procedure. Missing intent calls for a focused question; local
 filesystem problems call for local recovery, not a platform restart or upload.
