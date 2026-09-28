@@ -138,3 +138,33 @@ model captures or token counts, so Gym reports CLI rollout health as `unobserved
 the test retains and checks this limitation with no health checks ignored.
 Skipped native tests do not establish Gym compatibility. A live model evaluation additionally requires the actual
 agent/model configuration and credentials.
+
+### Retained CI measurements
+
+The native Gym panel also runs daily at 07:05 UTC, without credentials or model
+calls. Use the same collector locally with a fresh output directory:
+
+```bash
+uv run --locked python tools/collect_gym_evidence.py \
+  --gym-python /path/to/Gym/.venv/bin/python --gym-root /path/to/Gym \
+  --gym-revision 3045a793346a31291d7ea4ae6af3f94a35036ce5 \
+  --output /tmp/new-gym-evidence
+```
+
+`gym-summary.json` records the source revision, clean-checkout status, exact
+panel digest (including fixture bytes and the harness dependency lock), runtime,
+individual test outcomes, control counts, and unobserved model health. Missing,
+skipped, malformed, or timed-out evidence cannot pass. The command returns
+nonzero for failed or incomplete measurements and retains a summary after
+runtime setup failures. Existing output directories are rejected.
+
+CI publishes `gym-evidence-<run-id>-<attempt>` for 90 days. JUnit, native rollout
+files, and detailed logs are retained separately as `gym-native-<run-id>-<attempt>`
+for 30 days while the repository is private. The fixtures dashboard imports only
+the aggregate summary. Downloaded artifacts are evidence, not executable inputs.
+
+For paired comparisons, `--source-root /path/to/other/checkout` changes the skill
+source under test while keeping this checkout's tests, fixtures and dependencies
+fixed. The fixtures repository's `automation/gym-benchmark/run.py` freezes both
+revisions and runs interleaved repeats. This measures compatibility only; it does
+not establish live model performance, generated-task validity or defect sensitivity.
