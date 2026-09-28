@@ -11,7 +11,8 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1]
+HARNESS_ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get("EVAL_AUTHOR_SOURCE_ROOT", HARNESS_ROOT))
 GYM_PYTHON = os.environ.get("EVAL_AUTHOR_GYM_PYTHON")
 pytestmark = pytest.mark.skipif(not GYM_PYTHON, reason="set EVAL_AUTHOR_GYM_PYTHON to an installed Gym v0.6.0+ runtime")
 
@@ -246,7 +247,7 @@ def scaffold_ng_trace_draft(tmp_path):
     assert GYM_PYTHON is not None
     resource = tmp_path / "source-resource"
     (resource / "tests").mkdir(parents=True)
-    fixtures = ROOT / "tests/fixtures/gym_ledger"
+    fixtures = HARNESS_ROOT / "tests/fixtures/gym_ledger"
     shutil.copyfile(fixtures / "app.py", resource / "app.py")
     shutil.copyfile(fixtures / "verifier_cases.jsonl", resource / "tests/verifier_cases.jsonl")
     output = tmp_path / "source-run"
@@ -310,17 +311,17 @@ def test_native_scaffold_and_validation(native_draft):
     assert validation.returncode != 0
 
 
-def test_native_http_execution_controls(tmp_path, native_draft):
+def test_native_http_execution_controls(tmp_path, native_draft, request):
     """Exercise real tool HTTP calls, native rollouts, and positive and negative controls."""
     assert GYM_PYTHON is not None
     draft, _, _, _ = native_draft
     resource_app = draft / "resources_servers/cover_ledger_total/app.py"
-    resource_app.write_bytes((ROOT / "tests/fixtures/gym_ledger/app.py").read_bytes())
+    resource_app.write_bytes((HARNESS_ROOT / "tests/fixtures/gym_ledger/app.py").read_bytes())
     (resource_app.parent / "tests/verifier_cases.jsonl").write_bytes(
-        (ROOT / "tests/fixtures/gym_ledger/verifier_cases.jsonl").read_bytes()
+        (HARNESS_ROOT / "tests/fixtures/gym_ledger/verifier_cases.jsonl").read_bytes()
     )
     dataset = draft / "environments/cover_ledger_total/data/example.jsonl"
-    dataset.write_bytes((ROOT / "tests/fixtures/gym_ledger/data.jsonl").read_bytes())
+    dataset.write_bytes((HARNESS_ROOT / "tests/fixtures/gym_ledger/data.jsonl").read_bytes())
     validation = subprocess.run(
         [
             str(Path(GYM_PYTHON).with_name("gym")),
@@ -337,11 +338,13 @@ def test_native_http_execution_controls(tmp_path, native_draft):
     )
     assert validation.returncode == 0, validation.stdout + validation.stderr
     assert json.loads(validation.stdout)["datasets"][0]["rows"] == 2
-    output = tmp_path / "controls"
+    # The CI collector retains native evidence outside pytest's temporary tree.
+    evidence = os.environ.get("EVAL_AUTHOR_GYM_EVIDENCE")
+    output = Path(evidence) / request.node.callspec.id if evidence else tmp_path / "controls"
     result = subprocess.run(
         [
             GYM_PYTHON,
-            str(ROOT / "tests/fixtures/gym_ledger/smoke.py"),
+            str(HARNESS_ROOT / "tests/fixtures/gym_ledger/smoke.py"),
             "--output",
             str(output),
             "--resources-app",

@@ -153,3 +153,62 @@ scripted controls does not establish model-call capture or measured performance.
 
 Skipped native tests do not establish Gym compatibility. A live model evaluation additionally requires the actual
 agent/model configuration and credentials.
+
+### Retained CI measurements
+
+CI runs daily at 07:05 UTC: Tier 1 static evaluation, the Python 3.12/3.13 test
+matrix, and native Gym compatibility for audit, ATIF trace, and `ng_trajectory`
+inputs. Each Gym route runs independently; a failure in one does not cancel the
+others. Daily runs have their own concurrency group so a push cannot cancel them.
+No inference credentials or model calls are used. Tier 2/3 live evaluation keeps
+its existing approval controls and is not scheduled by this workflow.
+
+The schedule becomes active after the workflow lands on `main`. GitHub schedules
+are best-effort and may be delayed or dropped; use **Actions → CI → Run workflow**
+for a missed run. See [GitHub's schedule documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+Use the same collector locally with a fresh output directory per route:
+
+```bash
+uv run --locked python tools/collect_gym_evidence.py \
+  --gym-python /path/to/Gym/.venv/bin/python --gym-root /path/to/Gym \
+  --gym-revision 3045a793346a31291d7ea4ae6af3f94a35036ce5 \
+  --route ng-trajectory --output /tmp/new-gym-ng-trajectory-evidence
+```
+
+`--route` accepts `audit` (the default), `trace`, or `ng-trajectory`. Each run
+requires both native tests and the controls for that specific route; evidence
+from another route cannot substitute for it.
+
+`gym-summary.json` records the source route, source revision, clean-checkout status, exact
+panel digest (including fixture bytes and the harness dependency lock), runtime,
+individual test outcomes, control counts, and unobserved model health. Missing,
+skipped, malformed, or timed-out evidence cannot pass. The command returns
+nonzero for failed or incomplete measurements and retains a summary after
+runtime setup failures. Existing output directories are rejected.
+
+CI retains separate aggregate artifacts for 90 days:
+
+| Input route | Artifact prefix | Protocol |
+| --- | --- | --- |
+| Audit | `gym-evidence` | `gym-ledger-controls-v1` |
+| ATIF trace | `gym-trace-evidence` | `gym-trace-ledger-controls-v1` |
+| Gym rollout attachment | `gym-ng-trajectory-evidence` | `gym-ng-trajectory-ledger-controls-v1` |
+
+Each name ends with `-<run-id>-<attempt>`. JUnit, native rollouts, and detailed
+logs use the corresponding `*-native` prefix and are retained for 30 days only
+while the repository is private. These include pytest's synthetic `.eval-author`
+workspaces with source rollouts, conversions, and task drafts. Missing summaries
+fail the upload step.
+
+The audit artifact retains the schema, check names, and counters expected by the
+companion fixtures importer. The trace artifacts are separate measurements;
+the current audit importer does not ingest them. Download them directly from
+the CI run. Future dashboard ingestion must recognize their distinct protocols
+rather than combine them with audit results. Downloaded artifacts are evidence,
+not executable inputs.
+
+For paired comparisons, `--source-root /path/to/other/checkout` changes the skill
+source under test while keeping this checkout's tests, fixtures and dependencies
+fixed. The fixtures repository's `automation/gym-benchmark/run.py` freezes both
+revisions and runs interleaved repeats. This measures compatibility only; it does
+not establish live model performance, generated-task validity or defect sensitivity.

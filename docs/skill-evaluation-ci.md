@@ -11,12 +11,17 @@ replace the required unit tests, lint, or type checks.
 
 | Check | Purpose | When it runs |
 | --- | --- | --- |
-| Tier 1 | Static checks of skill structure, code, security, and documentation quality | Same-repository PRs targeting `main` and pushes to `main` |
+| Tier 1 | Static checks of skill structure, code, security, and documentation quality | Same-repository PRs targeting `main`, pushes to `main`, manual CI dispatch, and daily at 07:05 UTC |
 | Tier 2 | Model-assisted context and similarity analysis | Approved live runs on `main` |
 | Tier 3 | Bounded agent evaluations using reviewed synthetic datasets | Approved live runs on `main` |
 
 Pull requests also receive a credential-free coverage plan. They do not run
 live inference. Fork PRs are excluded from these evaluation workflows.
+Daily CI also runs the Python test matrix and three independent native Gym
+input routes. Gym summaries remain separate from SkillEvaluator artifacts; see
+[retained CI measurements](../DEVELOPMENT.md#retained-ci-measurements). The daily
+schedule starts after merge to `main` and does not enable live model evaluations.
+
 Tier 3 requires a skill-owned `evals/evals.json`; missing datasets are reported
 as skipped rather than treated as successful evaluations.
 
