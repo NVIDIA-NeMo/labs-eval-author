@@ -137,5 +137,19 @@ Positive, no-action, and wrong-answer policies are explicitly scripted controls;
 their rewards do not measure model performance. The scripted endpoint emits no
 model captures or token counts, so Gym reports CLI rollout health as `unobserved`;
 the test retains and checks this limitation with no health checks ignored.
+The `ng-trajectory` cases first produce real Gym rollout attachments, retain one
+JSONL row with both the attachment loader and Responses-to-ATIF converter, then
+build and exercise a new native task from that evidence. They also verify that
+an attachment-only input is rejected by the ATIF converter. To select this path:
+
+```bash
+EVAL_AUTHOR_GYM_PYTHON=/path/to/Gym/.venv/bin/python uv run --locked pytest -q tests/test_gym_native.py -k ng-trajectory
+```
+
+Use pytest's `--basetemp` with a fresh private directory to retain the source
+rollouts, conversion receipts, drafts, and controls for inspection; pytest
+clears that directory at the start of a run. Attachment capture in these
+scripted controls does not establish model-call capture or measured performance.
+
 Skipped native tests do not establish Gym compatibility. A live model evaluation additionally requires the actual
 agent/model configuration and credentials.

@@ -15,6 +15,30 @@ requirements, recorded or explicitly reconstructed state, and objective binary
 execution verification. A source rollout's reward or final answer is not an
 independent oracle. Do not change these rules to fit a Gym template.
 
+## Start from a rollout with ng_trajectory
+
+Select one physical JSONL line from a private Gym rollout file. A record with
+both `responses_create_params` / `response` and an `ng_trajectory` attachment
+can follow this path after workspace initialization:
+
+```bash
+python <skill_dir>/../gym-to-atif/scripts/gym_to_atif.py \
+  --input <rollouts.jsonl> --row 1 --output-dir <task-dir>/private/converted
+python <skill_dir>/scripts/trace_environment.py prepare \
+  --task-dir <task-dir> --atif <task-dir>/private/converted/trace.atif.json \
+  --source-kind gym
+```
+
+The ATIF converter uses the Responses envelope, not the attachment. To inspect
+native attachment evidence as well, use the sibling
+[Trace Intel loader](../../gym-to-atif/references/trace-intel-ingest.md) on the
+same row and retain its output under `private/ng-evidence/`. Those normalized
+files are not ATIF. An attachment-only export can be loaded for inspection but
+cannot currently enter `prepare`; it needs a complete supported Responses
+record, original ATIF, or a separately implemented and tested ATIF mapping.
+Do not manufacture a Responses envelope from invocation history to bypass this
+boundary. Continue shared privacy review and candidacy before scaffolding.
+
 ## Native workspace and scaffold
 
 Use the existing Gym v0.6.0+ runtime in its separate Python 3.13.14+

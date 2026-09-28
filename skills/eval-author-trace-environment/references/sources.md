@@ -24,6 +24,11 @@ explicitly selected JSONL line. Retain the raw Gym record and conversion
 receipt privately under the task workspace; pass the derived ATIF to
 `prepare --source-kind gym`.
 
+For a rollout carrying `ng_trajectory`, ATIF conversion still uses the Responses
+envelope. The sibling Trace Intel loader retains attachment evidence separately;
+its normalized output is not ATIF. Attachment-only exports do not currently
+enter this workflow. See the [Gym output example](gym-output.md#start-from-a-rollout-with-ng_trajectory).
+
 For Gym's Harbor bridge, prefer the explicitly supplied original ATIF instead
 of a lossy reverse conversion. Its bytes/version remain unchanged; prepare it
 with `--source-kind atif`. Never automatically follow the source paths recorded
