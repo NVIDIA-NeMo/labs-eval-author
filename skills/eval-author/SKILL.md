@@ -64,7 +64,7 @@ each request to the narrow sub-flow that owns it.
 Choose the route before showing the onboarding checklist, gathering Ethos, or
 checking Harbor. Use the requested outcome, prior answers, and supplied material;
 do not ask the user to repeat a known starting point. These are alternative entry
-routes, not stages everyone must complete:
+routes, not set stages that everyone must complete:
 
 | Starting situation and request | Route | First action and deliverable |
 |---|---|---|
