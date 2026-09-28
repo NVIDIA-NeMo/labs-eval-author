@@ -3,6 +3,8 @@
 
 # NeMo Eval Author
 
+![Status: Research Preview](https://img.shields.io/badge/Status-Research%20Preview-orange)
+
 Turning your agent's intended behavior into representative evaluation cases is
 hard. Each case needs checks that distinguish success from failure, and passing
 cases can still leave important behavior untested.
