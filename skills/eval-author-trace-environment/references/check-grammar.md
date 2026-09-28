@@ -60,6 +60,12 @@ coverage ideas without a concrete counterexample are advisory. Do not invent
 requirements, require a particular implementation, or treat every copy operation
 as cheating. The aggregate reward remains binary.
 
+Use [task fidelity review](task-fidelity.md#review-the-public-contract-and-every-assertion)
+for boundary/default/option-interaction cases and valid-alternative diagnostics.
+An untouched failure caused only by unrelated setup errors is not evidence that
+the check distinguishes the requested behavior. Keep authoritative result rows
+fresh and verifier-owned; missing or unparseable child output is not a PASS.
+
 ## Per-check proof evidence
 
 Harbor copies the verifier's `/logs/verifier/` tree back into each retained

@@ -10,6 +10,9 @@ ground-truth and software inventories, and `check-candidate`. A proposal may
 provide context, but an audit report or uncovered tool is not a prerequisite.
 Proposal-only requests still stop before construction.
 
+Apply the shared [task fidelity review](task-fidelity.md) to the native task's
+initial state, runtime setup, assertions, and solver-visible surfaces as well.
+
 The existing candidate contract applies: complete text instruction, evidenced
 requirements, recorded or explicitly reconstructed state, and objective binary
 execution verification. A source rollout's reward or final answer is not an

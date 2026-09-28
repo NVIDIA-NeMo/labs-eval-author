@@ -198,7 +198,9 @@ binaries into the task.
 Use `safe/trace.atif.json` as the trace evidence for this decision. Proposal or
 audit conclusions are context, not additional facts or automatic vetoes. Later
 user corrections outrank earlier turns.
-Every decision must cite real ATIF `step_id` values. Read
+Every decision must cite real ATIF `step_id` values. Distinguish human intent
+from harness-authored turns; a transport role alone does not settle authorship.
+Read
 [references/candidate-record.md](references/candidate-record.md) for the
 `candidate.json` shape before writing the decision.
 Run its read-only `check-candidate` command before construction; it checks
@@ -240,7 +242,11 @@ according to the selected output path.
 ## Step 6: author and prove a candidate environment
 
 For `no_candidate`, skip construction and use Step 7's no-candidate finalization
-for either provider. For Gym output, read and follow
+for either provider. For every candidate, read
+[references/task-fidelity.md](references/task-fidelity.md) for starting-state,
+runtime setup, assertion, and alternative-solution review. These authoring
+checks supplement provider proof; the helper does not machine-check all of them.
+For Gym output, read and follow
 [references/gym-output.md](references/gym-output.md) for construction, native
 validation, and handoff. It replaces the Harbor-specific instructions below,
 Step 7's candidate finalization, and Harbor batch/publication reporting.
