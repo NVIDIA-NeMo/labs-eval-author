@@ -12,7 +12,7 @@ triggers:
   - normalize one Gym JSONL rollout line into ATIF
 not-for:
   - eval-author (use for the shared evidence standard and routing)
-  - eval-author-trace-environment (experimental; use after this skill emits ATIF to build a Harbor task environment)
+  - eval-author-trace-environment (experimental; use after this skill emits ATIF to build a Harbor or native Gym task)
   - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
 compatibility: >-
   Offline ATIF conversion uses Python 3.11+ and the standard library. The optional

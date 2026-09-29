@@ -124,10 +124,12 @@ sign-off trailers in the resulting commit.
 ## CI trust boundary
 
 The checked-in CI workflow tests same-repository pull requests targeting `main`
-and pushes to `main` on GitHub-hosted Ubuntu runners. It uses a read-only
+and pushes to `main`, manual dispatches, and daily runs on GitHub-hosted Ubuntu
+runners. It uses a read-only
 `GITHUB_TOKEN`, disables persisted checkout credentials and shared dependency
 caching, pins actions to commit SHAs and uv to a version, and bounds job runtimes.
-New runs cancel older runs for the same PR or branch. See
+New change-triggered runs cancel older runs for the same PR or branch; daily
+runs use a separate concurrency group and are not cancelled by pushes. See
 [advisory evaluation CI](docs/skill-evaluation-ci.md) for approval requirements
 and report details.
 

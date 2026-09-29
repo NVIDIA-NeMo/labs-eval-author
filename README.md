@@ -14,6 +14,8 @@ First evaluations and readiness checks use [Harbor](https://docs.harborframework
 Task creation from an existing audit gap also supports [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/)
 through the [Gym task-authoring guide](skills/eval-author-task-create/references/gym-tasks.md).
 Gym proposals include a version-locking and rerun plan for comparable evaluations.
+The experimental [trace-to-Gym extension](skills/eval-author-trace-environment/references/gym-output.md)
+also produces native Gym tasks directly from trace evidence, without an audit gap.
 
 For example, an audit might report:
 
@@ -130,7 +132,9 @@ Include the relevant file paths, trace IDs, or workspace names in your request.
 
 The [trace-environment workflow](docs/traces.md#build-an-evaluation-task) turns
 trace evidence into a private candidate task, validates it with Harbor's `nop`
-and `oracle`, and uses the findings to refine the task. It can start directly
+and `oracle` or Gym's native validation and repeated controls, and uses the findings
+to refine the task. Gym output uses a private native report; automated publication
+and readiness reporting remain Harbor-specific. It can start directly
 from a trace or be paired with [dataset proposals](docs/existing-evals.md#propose-new-evaluations):
 propose a useful scenario, construct it from supporting trace evidence, then
 validate and refine it.
