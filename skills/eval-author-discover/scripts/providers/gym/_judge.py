@@ -25,7 +25,6 @@ everything else about the task.
 from __future__ import annotations
 
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -65,15 +64,15 @@ def run_gym(gym: str, args: list[str], repo_root: Path) -> GymRun:
     """Run the ``gym`` CLI from the repository root, where Gym finds workloads by name, and read its JSON."""
     try:
         completed = subprocess.run(
-            [gym, *args],
+            # env(1) runs gym with the inherited environment plus one setting: COLUMNS keeps Rich from
+            # wrapping Gym's error messages at the terminal width, which would split file paths.
+            ["env", "COLUMNS=10000", gym, *args],
             cwd=repo_root,
             stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,
             timeout=_GYM_TIMEOUT_SEC,
             check=False,
-            # Gym prints errors through Rich, which wraps at the terminal width and would split a path.
-            env={**os.environ, "COLUMNS": "10000"},
         )
     except subprocess.TimeoutExpired:
         return GymRun(error="NeMo Gym did not finish within {} minutes.".format(_GYM_TIMEOUT_SEC // 60))

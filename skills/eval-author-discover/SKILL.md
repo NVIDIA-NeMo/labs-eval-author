@@ -2,20 +2,15 @@
 name: eval-author-discover
 description: >-
   Record whether a repository's Harbor and NeMo Gym evaluations are ready to run,
-  and prove it instead of guessing, in four phases. Probe finds which runtimes are
-  installed. Explore finds every repository-owned job config, dataset, task
-  directory, and Gym manifest, including Gym tasks that use tests/verifier.py or
-  tasks.jsonl. Judge has Harbor validate each config and dataset (schema, job
-  resolution, agent, environment backend, per-task validity, tasks Harbor silently
-  dropped, and required host variables) and Gym validate each manifest. Solve runs
-  a small sample end to end: Harbor tasks with Harbor's oracle agent, and Gym
-  manifests with `gym env test`. Use when the user wants
-  to run an eval suite they did not write, hand a suite to a cheaper model, or
-  asks "can I run these evals?", "why won't my Harbor config resolve?", "which
-  env vars does this suite need?", "where are the evals in this repo?", or "why
-  did Harbor skip my task?". Changes none of your source, and leaves behind
-  `.eval-author/discovery.md` so your team and the next model read the verdict
-  without Harbor and without discovering again.
+  proven in four phases rather than guessed. Probe finds the installed runtimes,
+  Explore finds job configs, datasets, task directories, and Gym manifests, Judge
+  has Harbor and Gym validate them, and Solve runs a small sample end to end. Use
+  when the user wants to run an eval suite they did not write, hand a suite to a
+  cheaper model, or asks "can I run these evals?", "why won't my Harbor config
+  resolve?", "which env vars does this suite need?", "where are the evals in this
+  repo?", or "why did Harbor skip my task?". Changes none of the repository's
+  source, and leaves `.eval-author/discovery.md` so the team and the next model
+  read the verdict without Harbor and without discovering again.
 triggers:
   - can I run the evals in this repo
   - where are the Harbor evals in this repository
@@ -52,36 +47,23 @@ vocabulary, and boundaries.
 Full discovery has four phases, in order. The bundled script runs all four in
 one invocation; the runtime checks below can also be used without that script.
 
-1. **Probe.** Is Harbor or NeMo Gym importable by this interpreter? With neither,
-   discovery stops here.
-2. **Explore.** Which config files, datasets, Gym manifests, and tasks does the
-   repository own, how many tasks does each dataset hold, and what are they about?
-   Explore passes when it finds at least one config, dataset, or manifest.
-3. **Judge.** Each runtime judges what it owns, and either can run alone:
-   - With Harbor: convert Gym extension tasks to Harbor tasks in a temporary
-     directory, then run every Harbor Judge check (Step 3) on every config and dataset.
-   - With Gym: run `gym env validate` on every manifest whose data files exist.
-     A manifest with missing data, such as an unprepared benchmark, is skipped with
-     the command that prepares it.
-4. **Solve.** Only when Judge passed: run a sample end to end, at most 4 datasets
-   or manifests and at most 4 tasks from each, spread across the list and picked
-   the same way on every run. Harbor tasks with a `solution/solve.sh` run with
-   Harbor's `oracle` agent in Docker. Gym manifests run their verifier fixture with
-   `gym env test`. A task counts as run when it finishes and the verifier writes a
-   reward; a zero reward is only an advisory. Gym extension tasks are skipped,
-   because NeMo Gym has no runner for them yet.
+1. **Probe.** Which of Harbor and NeMo Gym can this interpreter import? With
+   neither, discovery stops here.
+2. **Explore.** Which configs, datasets, tasks, and Gym manifests does the
+   repository own, how many tasks does each hold, and what are they about?
+3. **Judge.** Harbor validates each config and dataset, converting Gym extension
+   tasks first, and Gym runs `gym env validate` on each manifest whose data
+   exists. Either runtime can judge alone.
+4. **Solve.** Once Judge passes, run up to 4 tasks from each of up to 4 datasets
+   or manifests end to end: Harbor tasks with the `oracle` agent in Docker, Gym
+   manifests with `gym env test`. A task counts when it finishes with a reward.
 
 The report's `phases` field records each phase as `valid`, `invalid`, or
-`skipped`. Without Harbor, Judge and Solve cannot run on Harbor tasks: Explore's
-findings come back marked unproven, with a required failure naming what to
-install. When the repository holds only Gym manifests and Gym is installed,
-Harbor is not needed, and its absence is not reported.
-
-Solve runs containers and can take several minutes on the first run while Docker
-builds task images. Harbor's job output goes to a temporary directory. Harbor is
-never allowed to auto-grant host-environment access; a task that asks for it
-fails with Harbor's message. `gym env test` builds the resources server's venv at
-`resources_servers/<name>/.venv`, where Gym always puts it.
+`skipped`. Without Harbor, Harbor findings come back unproven, with a required
+failure naming what to install, unless the repository holds only Gym manifests
+and Gym is installed. [What Judge and Solve
+run](references/troubleshooting.md#what-judge-and-solve-run) covers sampling,
+skips, and what Solve leaves behind.
 
 ## Before you start
 
@@ -196,15 +178,11 @@ for configs to a depth of four directories and finds datasets at any depth.
 "${harbor_python:?Select a Harbor interpreter using the probes above}" <skill_dir>/scripts/discover.py --repo .
 ```
 
-If no interpreter can import Harbor, substitute one that imports NeMo Gym. Judge
-and Solve then cover Gym manifests with `gym env validate` and `gym env test`,
-and Harbor findings stay unproven. Judging Gym extension tasks needs Harbor, not
-Gym. Keep the two runtimes in separate environments: the PyPI `nemo-gym` package
-(0.4.0 and earlier) pins an `openai` version that modern Harbor cannot share.
-`nemo-gym` 0.5.0 and later need Python 3.13.14 or newer; on an older Python,
-installers silently pick 0.4.0, which lacks the `gym env validate <name>` and
-`gym env test <name>` commands Judge and Solve run. The `gym` CLI is found next
-to the interpreter or on `PATH`.
+If no interpreter can import Harbor, substitute one that imports NeMo Gym: Judge
+and Solve then cover Gym manifests, and Harbor findings stay unproven. Keep the
+two runtimes in separate environments; see [Harbor and NeMo Gym
+environments](references/troubleshooting.md#harbor-and-nemo-gym-environments)
+for why, and for the Python version `nemo-gym` needs.
 
 One JSON object goes to stdout, and `--compact` puts it on one line. Capture
 stdout in a temporary JSON file even when the exit code is 1. Save the report in
@@ -229,9 +207,8 @@ Read these four fields before any others.
 | `runnable` | Whether every config and dataset passed every required check, and nothing Solve ran failed |
 | `run_command` | The exact command to run the suite. Present only when the repository has exactly one config and it is runnable |
 | `configs[].runnable`, `datasets[].runnable` | The per-config and per-dataset verdicts. A dataset runs directly with its `run_command`, after the user picks an agent |
-| `gym_manifests[].task_count`, `gym_manifests[].missing_data` | Explore's count of data rows on disk, and the declared data files that do not exist |
-| `gym_manifests[].judge` | What Gym's Judge did: `passed`, `failed` with Gym's `error`, or `skipped` with a `reason`, plus the `command` that reproduces it |
-| `datasets[].solve`, `gym_manifests[].solve` | What Solve did: `passed`, `failed`, `not sampled`, or `skipped` with a `reason`. `results` holds each run's rewards, full error, and the command that reproduces it |
+| `gym_manifests[]` | Each manifest's data rows on disk (`task_count`), missing data files, and Gym's `judge` verdict: `passed`, `failed`, or `skipped` with a `reason` |
+| `datasets[].solve`, `gym_manifests[].solve` | `passed`, `failed`, `not sampled`, or `skipped` with a `reason`; `results` holds rewards, errors, and reproduce commands |
 
 A dataset that is `not sampled` passed Judge but was not run. Say so rather than
 claiming Solve proved it.
@@ -244,35 +221,10 @@ config's `path`.
 
 ### Troubleshooting
 
-Each check belongs to one phase. Fix failures in phase order, and within Harbor's
-Judge checks work top to bottom: a later check's failure often disappears once
-you fix an earlier one.
-
-| Phase | Check | What it means and what to do |
-|---|---|---|
-| Probe | `harbor` | Harbor is not importable by this interpreter. Re-run with the interpreter from **Before you start** |
-| Probe | `harbor-cli` | Advisory. No `harbor` executable exists on `PATH`, so Judge's `round-trip` check cannot run |
-| Probe | `gym` | NeMo Gym is or is not importable. Gym alone lets discovery explore, judge, and solve Gym manifests; Harbor tasks still need Harbor |
-| Explore | `config` | Required only when the repository holds neither a config nor a task. Confirm the location if an existing suite is expected. If the user has no evals and asked to build them, follow `eval-author-first-eval`. Advisory when datasets exist without a config, since each runs by path |
-| Explore | `config-parse` | A config file did not parse. Either PyYAML is missing, which means the wrong interpreter, or the file's YAML is broken. The hint says which |
-| Explore | `ethos` | Advisory. Explore did not find a readable root `ETHOS.md`. This check records file readability, not substantive Ethos validity |
-| Explore | `tasks-on-disk` | Advisory, and always unproven. A count of directories holding a `task.toml` |
-| Explore | `gym-manifests` | Advisory. Gym `manifest.yaml` environments and benchmarks use Gym's resources-server format, which Harbor cannot read. They are listed in `gym_manifests`, judged by Gym, and sampled by Solve. The message counts manifests with no data downloaded |
-| Judge (Harbor) | `schema` | Harbor rejected the config's shape. The message carries the offending field path |
-| Judge (Harbor) | `resolution` | Harbor could not turn the config into a job. Usually a `datasets[].path` that does not exist. This fails before any container starts |
-| Judge (Harbor) | `tasks` | Some resolved directories are not valid Harbor tasks. A task directory needs a parseable `task.toml` and an `environment/` directory, even when the image is prebuilt |
-| Judge (Harbor) | `coverage` | Harbor silently dropped task directories that exist on disk. Harbor skips unparseable tasks without raising, so treat this as a real defect, not noise |
-| Judge (Harbor) | `credentials` | Reports the host variables the suite needs. Confirm each one is set before running; a missing key surfaces as a failed trial, not a clear error |
-| Judge (Harbor) | `agent` | The named built-in agent does not exist, or the `import_path` does not import. Check the message for which |
-| Judge (Harbor) | `backend` | The environment backend failed preflight. For Docker, verify access as described in Step 4; the error alone does not establish that Docker is stopped |
-| Judge (Harbor) | `round-trip` | The Harbor CLI rejected the config file's bytes. This is the weakest Judge check: it round-trips the schema only, so it can pass while `resolution` fails |
-| Judge (Harbor) | `compatibility` | The installed Harbor does not expose the resolved task list, so `tasks`, `coverage`, and `credentials` cannot run. Install a Harbor version that exposes it |
-| Judge (Harbor) | `dataset-tasks` | Some tasks in a dataset are not valid Harbor tasks. The message names them |
-| Judge (Harbor) | `gym-conversion` | A Gym extension task could not be rendered as a Harbor task: both `tests/test.sh` and `tests/verifier.py`, a malformed `tasks.jsonl` row, or a template placeholder the row does not fill |
-| Judge (Gym) | `gym-validate` | `gym env validate` rejected a manifest. The message carries Gym's error; the hint holds the command that reproduces it |
-| Solve | `solve` | A sampled eval did not run end to end. The message names the task and the telling line of its error; the hint holds the command that reproduces it, and `solve.results[].error` holds the full error. As an advisory, it means Solve ran nothing, and says why |
-| Solve | `solve-reward` | Advisory. The reference solution ran but earned no reward. The machinery works, but `solution/solve.sh` and the tests disagree |
-| Solve | `gym-runner` | A dataset holds Gym extension tasks. They pass Harbor's Judge checks once converted, but NeMo Gym has no runner for them yet, so the dataset cannot run as written |
+Each check belongs to one phase. Fix failures in phase order; within Harbor's
+Judge checks, work top to bottom, because a later check's failure often
+disappears once you fix an earlier one. Look up what each check means and how to
+fix it in [Checks by phase](references/troubleshooting.md#checks-by-phase).
 
 ## Step 4: verify before you report
 
@@ -333,9 +285,9 @@ Preserve its verdict, ready config choices, and next actions. Do not add interna
 check names, raw exceptions, `proven=true`, or git status to the reply. Mention the
 saved report after the verdict and next action. Do not run evals during discovery.
 When `other_eval_candidates` is not empty, the summary asks whether to convert
-that code into Harbor tasks. Each candidate names its signals: an eval-named file, or a
-trace format the rest of Eval Author reads (OpenTelemetry, MLflow tracing, ATIF
-trajectories, or NeMo Intake). These are heuristic leads, not discovered evals:
+that code into Harbor tasks. Each lists its signals: an eval-named file, or an
+OpenTelemetry, MLflow tracing, ATIF, or NeMo Intake marker. These are heuristic
+leads, not discovered evals:
 inspect them before describing what they test, and convert nothing during
 discovery.
 If multiple configs are ready and the user has not selected one, ask which one
@@ -454,23 +406,25 @@ file rather than merging into it.
 
 ## Available Scripts
 
-Provider-specific code sits under `scripts/providers/`, so support for a second
-evaluation provider is an added directory rather than a change to the entry point.
+Each runtime's code sits under `scripts/providers/<runtime>/`, one module per
+phase, so another runtime is an added directory rather than a change to the entry
+point. Every script uses only the standard library except
+`providers/harbor/_judge.py`, which imports Harbor.
 
 | Script | Purpose |
 |---|---|
-| `scripts/discover.py` | Entry point. Owns phase order, report assembly, and the exit code, and nothing provider-specific |
-| `scripts/render_report.py` | Formats the JSON report as human-friendly Markdown while preserving verbatim evidence |
+| `scripts/discover.py` | Entry point: phase order, report assembly, and the exit code |
+| `scripts/render_report.py` | Renders the JSON report as Markdown, keeping the evidence verbatim |
 | `scripts/_checks.py` | The check result contract, ported from the platform so both sides read alike |
-| `scripts/providers/harbor/_probe.py` | Probe: detects whether Harbor can judge this repository. Standard library only |
-| `scripts/providers/harbor/_explore.py` | Explore: finds configs, datasets, and task directories. Standard library only |
-| `scripts/providers/harbor/_judge.py` | Judge: runs Harbor's validators. Imported only after the probe reports Harbor available |
-| `scripts/providers/harbor/_solve.py` | Solve: runs a task end to end with `harbor run -a oracle`. Standard library only |
-| `scripts/providers/gym/_probe.py` | Probe: detects whether NeMo Gym is installed. Standard library only |
-| `scripts/providers/gym/_explore.py` | Explore: recognizes Gym manifests and Gym extension tasks. Standard library only |
-| `scripts/providers/gym/_judge.py` | Judge: validates manifests with `gym env validate`, and renders Gym extension tasks as Harbor task directories in a temporary directory, so Harbor can judge them. Standard library only |
-| `scripts/providers/gym/_solve.py` | Solve: scores a Gym manifest's verifier fixture with `gym env test`. Standard library only |
-| `scripts/_other_evals.py` | Explore: lists eval-like code in neither format, by eval-named files and OpenTelemetry, MLflow tracing, ATIF, or NeMo Intake markers, for the agent to raise with the user. Standard library only |
+| `scripts/_other_evals.py` | Explore: eval-like code in neither format, for the agent to raise |
+| `scripts/providers/harbor/_probe.py` | Probe: is Harbor importable? |
+| `scripts/providers/harbor/_explore.py` | Explore: configs, datasets, and task directories |
+| `scripts/providers/harbor/_judge.py` | Judge: Harbor's validators, imported only after Probe finds Harbor |
+| `scripts/providers/harbor/_solve.py` | Solve: `harbor run -a oracle` |
+| `scripts/providers/gym/_probe.py` | Probe: is NeMo Gym importable? |
+| `scripts/providers/gym/_explore.py` | Explore: Gym manifests and extension tasks |
+| `scripts/providers/gym/_judge.py` | Judge: `gym env validate`, and extension tasks rendered for Harbor |
+| `scripts/providers/gym/_solve.py` | Solve: `gym env test` |
 
 The provider directory deliberately sits one level down. A `scripts/harbor/`
 directory would be importable as `harbor`, which on a machine without Harbor makes
