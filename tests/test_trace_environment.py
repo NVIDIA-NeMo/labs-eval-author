@@ -1903,21 +1903,21 @@ def test_candidate_publication_includes_rerun_readme_without_companion_files(tmp
     code, result = _run("finalize", "--task-dir", str(task_dir), "--status", "candidate")
     assert code == 0, result
     readme = b"# Rerun the generated evaluation\n\nRun from this directory: `harbor run -p task -a oracle`.\n"
-    (task_dir / "readme.md").write_bytes(readme)
+    (task_dir / "README.md").write_bytes(readme)
     (task_dir / "run-private.yaml").write_text("agent_config: private-only\n")
     (task_dir / "private/run-notes.md").write_text("Private setup notes.\n")
 
     preview = _review_publication(task_dir)
     preview_dir = Path(preview["preview_dir"])
-    assert (preview_dir / "readme.md").read_bytes() == readme
+    assert (preview_dir / "README.md").read_bytes() == readme
     assert not (preview_dir / "run-private.yaml").exists()
     assert not (preview_dir / "private").exists()
     output = tmp_path / "product"
     code, result = _run("export", "--task-dir", str(task_dir), "--output-dir", str(output))
 
     assert code == 0, result
-    assert "readme.md" in result["files"]
-    assert (output / "readme.md").read_bytes() == readme
+    assert "README.md" in result["files"]
+    assert (output / "README.md").read_bytes() == readme
     assert not (output / "run-private.yaml").exists()
     assert not (output / "private").exists()
 
@@ -1930,7 +1930,7 @@ def test_candidate_publication_requires_a_regular_rerun_readme(tmp_path: Path, s
     _review_privacy(task_dir)
     code, result = _run("finalize", "--task-dir", str(task_dir), "--status", "candidate")
     assert code == 0, result
-    readme = task_dir / "readme.md"
+    readme = task_dir / "README.md"
     if source_kind == "directory":
         readme.mkdir()
     else:
@@ -1965,7 +1965,7 @@ def test_no_candidate_publication_reviews_exact_product(tmp_path: Path, reviewer
     _candidate(task_dir, status="no_candidate")
     code, result = _run("finalize", "--task-dir", str(task_dir), "--status", "no_candidate")
     assert code == 0, result
-    (task_dir / "readme.md").write_text("Private notes for a rejected candidate.\n")
+    (task_dir / "README.md").write_text("Private notes for a rejected candidate.\n")
     preview = _review_publication(task_dir, reviewer_kind=reviewer_kind)
     preview_dir = Path(preview["preview_dir"])
     assert preview["file_count"] == 2
@@ -1999,7 +1999,7 @@ def test_publication_review_is_invalidated_by_changed_export(tmp_path: Path, cha
     code, result = _run("finalize", "--task-dir", str(task_dir), "--status", "candidate")
     assert code == 0, result
     if change in {"readme", "removed_readme"}:
-        (task_dir / "readme.md").write_text("# Rerun this evaluation\n")
+        (task_dir / "README.md").write_text("# Rerun this evaluation\n")
     preview = _review_publication(task_dir)
     if change in {"candidate", "manifest"}:
         path = task_dir / ("candidate.json" if change == "candidate" else "reproducibility.json")
@@ -2013,9 +2013,9 @@ def test_publication_review_is_invalidated_by_changed_export(tmp_path: Path, cha
         (task_dir / "task/tests/test.sh").chmod(0o744)
         _record_reproducibility(task_dir)
     elif change in {"readme", "added_readme"}:
-        (task_dir / "readme.md").write_text("# Updated rerun instructions\n")
+        (task_dir / "README.md").write_text("# Updated rerun instructions\n")
     elif change == "removed_readme":
-        (task_dir / "readme.md").unlink()
+        (task_dir / "README.md").unlink()
     else:
         (task_dir / "task/empty").mkdir()
         _record_reproducibility(task_dir)

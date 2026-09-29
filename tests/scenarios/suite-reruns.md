@@ -21,7 +21,7 @@ coverage requirement to both tasks and a second requirement to only
 **Request:** “Finish this suite's handoff so I can rerun all cases or one coverage
 item on a later visit. Do not run model evaluations.”
 
-Inspect `.eval-author/readme.md` and follow it from the documented directory
+Inspect `.eval-author/README.md` and follow it from the documented directory
 without the prior conversation. Confirm that:
 
 - Setup names the actual runtime, activation/install procedure, backend,
@@ -55,7 +55,7 @@ the selected Gym runtime and composition, retain verifier fields and row order,
 document server startup for `--no-serve`, reset state, and use fresh outputs.
 No Harbor-only selection or control flags may appear as Gym commands.
 
-For a trace candidate, check `<task-dir>/readme.md` alongside the existing
+For a trace candidate, check `<task-dir>/README.md` alongside the existing
 `task/README.md`. Controls must be labeled as controls, with missing real-agent
 configuration visible. For a batch containing a candidate, an unproven task,
 and a no-candidate member, inspect the collection guide: all members and statuses

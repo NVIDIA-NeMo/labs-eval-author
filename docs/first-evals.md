@@ -56,7 +56,7 @@ tasks live under `.eval-author/task-drafts/`, and run artifacts under
 `.eval-author/jobs/`. When the agent integration supports it, Eval Author creates
 `.eval-author/first-eval.yaml` with the selected cases and run settings.
 
-Start with `.eval-author/readme.md` when you return to run evaluations. It saves
+Start with `.eval-author/README.md` when you return to run evaluations. It saves
 the required setup, a full-suite command, and a mapping from coverage items to
 cases with commands for running them individually. It also explains where to
 find rewards, errors, and logs. These commands preserve the saved agent settings

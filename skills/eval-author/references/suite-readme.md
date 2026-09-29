@@ -4,16 +4,16 @@
 # Save instructions for rerunning a generated suite
 
 Save the rerun guide at the top level of each generated evaluation suite while
-authoring it, using `readme.md` for a new suite guide and preserving task README
+authoring it, using `README.md` for a new suite guide and preserving task README
 filenames as described below. Finish it before handing the suite back. Update it
 when cases, configuration, setup, or commands change. A conversation reply or run report
 does not replace this entry point. Multi-task suites need a suite guide in
 addition to individual task READMEs.
 
 Use the suite's existing root under `.eval-author/`: for first-eval this is
-`.eval-author/readme.md`, beside `first-eval.yaml`; for a standalone task draft,
+`.eval-author/README.md`, beside `first-eval.yaml`; for a standalone task draft,
 extend `.eval-author/task-drafts/<task-slug>/README.md`. For trace-derived work,
-use `<task-dir>/readme.md`, beside `task/`; a generated batch also needs a README
+use `<task-dir>/README.md`, beside `task/`; a generated batch also needs a README
 at its collection root. Keep the trace task's required `task/README.md` intact.
 When an existing generated suite has an uppercase `README.md` at the same
 location, keep its filename and content and add the rerun sections there. Do not

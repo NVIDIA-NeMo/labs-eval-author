@@ -136,7 +136,7 @@ criteria from the intended outcome. For a binary completion metric, NOP should
 score 0 and Oracle 1. For named or graded metrics, specify the expected values
 or thresholds for each relevant metric instead of imposing a universal 0/1 pair.
 Add a README with the Ethos requirement, fixtures, verifier, and run commands.
-Also create the suite entry point `.eval-author/readme.md` following
+Also create the suite entry point `.eval-author/README.md` following
 [Suite rerun instructions](../eval-author/references/suite-readme.md). Begin with
 the selected cases and known setup; keep it current as the environment, agent
 connection, and run configuration are completed.
@@ -231,7 +231,7 @@ exceptions as fresh run evidence. A completed evaluation can have low scores.
 Update `.eval-author/first-eval.md` with exact commands, artifact paths, control
 results, per-task agent rewards and exceptions, and remaining blockers. Show how
 to rerun the suite, inspect one result, and add or modify a task. Finish and link
-`.eval-author/readme.md` with the full-suite command and concrete commands for
+`.eval-author/README.md` with the full-suite command and concrete commands for
 individual coverage items, following the shared suite rerun instructions.
 Save any needed subset configs and verify their selected cases and retained
 agent settings. Label rerun commands as task sanity checks or actual agent evaluation.

@@ -237,7 +237,7 @@ requirements. Never copy private trace payloads into the task; include only the
 minimal files needed to reproduce the starting state. Human-supplied or
 reviewed `Relevant experience` is necessary for readiness; never invent it.
 
-Create `<task-dir>/readme.md` using
+Create `<task-dir>/README.md` using
 [Suite rerun instructions](../eval-author/references/suite-readme.md), separate
 from the reviewer-facing `task/README.md`. Map the generalized outcomes to the
 task and its scored checks, documenting when selecting one item runs the whole
@@ -284,7 +284,7 @@ proof does not establish human review.
 
 ## Step 7: finalize and verify the summary
 
-Refresh and link the candidate suite's `readme.md` with verified setup, rerun
+Refresh and link the candidate suite's `README.md` with verified setup, rerun
 commands, result paths, and any remaining execution blockers before handoff.
 No-candidate outcomes do not create a generated evaluation suite.
 For a requested export, make the guide usable from the exported product root:
@@ -322,7 +322,7 @@ source paths. This makes the denominator explicit and reruns idempotent:
 ```
 
 Keep a real manifest's source paths private if they reveal internal layout.
-For a generated batch, also maintain a collection-root `readme.md` with the
+For a generated batch, also maintain a collection-root `README.md` with the
 explicit runnable member set, full-collection and selected-member commands,
 and links to member guides. Distinguish blocked and no-candidate members;
 do not point Harbor at the mixed workspace parent as if it were a task dataset.
