@@ -16,8 +16,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'schedule' && 'daily' || 'change' }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
   skill-evaluator:

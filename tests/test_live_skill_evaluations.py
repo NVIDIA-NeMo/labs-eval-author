@@ -330,7 +330,10 @@ def test_live_workflow_limits_inference_to_main_and_is_advisory():
         assert workflow[True][event] == ci[True][event]
     assert workflow[True]["workflow_dispatch"]["inputs"]["run_live"]["default"] is False
     assert workflow[True]["workflow_dispatch"]["inputs"]["tier"]["default"] == "both"
-    assert workflow["concurrency"] == ci["concurrency"]
+    assert workflow["concurrency"]["cancel-in-progress"] is True
+    assert workflow["concurrency"]["group"] == (
+        "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+    )
     for job in workflow["jobs"].values():
         assert job["continue-on-error"] is True
     plan = workflow["jobs"]["plan"]
