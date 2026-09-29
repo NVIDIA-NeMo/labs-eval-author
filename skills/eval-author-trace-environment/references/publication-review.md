@@ -17,13 +17,22 @@ python <skill_dir>/scripts/trace_environment.py prepare-publication \
 
 Inspect every file in the returned `preview_dir`: all candidate notes,
 uncertainties, software and ground-truth provenance, the generated task and
-`reproducibility.json` when present, and the derived `result.json`. Check paths as well as
+`reproducibility.json` when present, the candidate's root `readme.md` when present,
+and the derived `result.json`. Check paths as well as
 contents for private identifiers, internal locators, proprietary material, and
 other information not authorized for publication. The preview contains only the
 publication whitelist; source evidence and review notes are not part of it.
 Do not approve a product that still contains private details. Correct the source
 artifacts in a new workspace if finalization prevents revision, regenerate any
 affected proof, finalize, and prepare a new preview. Never edit just the preview.
+
+For a candidate, author its suite rerun guide at `<task-dir>/readme.md` before
+preparing publication. Use commands and paths valid from the exported product,
+retain only credential variable names, and remove private workspace paths and
+service locators. Files linked by the README are not automatically exported;
+ensure required inputs are already in the publication whitelist or describe the
+setup the recipient must supply. Older workspaces without this file remain
+exportable. `no_candidate` products do not include a rerun guide.
 
 After reviewing it, supply the exact returned digest and directory:
 
@@ -57,7 +66,8 @@ python <skill_dir>/scripts/trace_environment.py export \
 
 The command runs `check`, verifies the publication review against a newly staged
 snapshot, and copies only `candidate.json`, the generalized `task/` and
-`reproducibility.json` when present, and a declassified `result.json`.
+`reproducibility.json` for candidates, their optional root `readme.md`, and a
+declassified `result.json`.
 It never copies source, canonical, safe, privacy-audit, ground-truth, validation,
 or Harbor job files. It preserves task-file executable bits while making the
 export readable, so the published task matches its task-tree digest.

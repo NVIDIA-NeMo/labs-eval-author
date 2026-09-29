@@ -230,7 +230,13 @@ Then complete Harbor's generated files:
 - `tests/test.sh`: deterministic reward writer using absolute paths.
 - `solution/solve.sh`: executable Oracle solution.
 - `task.toml`: nonempty keywords, metadata, realistic timeouts and resources.
-- `README.md`: purpose, environment, verifier, layout, and run commands.
+- `readme.md`: purpose, environment, verifier, layout, and persistent suite and
+  individual-item run instructions.
+
+For either provider, create and maintain the generated suite's top-level
+`readme.md` using [Suite rerun instructions](../eval-author/references/suite-readme.md).
+For a standalone draft, the draft root is the suite root; when adding it to a
+generated collection, also update that collection's guide and coverage mapping.
 
 Do not leave generated placeholders, `pass`, unconditional reward 1, or empty
 keywords.
@@ -302,6 +308,9 @@ uv run <skill_dir>/scripts/task_pipeline.py verify \
 Accept the draft only when `accepted` is `true`. Report native control rewards, both
 real-agent rewards, both run/trace paths, and the verify JSON. If either repeat
 misses the tool, revise the task and rerun both attempts.
+Finish and link the suite's `readme.md` at handoff, including when execution is
+blocked. Preserve the actual agent settings in the full-suite and selected-item
+commands; link measured coverage reports separately from run instructions.
 
 ## Prerequisites
 
