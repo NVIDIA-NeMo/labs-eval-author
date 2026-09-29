@@ -53,6 +53,14 @@ steps unchecked, naming their remaining work. Continue the same check-ins betwee
 internal stages even when the visible step does not change. Ordinary intent or
 source questions do not need a blocked status.
 
+After a side question or setup detour, answer or resolve that issue, then return
+to this same checklist: briefly recap completed work, mark the current stage,
+and name the next planned action. Preserve the pending scope question and prior
+answers; a detour does not accept a plan or reopen a settled corpus choice.
+Continue authorized work when no decision remains pending. At final handoff,
+show every completed step checked and explain any remaining partial or blocked
+step instead of silently omitting it.
+
 Track case/grader preparation, environment availability, and agent configuration
 separately. A first case is partial progress when the agreed scope is a larger
 suite. Configuration is not validation; a successful control run is not evaluation
@@ -66,6 +74,11 @@ state in the conversation or existing intent notes; do not run discovery just to
 obtain a report. Keep Harbor probe evidence, local interpreter paths, and milestone
 or approval records in that workflow state, not in `ETHOS.md`. This does not exclude
 substantive evaluation requirements from Ethos's Evaluation Setup section.
+For first-eval, use `.eval-author/first-eval.md` once the source decision is
+established; keep the selected corpus, user priorities, agreed per-behavior scope,
+and delivered-example inventory there alongside progress. Update it at each
+completed stage and when feedback changes the plan, so resumption reads the
+current agreement rather than reconstructing it from scattered messages.
 On return, reuse applicable answers and completed work, rechecking
 readiness when inputs changed. Do not infer an answer from an installed tool or
 saved file, or restart a completed opening or Ethos interview. Inventory before
@@ -120,9 +133,10 @@ incomplete. Keep interpreter versions and paths in the findings unless they help
 the user act. Follow with the optional-skills advisory when relevant and the
 shared checklist; the official skills collection is separate from Harbor's docs.
 
-Check in before the next unfinished stage. If the evaluation starting point is
-already settled, carry it forward and proceed to **Define the evaluation scope**
-after this check-in. Otherwise, asking about existing material can serve as the
+Check in before the next unfinished stage. If the evaluation starting point and
+the trace source or no-trace choice are already settled, carry them forward and
+proceed to **Define the evaluation scope** after this check-in. Otherwise,
+asking about the remaining source choice can serve as the
 transition to **Understand the evaluation starting point**. If a source is already
 supplied, name the planned inspection without asking them to select it again.
 Missing Harbor can be deferred using the rule above; it does not prevent finding
@@ -130,14 +144,20 @@ the user's eval material.
 
 ### 3. Understand the evaluation starting point
 
-Reuse a starting point already settled by the user or discovery inventory; no
-repeat scan or source-selection question is needed. Otherwise, after the Harbor
+Reuse an eval starting point already settled by the user or discovery inventory;
+no repeat eval scan or eval-source question is needed. Otherwise, after the Harbor
 check-in use `eval-author-discover` for inventory and source selection, reusing
 verified runtime evidence. Determine whether there is an existing Harbor suite,
 other eval material, or confirmed absence of evals. Ask about actual candidates
 or a missing location; keep this stage unchecked and current until the source is
 settled. The report's summary and examples supply findings and question wording,
 not a complete onboarding reply in place of the checklist.
+
+For first-eval, an established absence of evals settles the eval starting point,
+but not which traces, if any, to use. Follow
+[Corpus selection](coverage-planning.md#select-trace-evidence-before-using-it)
+before trace searches or reads; reuse an explicit source or no-trace choice.
+Use the source decision as this stage's check-in and save it for scope planning.
 
 A source answer identifies the material, not its scoring quality or coverage.
 Name **Define the evaluation scope** as the next stage and use the core's
@@ -149,13 +169,24 @@ resolved during scope planning, not by silently changing either one.
 ## Scope checkpoint
 
 At **Define the evaluation scope**, explain what the selected cases will measure
-before moving to **Prepare cases and grading**. Use the calling flow's existing
-plan or mapping to make the scope concrete:
+before moving to **Prepare cases and grading**. For first-eval and expansion,
+follow [Corpus and coverage planning](coverage-planning.md) to record proposed
+and agreed scope in the existing plan before generation. Make it concrete:
 
 - **Behavior and purpose:** what the agent should accomplish and why these cases
   matter, using established workflow priorities when available.
 - **Success and evidence:** the expected outcome, what the grader must inspect,
   and whether the rule comes from existing criteria or is a proposed decision.
+- **Breadth and difficulty:** distinct examples per behavior, meaningful
+  variations, positive and negative scenarios, relevant difficult negatives,
+  and why the proposed breadth fits the purpose. If recommending a pilot,
+  explain in this reply what that limited first set will establish and what
+  remains untested even if it passes. Separate example counts from Harbor tasks
+  and attempts; name exclusions and remaining gaps.
+- **Priorities and cost:** explicitly ask what the user wants to change or
+  prioritize, with relevant tradeoffs such as lower ongoing cost, broader
+  coverage, harder cases, or another concern. Explain execution work and grounded
+  estimates or uncertainty; a generic approval question alone is insufficient.
 - **Execution requirements:** the capabilities, software, starting state, and
   access the cases need; distinguish known requirements from verified readiness.
 - **Limits and open decisions:** missing criteria or evidence, which checks or
@@ -169,6 +200,10 @@ criteria use them. Preserve existing scoring and explain its limits rather than
 silently replacing it.
 
 Use the existing stage check-in to settle the next affected decision or confirm
-the scope. Reuse established answers; missing inputs for one check need not hold
-up independent case preparation. This checkpoint explains the selected scope,
-without requiring a coverage audit or a new intake document.
+the scope, following the [feedback invitation](coverage-planning.md#explain-ongoing-cost-and-settle-the-plan).
+Reuse known priorities when framing that question, without adding another
+approval loop for an already agreed plan. Incorporate feedback in the saved plan
+before generating affected fixtures, instructions, or graders. Reuse established answers; missing inputs
+for one check need not hold up preparation of independently agreed cases.
+This checkpoint explains the selected scope without requiring a coverage audit
+or a new intake document.
