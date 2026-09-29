@@ -83,3 +83,10 @@ Use a fresh output directory outside the checkout. Static evaluation expects
 clean skill inputs; planning may inspect local changes and records that state.
 Normal development tests do not require live inference. See
 [Development](../DEVELOPMENT.md) for the required local checks.
+
+## Semantic regression
+
+The separate [semantic regression pilot](semantic-regression.md) compares
+narrative findings against reviewed Ratchet baselines. It uses its own workflow
+and report schema, with the same protected live-execution boundary. It is advisory
+and scoped to reports over frozen evidence, not full skill execution.
