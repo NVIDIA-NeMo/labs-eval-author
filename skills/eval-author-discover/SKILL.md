@@ -333,7 +333,9 @@ Preserve its verdict, ready config choices, and next actions. Do not add interna
 check names, raw exceptions, `proven=true`, or git status to the reply. Mention the
 saved report after the verdict and next action. Do not run evals during discovery.
 When `other_eval_candidates` is not empty, the summary asks whether to convert
-that code into Harbor tasks. These are heuristic leads, not discovered evals:
+that code into Harbor tasks. Each candidate names its signals: an eval-named file, or a
+trace format the rest of Eval Author reads (OpenTelemetry, MLflow tracing, ATIF
+trajectories, or NeMo Intake). These are heuristic leads, not discovered evals:
 inspect them before describing what they test, and convert nothing during
 discovery.
 If multiple configs are ready and the user has not selected one, ask which one
@@ -468,7 +470,7 @@ evaluation provider is an added directory rather than a change to the entry poin
 | `scripts/providers/gym/_explore.py` | Explore: recognizes Gym manifests and Gym extension tasks. Standard library only |
 | `scripts/providers/gym/_judge.py` | Judge: validates manifests with `gym env validate`, and renders Gym extension tasks as Harbor task directories in a temporary directory, so Harbor can judge them. Standard library only |
 | `scripts/providers/gym/_solve.py` | Solve: scores a Gym manifest's verifier fixture with `gym env test`. Standard library only |
-| `scripts/_other_evals.py` | Lists eval-like code in neither format, for the agent to raise with the user. Standard library only |
+| `scripts/_other_evals.py` | Explore: lists eval-like code in neither format, by eval-named files and OpenTelemetry, MLflow tracing, ATIF, or NeMo Intake markers, for the agent to raise with the user. Standard library only |
 
 The provider directory deliberately sits one level down. A `scripts/harbor/`
 directory would be importable as `harbor`, which on a machine without Harbor makes
