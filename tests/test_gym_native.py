@@ -280,13 +280,15 @@ def scaffold_ng_trace_draft(tmp_path):
 @pytest.fixture(
     params=[scaffold_draft, scaffold_trace_draft, scaffold_ng_trace_draft], ids=["audit", "trace", "ng-trajectory"]
 )
-def native_draft(request, tmp_path):
-    return request.param(tmp_path)
+def draft_builder(request):
+    # Build inside the test call so preparation regressions are JUnit failures,
+    # while fixture/setup errors remain incomplete execution evidence.
+    return request.param
 
 
-def test_native_scaffold_and_validation(native_draft):
+def test_native_scaffold_and_validation(tmp_path, draft_builder):
     assert GYM_PYTHON is not None
-    output, instruction, command, receipt = native_draft
+    output, instruction, command, receipt = draft_builder(tmp_path)
     assert receipt["provider"] == "gym" and receipt["written"]
     assert not receipt["runnable"]
     assert (output / "instruction.md").read_text() == instruction.read_text()
@@ -311,10 +313,10 @@ def test_native_scaffold_and_validation(native_draft):
     assert validation.returncode != 0
 
 
-def test_native_http_execution_controls(tmp_path, native_draft, request):
+def test_native_http_execution_controls(tmp_path, draft_builder, request):
     """Exercise real tool HTTP calls, native rollouts, and positive and negative controls."""
     assert GYM_PYTHON is not None
-    draft, _, _, _ = native_draft
+    draft, _, _, _ = draft_builder(tmp_path)
     resource_app = draft / "resources_servers/cover_ledger_total/app.py"
     resource_app.write_bytes((HARNESS_ROOT / "tests/fixtures/gym_ledger/app.py").read_bytes())
     (resource_app.parent / "tests/verifier_cases.jsonl").write_bytes(

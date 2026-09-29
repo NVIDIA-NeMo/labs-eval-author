@@ -5,6 +5,9 @@
 
 import importlib.util
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -54,6 +57,41 @@ def test_valid_controls_preserve_unobserved_health(tmp_path, route):
 def test_missing_execution_is_not_a_pass(tmp_path, marks, status):
     evidence(tmp_path, marks)
     assert collector.summarize(tmp_path, 0)["status"] == status
+
+
+@pytest.mark.parametrize("route", collector.ROUTES)
+def test_preparation_regressions_are_failures_in_real_junit(tmp_path, route):
+    # Exercise the actual harness's fixture/test boundary without needing Gym.
+    harness = tmp_path / "test_gym_native.py"
+    harness.write_bytes((collector.ROOT / "tests/test_gym_native.py").read_bytes())
+    (tmp_path / "conftest.py").write_text(
+        "def broken_builder(tmp_path):\n"
+        "    raise AssertionError('synthetic preparation regression')\n\n"
+        "def pytest_collection_modifyitems(items):\n"
+        "    for item in items:\n"
+        "        item.callspec.params['draft_builder'] = broken_builder\n"
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            *(f"{harness}::{name}[{route}]" for name in collector.NATIVE_TESTS),
+            f"--junitxml={tmp_path / 'junit.xml'}",
+        ],
+        cwd=tmp_path,
+        env={**os.environ, "EVAL_AUTHOR_GYM_PYTHON": sys.executable},
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "2 failed" in result.stdout
+    assert "synthetic preparation regression" in result.stdout
+    summary = collector.summarize(tmp_path, result.returncode, route)
+    assert summary["status"] == "failed"
+    assert set(summary["checks"].values()) == {"failed"}
 
 
 def test_successful_exit_needs_native_evidence(tmp_path):
@@ -131,12 +169,12 @@ def test_ci_retains_every_route_independently_even_when_another_fails():
     assert "secrets." not in json.dumps(job)
     uploads = [step for step in job["steps"] if step.get("uses", "").startswith("actions/upload-artifact@")]
     public = next(step for step in uploads if step["with"]["path"].endswith("/gym-summary.json"))
-    assert public["if"] == "always()"
+    assert public["if"] == "${{ !cancelled() }}"
     assert public["with"]["if-no-files-found"] == "error"
     assert "matrix.artifact" in public["with"]["name"]
     private = next(step for step in uploads if step != public)
-    assert "always()" in private["if"] and "github.event.repository.private == true" in private["if"]
+    assert private["if"] == "${{ !cancelled() && github.event.repository.private == true }}"
     assert private["with"]["include-hidden-files"] is True
     execute = next(step for step in job["steps"] if "collect_gym_evidence.py" in step.get("run", ""))
-    assert execute["if"] == "always()"
+    assert execute["if"] == "${{ !cancelled() }}"
     assert '--route "${{ matrix.route }}"' in execute["run"]

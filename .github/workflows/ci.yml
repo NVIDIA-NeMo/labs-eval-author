@@ -153,7 +153,7 @@ jobs:
           git -C "$RUNNER_TEMP/gym" checkout --detach "$GYM_REVISION"
           uv sync --directory "$RUNNER_TEMP/gym" --locked --no-dev
       - name: Exercise native Gym task scaffolding and execution controls
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           python_bin=.venv/bin/python
           if ! test -x "$python_bin"; then python_bin=python3; fi
@@ -161,7 +161,7 @@ jobs:
             --gym-python "$RUNNER_TEMP/gym/.venv/bin/python" --gym-root "$RUNNER_TEMP/gym" \
             --gym-revision "$GYM_REVISION" --route "${{ matrix.route }}"
       - name: Publish Gym measurement summary
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.artifact }}-evidence-${{ github.run_id }}-${{ github.run_attempt }}
@@ -169,7 +169,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
       - name: Retain native evidence and JUnit results
-        if: ${{ always() && github.event.repository.private == true }}
+        if: ${{ !cancelled() && github.event.repository.private == true }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.artifact }}-native-${{ github.run_id }}-${{ github.run_attempt }}
