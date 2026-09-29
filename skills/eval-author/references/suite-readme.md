@@ -3,19 +3,22 @@
 
 # Save instructions for rerunning a generated suite
 
-Create `readme.md` at the top level of each generated evaluation suite while
-authoring it, and finish it before handing the suite back. Update it when cases,
-configuration, setup, or commands change. A conversation reply, run report, or
-README inside one task does not replace this entry point.
+Save the rerun guide at the top level of each generated evaluation suite while
+authoring it, using `readme.md` for a new suite guide and preserving task README
+filenames as described below. Finish it before handing the suite back. Update it
+when cases, configuration, setup, or commands change. A conversation reply or run report
+does not replace this entry point. Multi-task suites need a suite guide in
+addition to individual task READMEs.
 
 Use the suite's existing root under `.eval-author/`: for first-eval this is
 `.eval-author/readme.md`, beside `first-eval.yaml`; for a standalone task draft,
-it is `.eval-author/task-drafts/<task-slug>/readme.md`. For trace-derived work,
+extend `.eval-author/task-drafts/<task-slug>/README.md`. For trace-derived work,
 use `<task-dir>/readme.md`, beside `task/`; a generated batch also needs a README
 at its collection root. Keep the trace task's required `task/README.md` intact.
 When an existing generated suite has an uppercase `README.md` at the same
-location, preserve its content in the single canonical `readme.md`; do not
-create files differing only in case. Keep unrelated suite guides separate.
+location, keep its filename and content and add the rerun sections there. Do not
+rename existing task READMEs or create files differing only in case. Keep
+unrelated suite guides separate.
 Proposal-only work does not create a suite or require this file.
 
 ## What a returning user needs

@@ -50,7 +50,7 @@ which commands remain blocked or unverified. It must not claim a completed run.
 
 For Gym, supply an existing draft with a model composition, `reproducibility.md`,
 and JSONL rows containing both model input and verifier metadata. Request the
-same handoff. Follow the draft-root `readme.md`: full and subset runs must use
+same handoff. Follow the draft-root `README.md`: full and subset runs must use
 the selected Gym runtime and composition, retain verifier fields and row order,
 document server startup for `--no-serve`, reset state, and use fresh outputs.
 No Harbor-only selection or control flags may appear as Gym commands.
@@ -65,7 +65,9 @@ For requested publication, inspect the preview and exported root README, then
 follow its paths from the export without access to the private source workspace.
 No private report or unexported config may be required. Changing the README after
 review must invalidate the publication attestation. Existing task README
-content must survive; there must be no case-only filename pair in one directory.
+content and its uppercase filename must survive; there must be no case-only
+filename pair in one directory. For a standalone draft, verify that rerun
+sections extend the existing task-level `README.md` without renaming it.
 
 Retain the generated guides, configs, resolved selections, and any observed
 failure as evidence. One successful exercise is a bounded check, not a claim
