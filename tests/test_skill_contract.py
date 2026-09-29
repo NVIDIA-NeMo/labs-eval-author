@@ -17,7 +17,7 @@ These tests are that enforcement:
 - The bundled scripts depend on Harbor and nothing else. Harbor is acceptable
   because a repository holding Harbor evaluations has Harbor by construction; a
   NeMo import would not be, and that is the boundary these tests defend.
-- ``_ladder.py`` stays out of module scope in ``discover.py``, so a repository
+- ``providers/harbor/_judge.py`` stays out of module scope in ``discover.py``, so a repository
   without Harbor gets an inventory instead of an ImportError.
 - No bundled directory is named after a provider package. ``scripts/harbor/``
   would be importable as ``harbor``, which makes ``find_spec`` succeed on a
@@ -101,7 +101,7 @@ _SCRIPT_DIRS = (
 )
 _DISCOVER = _DISCOVER_SCRIPTS_DIR / "discover.py"
 _DISCOVER_RENDER_REPORT = _DISCOVER_SCRIPTS_DIR / "render_report.py"
-_LADDER = _DISCOVER_SCRIPTS_DIR / "providers" / "harbor" / "_ladder.py"
+_HARBOR_JUDGE = _DISCOVER_SCRIPTS_DIR / "providers" / "harbor" / "_judge.py"
 _AUDIT_VALIDATE = _AUDIT_SPEC_DIR / "validate.py"
 _AUDIT_GENERATE = _AUDIT_SPEC_DIR / "generate.py"
 _AUDIT_MEASURE = _AUDIT_SPEC_DIR / "measure.py"
@@ -210,15 +210,22 @@ def _imported_roots(path: Path) -> set[str]:
     return roots
 
 
-def _run_discover(repo: Path, *args: str, with_harbor: bool = True) -> tuple[int, dict]:
+def _run_discover(repo: Path, *args: str, with_harbor: bool = True, gym_stub: Path | None = None) -> tuple[int, dict]:
     """Run discover.py as the skill documents it, and parse its JSON.
 
     ``with_harbor=False`` passes ``-S``, which drops site-packages from the path
     so Harbor and PyYAML are both unimportable. That reproduces a customer
     repository with no Harbor install without needing a second interpreter.
+    ``gym_stub`` puts a directory holding an empty ``nemo_gym`` package on the
+    path, so the probe sees NeMo Gym installed.
     """
     command = [sys.executable, *([] if with_harbor else ["-S"]), str(_DISCOVER), "--repo", str(repo), *args]
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    env = None
+    if gym_stub is not None:
+        (gym_stub / "nemo_gym").mkdir(parents=True, exist_ok=True)
+        (gym_stub / "nemo_gym" / "__init__.py").touch()
+        env = {**os.environ, "PYTHONPATH": str(gym_stub)}
+    result = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
     assert result.stdout, f"discover.py printed nothing; stderr:\n{result.stderr}"
     return result.returncode, json.loads(result.stdout)
 
@@ -811,8 +818,13 @@ def test_every_bundled_path_the_skill_names_exists() -> None:
         "references/harbor-setup.md",
         "scripts/_checks.py",
         "scripts/providers/harbor/_probe.py",
-        "scripts/providers/harbor/_inventory.py",
-        "scripts/providers/harbor/_ladder.py",
+        "scripts/providers/harbor/_explore.py",
+        "scripts/providers/harbor/_judge.py",
+        "scripts/providers/harbor/_solve.py",
+        "scripts/providers/gym/_probe.py",
+        "scripts/providers/gym/_explore.py",
+        "scripts/providers/gym/_judge.py",
+        "scripts/providers/gym/_solve.py",
     ):
         assert relative in body, f"SKILL.md no longer documents {relative}"
         assert (_DISCOVER_DIR / relative).exists(), f"SKILL.md names {relative}, which is missing on disk"
@@ -912,7 +924,7 @@ def _discovery_report_fixture(
     checks: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "repo_root": "/repo",
         "provider": "harbor",
         "proven": proven,
@@ -923,8 +935,14 @@ def _discovery_report_fixture(
             "harbor_version": "0.21.0" if proven else None,
             "harbor_cli": "/repo/.venv/bin/harbor",
         },
+        "phases": {
+            "probe": "valid",
+            "explore": "valid",
+            "judge": "valid" if runnable else "invalid",
+            "solve": "skipped",
+        },
         "configs": configs,
-        "dataset_paths": ["dataset"],
+        "datasets": [],
         "task_count": 1,
         "ethos_path": None,
         "fingerprint": "sha256:abc123",
@@ -1030,7 +1048,7 @@ def test_discover_report_renderer_handles_single_ready_config(monkeypatch: pytes
     assert "| `harbor-job.yaml` | Ready |" in markdown
     assert "Run the evals with:" in markdown
     assert "```bash\ncd /repo && harbor job start -c harbor-job.yaml\n```" in markdown
-    assert "No required failures." in markdown
+    assert "## Diagnostic Details" not in markdown, "a report with no failures omits the empty section"
 
 
 def test_discover_report_renderer_handles_multiple_ready_configs(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1057,10 +1075,11 @@ def test_discover_report_renderer_handles_multiple_ready_configs(monkeypatch: py
 def test_discover_report_renderer_empty_repo(monkeypatch: pytest.MonkeyPatch, proven: bool) -> None:
     renderer = _import_discover_render_report(monkeypatch)
     report = _discovery_report_fixture(proven=proven, runnable=False, configs=[], run_command=None)
-    report.update(task_count=0, dataset_paths=[])
+    report.update(task_count=0, datasets=[])
     summary = renderer.render_summary(report)
-    assert summary.startswith("Eval Author uses [Harbor](https://www.harborframework.com/docs) to run evals.")
-    assert "It doesn't look like you have any Harbor evals in the locations I checked" in summary
+    opening = "You have Harbor installed, but it doesn't look" if proven else "It doesn't look"
+    assert summary.startswith(opening + " like you have any evals in the locations I checked.")
+    assert "Eval Author uses" not in summary, "an installed runtime needs no introduction"
     assert "other kinds of evaluations" in summary
     assert "Do you already have evals in any form" in summary
     assert summary.endswith("Can you point me to them?")
@@ -1068,14 +1087,31 @@ def test_discover_report_renderer_empty_repo(monkeypatch: pytest.MonkeyPatch, pr
     assert "Python" not in summary
     markdown = renderer.render_report(report)
     assert summary in markdown
+    assert "## Configs" not in markdown and "## Datasets" not in markdown, "nothing found means no empty tables"
     evidence = markdown.split("```json\n", 1)[1].split("\n```", 1)[0]
     assert json.loads(evidence) == report
 
 
 def test_discover_report_renderer_tasks_without_config(monkeypatch: pytest.MonkeyPatch) -> None:
     renderer = _import_discover_render_report(monkeypatch)
-    report = _discovery_report_fixture(proven=True, runnable=False, configs=[], run_command=None)
-    assert "task or dataset files, but no run configuration" in renderer.render_summary(report)
+    report = _discovery_report_fixture(proven=True, runnable=True, configs=[], run_command=None)
+    command = "cd /repo && harbor run -p dataset -a <agent>"
+    report["datasets"] = [
+        {
+            "path": "dataset",
+            "task_count": 1,
+            "formats": {"harbor": 1},
+            "theme": {"categories": {"math": 1}, "tags": {}, "keywords": {}},
+            "runnable": True,
+            "run_command": command,
+            "required_env_vars": [],
+            "checks": [],
+        }
+    ]
+    summary = renderer.render_summary(report)
+    assert "Each dataset runs directly by path" in summary
+    assert command in summary
+    assert "| `dataset` | harbor (1) | 1 | Ready | Not run | math |" in renderer.render_report(report)
 
 
 @pytest.mark.parametrize("has_evals", [False, True])
@@ -1090,7 +1126,7 @@ def test_discover_report_renderer_setup_matches_runtime(
         configs=[_config_fixture(path="harbor-job.yaml", runnable=False)] if has_evals else [],
         run_command=None,
     )
-    report.update(task_count=int(has_evals), dataset_paths=[])
+    report.update(task_count=int(has_evals), datasets=[])
     report["runtime"]["harbor_cli"] = "/existing/bin/harbor" if runtime_state == "other_environment" else None
     if runtime_state == "unknown":
         report.pop("runtime")
@@ -4406,29 +4442,26 @@ def test_no_bundled_directory_is_named_after_a_provider_package() -> None:
         )
 
 
-def test_only_the_ladder_imports_harbor() -> None:
+def test_only_the_harbor_judge_imports_harbor() -> None:
     """Every other discover module must keep working when Harbor is absent."""
-    assert "harbor" in _imported_roots(_LADDER), "the ladder is the Harbor boundary and must import Harbor"
+    assert "harbor" in _imported_roots(_HARBOR_JUDGE), "Harbor's Judge is the Harbor boundary and must import Harbor"
     for path in _bundled_scripts(_DISCOVER_SCRIPTS_DIR):
-        if path == _LADDER:
+        if path == _HARBOR_JUDGE:
             continue
         assert "harbor" not in _imported_roots(path), (
             f"{path.relative_to(_DISCOVER_SCRIPTS_DIR)} imports Harbor; move that call behind the probe"
         )
 
 
-def test_discover_defers_the_ladder_import_to_call_time() -> None:
-    """A module-scope ladder import would break every Harbor-free repository."""
+def test_discover_defers_the_harbor_judge_import_to_call_time() -> None:
+    """A module-scope import of Harbor's Judge would break every Harbor-free repository."""
     tree = ast.parse(_DISCOVER.read_text(encoding="utf-8"), filename=str(_DISCOVER))
-    module_scope: set[str] = set()
+    named: list[str] = []
     for node in tree.body:
-        if isinstance(node, ast.Import):
-            module_scope.update(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            module_scope.update(alias.name for alias in node.names)
-            if node.module:
-                module_scope.add(node.module)
-    named = sorted(name for name in module_scope if "_ladder" in name)
+        if isinstance(node, ast.ImportFrom) and node.module == "providers.harbor._judge":
+            named.append(node.module)
+        elif isinstance(node, ast.ImportFrom) and node.module == "providers.harbor":
+            named.extend(f"providers.harbor.{alias.name}" for alias in node.names if alias.name == "_judge")
     assert not named, f"discover.py imports {named} at module scope; move it inside a function, after the probe"
 
 
@@ -4438,7 +4471,7 @@ def test_discover_proves_a_valid_suite_runnable(suite: Path) -> None:
 
     assert report["proven"] is True, f"Harbor must judge this report; runtime was {report['runtime']}"
     assert report["task_count"] == 1
-    assert report["dataset_paths"] == ["dataset"]
+    assert [dataset["path"] for dataset in report["datasets"]] == ["dataset"]
     assert len(report["configs"]) == 1
 
     for name in ("schema", "resolution", "tasks", "coverage", "credentials", "agent"):
@@ -4452,6 +4485,9 @@ def test_discover_proves_a_valid_suite_runnable(suite: Path) -> None:
     assert code == 0
     assert report["runnable"] is True
     assert report["run_command"] == f"cd {suite} && harbor job start -c harbor-job.yaml"
+    # The fixture task has no solution/solve.sh, so Solve has nothing to run.
+    assert report["phases"] == {"probe": "valid", "explore": "valid", "judge": "valid", "solve": "skipped"}
+    assert report["datasets"][0]["solve"]["status"] == "skipped"
 
 
 @_needs_harbor
@@ -4518,9 +4554,22 @@ def test_discover_reports_a_task_harbor_silently_dropped(suite: Path) -> None:
     assert "task-two" in coverage["message"]
 
 
-def test_discover_marks_every_finding_unproven_without_harbor(suite: Path) -> None:
-    """The promise that keeps an inventory from reading as evidence."""
+def test_discover_exits_early_without_harbor_or_gym(suite: Path) -> None:
+    """With neither runtime installed there is nothing to explore with."""
     code, report = _run_discover(suite, with_harbor=False)
+
+    assert code == 1
+    assert report["phases"] == {"probe": "invalid", "explore": "skipped", "judge": "skipped", "solve": "skipped"}
+    assert report["configs"] == [] and report["datasets"] == [] and report["task_count"] == 0
+    assert _named(report, "harbor")["hint"]
+    assert _named(report, "gym")["hint"], "a missing Gym must tell the user what to do"
+
+
+def test_discover_marks_every_finding_unproven_without_harbor(
+    suite: Path, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """The promise that keeps an inventory from reading as evidence."""
+    code, report = _run_discover(suite, with_harbor=False, gym_stub=tmp_path_factory.mktemp("gym"))
 
     assert code == 1, "no Harbor means no proof, so discovery cannot report success"
     assert report["proven"] is False
@@ -4533,16 +4582,17 @@ def test_discover_marks_every_finding_unproven_without_harbor(suite: Path) -> No
     assert harbor_check["severity"] == "required"
     assert harbor_check["hint"], "a missing Harbor must tell the user what to do"
 
-    observed = [check for check in report["checks"] if check["name"] != "harbor"]
+    assert report["phases"] == {"probe": "valid", "explore": "valid", "judge": "skipped", "solve": "skipped"}
+    observed = [check for check in report["checks"] if check["name"] not in {"harbor", "gym"}]
     assert observed, "an unproven inventory is still worth reporting"
     assert all(check["proven"] is False for check in observed), (
         f"these findings claim proof without Harbor: {[c['name'] for c in observed if c['proven']]}"
     )
 
 
-def test_discover_finds_configs_without_pyyaml(suite: Path) -> None:
+def test_discover_finds_configs_without_pyyaml(suite: Path, tmp_path_factory: pytest.TempPathFactory) -> None:
     """Without PyYAML the fallback still finds YAML configs, and says it cannot read them."""
-    _, report = _run_discover(suite, with_harbor=False)
+    _, report = _run_discover(suite, with_harbor=False, gym_stub=tmp_path_factory.mktemp("gym"))
 
     assert [config["path"] for config in report["configs"]] == ["harbor-job.yaml"]
     parse = _named(report, "config-parse")
@@ -4596,7 +4646,7 @@ def test_discover_reports_an_unreadable_ethos(suite: Path) -> None:
     ethos.write_text("# doctrine\n", encoding="utf-8")
     ethos.chmod(0o000)
     try:
-        _, report = _run_discover(suite, with_harbor=False)
+        _, report = _run_discover(suite)
     finally:
         ethos.chmod(0o644)
 
@@ -4609,13 +4659,13 @@ def test_discover_reports_an_unreadable_ethos(suite: Path) -> None:
 @_needs_unreadable_files
 def test_discover_keeps_an_unreadable_dataset_file_out_of_the_fingerprint(suite: Path) -> None:
     """One unreadable file must neither abort the fingerprint nor silently join it."""
-    _, baseline = _run_discover(suite, with_harbor=False)
+    _, baseline = _run_discover(suite)
 
     blocked = suite / "dataset" / "task-one" / "blocked.bin"
     blocked.write_bytes(b"payload")
     blocked.chmod(0o000)
     try:
-        _, report = _run_discover(suite, with_harbor=False)
+        _, report = _run_discover(suite)
     finally:
         blocked.chmod(0o644)
 
