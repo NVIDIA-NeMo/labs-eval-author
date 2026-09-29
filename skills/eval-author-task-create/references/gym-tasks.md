@@ -95,6 +95,14 @@ when authoring. Do not assume Harbor's task.toml, solve.sh, or reward.txt protoc
 applies. Stateful tasks need controls against the same stateful tools and reset
 behavior, not just fabricated final responses fed to a stateless verifier.
 
+Maintain the draft root's task-level `README.md` using
+[Suite rerun instructions](../../eval-author/references/suite-readme.md).
+Preserve its existing filename and content when adding rerun sections.
+Link `reproducibility.md` for pinned inputs and setup; include concrete full-data
+and individual-item commands with the actual dataset selection, composition,
+service startup, reset procedure, and fresh output paths. Keep it current through
+validation and execution, and link it when handing off the draft.
+
 Before calling the task portable, follow [Component dependencies and packaging](gym-packaging.md)
 to check dependency installation and implementation selection in fresh child
 environments. Its Helix export section applies only when that consumer is selected.

@@ -56,14 +56,21 @@ tasks live under `.eval-author/task-drafts/`, and run artifacts under
 `.eval-author/jobs/`. When the agent integration supports it, Eval Author creates
 `.eval-author/first-eval.yaml` with the selected cases and run settings.
 
+Start with `.eval-author/README.md` when you return to run evaluations. It saves
+the required setup, a full-suite command, and a mapping from coverage items to
+cases with commands for running them individually. It also explains where to
+find rewards, errors, and logs. These commands preserve the saved agent settings
+and use fresh output paths. Task sanity checks and actual agent evaluations are
+labeled separately.
+
 If a dependency or agent connection is unavailable, the summary identifies the
 blocked work and what is needed to continue. See [Read your results](results.md)
 for the meaning of the saved outputs.
 
-To continue, ask:
+To extend the suite, ask:
 
 ```text
-Show me how to rerun this suite, inspect one result, and add another case.
+Help me add another case to this suite and update its rerun README.
 ```
 
 Once you have run evidence, [audit coverage and propose new evaluations](existing-evals.md#audit-coverage).
