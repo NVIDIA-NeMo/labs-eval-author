@@ -97,12 +97,37 @@ is solvable and its verifier distinguishes outcomes. These checks do not
 establish your actual agent's performance. That requires running your agent
 with its configured provider and dependencies. See [Understanding results](results.md).
 
+### Produce a Gym task
+
+Choose Gym explicitly or use a repository whose existing suite uses Gym:
+
+```text
+Use eval-author-trace-environment to produce a native Gym task from
+/absolute/path/trace.atif.json, with task ID ledger-total.
+Review privacy and ground truth, complete the native task, and validate it
+with the installed Gym runtime. Retain controls and exact rerun instructions.
+```
+
+The source can be ATIF, Gym, MLflow, Intake, or supported OpenTelemetry data;
+source format does not select the output provider. No audit coverage report is
+required. The [Gym extension](../skills/eval-author-trace-environment/references/gym-output.md)
+shares trace preparation and candidacy, then reuses Gym's native scaffolder,
+resources server, datasets, verifier fixtures, and repeated execution controls.
+It requires the sibling `eval-author-task-create` skill and an existing Gym
+v0.6.0+ runtime in Python 3.13.14+.
+
+The native task lives under `<task-dir>/gym/`; `gym-report.md` records validation
+and remaining blockers. The shared `summary.json` remains a pending preparation
+record. Gym controls do not measure model performance. Harbor's automated
+readiness, batch reporting, and publication/export do not cover Gym products.
+
 ## Sharing generated tasks
 
-**Experimental:** Publication review and export are part of the trace-to-environment workflow.
+**Experimental:** Publication review and export currently cover Harbor products.
+Native Gym products from this extension remain private.
 
 Keep source traces, intermediate files, and validation jobs private. Before
-sharing any generated product, complete the separate
+sharing a generated Harbor product, complete the separate
 [publication review](../skills/eval-author-trace-environment/references/publication-review.md)
 of the exact files to export. The export command includes only the reviewed
 task product; the earlier trace review does not authorize publication.

@@ -24,7 +24,7 @@ jobs:
     # Publish advisory evidence only; tool or upload failures must not fail CI.
     continue-on-error: true
     if: >-
-      github.event_name == 'push' ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -78,9 +78,9 @@ jobs:
     # Defense in depth only: PRs can edit this workflow. This condition does not
     # enforce repository access; see CONTRIBUTING.md.
     if: >-
-      github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ||
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       matrix:
@@ -124,6 +124,16 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - route: audit
+            artifact: gym
+          - route: trace
+            artifact: gym-trace
+          - route: ng-trajectory
+            artifact: gym-ng-trajectory
     env:
       GYM_REVISION: 3045a793346a31291d7ea4ae6af3f94a35036ce5
     steps:
@@ -143,26 +153,28 @@ jobs:
           git -C "$RUNNER_TEMP/gym" checkout --detach "$GYM_REVISION"
           uv sync --directory "$RUNNER_TEMP/gym" --locked --no-dev
       - name: Exercise native Gym task scaffolding and execution controls
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           python_bin=.venv/bin/python
           if ! test -x "$python_bin"; then python_bin=python3; fi
           "$python_bin" tools/collect_gym_evidence.py --output "$RUNNER_TEMP/gym-evidence" \
             --gym-python "$RUNNER_TEMP/gym/.venv/bin/python" --gym-root "$RUNNER_TEMP/gym" \
-            --gym-revision "$GYM_REVISION"
+            --gym-revision "$GYM_REVISION" --route "${{ matrix.route }}"
       - name: Publish Gym measurement summary
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: gym-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ${{ matrix.artifact }}-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/gym-evidence/gym-summary.json
           if-no-files-found: error
           retention-days: 90
       - name: Retain native evidence and JUnit results
-        if: ${{ always() && github.event.repository.private == true }}
+        if: ${{ !cancelled() && github.event.repository.private == true }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: gym-native-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ${{ matrix.artifact }}-native-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/gym-evidence/
+          # The synthetic trace workspaces live under pytest/**/.eval-author/.
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 30

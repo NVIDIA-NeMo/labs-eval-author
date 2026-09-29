@@ -11,7 +11,7 @@ scripts that your agent reads to carry out the work.
 
 Use a coding agent that can read local instructions, read and write project
 files, and run shell commands. Choose either the Skills CLI or a manual copy;
-both install the same nine active skill directories. Keep the complete set
+both install the same ten active skill directories. Keep the complete set
 together: skills load sibling skills and their bundled scripts, schemas,
 templates, and references. The set includes the **experimental**
 trace-to-environment workflow.
@@ -94,9 +94,10 @@ npx skills list --agent claude-code
 
 For a global installation, use `npx skills list --agent claude-code --global`.
 Use the same assistant identifier you installed for, and confirm the listed
-paths match your chosen project or global destination. Expect these nine skills:
+paths match your chosen project or global destination. Expect these ten skills:
 
 ```text
+ethos
 eval-author
 eval-author-audit
 eval-author-discover
@@ -164,7 +165,7 @@ Skills CLI. You need Git, access to this GitHub repository, a POSIX shell with
    workflows out. Manual copies are independent of the checkout; updating the
    checkout does not update installed copies.
 
-4. Verify all nine installed skill directories match the checkout:
+4. Verify all ten installed skill directories match the checkout:
 
    ```bash
    (
@@ -281,7 +282,7 @@ you need to create, validate, or run Harbor tasks.
 | Measure coverage from ATIF traces | Python 3.12+ and the [audit dependencies](../skills/eval-author-audit/requirements.txt), including Harbor. Measurement does not start evaluation jobs. |
 | Convert exported MLflow traces | Python 3.11+ and the standard library. Live MLflow queries additionally need an existing MLflow environment and access to the store. |
 | Convert Gym traces with `gym-to-atif` | Python 3.11+ and the standard library for conversion. |
-| Prepare and validate a trace-derived environment (**experimental**) | Python 3.11+, jsonschema 4.23+, and referencing 0.28.4+ for preparation; Harbor and Docker for execution checks. |
+| Prepare and validate a trace-derived environment (**experimental**) | Python 3.11+, jsonschema 4.23+, and referencing 0.28.4+ for preparation; Harbor and Docker for Harbor checks, or the sibling task-create skill and Gym v0.6.0+ in Python 3.13.14+ for [native Gym output](../skills/eval-author-trace-environment/references/gym-output.md). |
 | Inspect NeMo Intake traces | A working `nemo` CLI, an explicit workspace, and read access to a configured local or remote NeMo Helix instance. |
 
 Use the Python environment supported by your installed Harbor version for
@@ -289,8 +290,9 @@ Harbor-backed operations. This repository's development checks use Python 3.12
 and 3.13 with Harbor 0.20.0; see [development setup](../DEVELOPMENT.md).
 
 The experimental trace-to-environment workflow uses Harbor's `nop` agent (a no-op
-baseline) and `oracle` agent (the task's reference solution). These checks do not require a model
-provider. Running your actual agent uses its configured provider and dependencies.
+baseline) and `oracle` agent (the task's reference solution), or Gym's native
+positive and negative controls. These checks do not require a model provider.
+Running your actual agent uses its configured provider and dependencies.
 
 If you need help, [open an issue](https://github.com/NVIDIA-NeMo/labs-eval-author/issues)
 with the workflow, relevant versions, and a minimal reproduction using synthetic

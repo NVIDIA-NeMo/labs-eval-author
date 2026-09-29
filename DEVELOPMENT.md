@@ -34,6 +34,12 @@ The experimental trace-environment skill documents its
 For standalone Gym trace conversion, see
 [`gym-to-atif`](skills/gym-to-atif/SKILL.md).
 
+## Ethos authoring
+
+The portable [`ethos` skill](skills/ethos/SKILL.md) lives in Eval Author and
+ships with its other skills. It combines exploration, intent questions, local
+`ETHOS.md` authoring, and review in one file, including the schema-v1 outline.
+
 ## Public Trace Intel dependency
 
 The development dependencies include `trace-ingest[mlflow]` pinned to an exact
@@ -53,13 +59,14 @@ instructions. The individual skill files document each workflow in detail.
 
 | Skill | Purpose |
 | --- | --- |
+| [`ethos`](skills/ethos/SKILL.md) | Explore intended behavior and author or update a local ETHOS.md. |
 | [`eval-author`](skills/eval-author/SKILL.md) | Entry point and shared workflow guidance. |
 | [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md) | Plan, build, and validate a small starter evaluation suite. |
 | [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Inventory evaluations and check Harbor readiness. |
 | [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Define intended behavior and measure coverage against trace evidence. |
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Propose improvements from an audit and create a supported task when requested. |
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Explain an Intake trace selected through the entry skill. |
-| [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | **Experimental.** Derive and validate a private Harbor environment from trace evidence. |
+| [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | **Experimental.** Derive and validate a private Harbor or native Gym task from trace evidence. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Convert MLflow traces to ATIF. |
 | [`gym-to-atif`](skills/gym-to-atif/SKILL.md) | Convert one Gym Responses record or retain original Harbor ATIF from a Gym run. |
 
@@ -128,40 +135,84 @@ With that runtime already installed, run:
 EVAL_AUTHOR_GYM_PYTHON=/path/to/Gym/.venv/bin/python uv run --locked pytest -q tests/test_gym_native.py
 ```
 
-These tests invoke the real scaffolder and validators, including missing-dataset
-and overwrite failures. They complete a synthetic ledger proposal, exercise its
+These tests invoke the real scaffolder and validators from both an audit gap
+and a privacy-reviewed trace candidate, including missing-dataset and overwrite
+failures. They complete a synthetic ledger scenario, exercise its
 verifier cases and HTTP tools with Gym's SimpleAgent, and collect repeated runs
 through `gym eval run --no-serve` with aggregation and health checks enabled.
 Positive, no-action, and wrong-answer policies are explicitly scripted controls;
 their rewards do not measure model performance. The scripted endpoint emits no
 model captures or token counts, so Gym reports CLI rollout health as `unobserved`;
 the test retains and checks this limitation with no health checks ignored.
+The `ng-trajectory` cases first produce real Gym rollout attachments, retain one
+JSONL row with both the attachment loader and Responses-to-ATIF converter, then
+build and exercise a new native task from that evidence. They also verify that
+an attachment-only input is rejected by the ATIF converter. To select this path:
+
+```bash
+EVAL_AUTHOR_GYM_PYTHON=/path/to/Gym/.venv/bin/python uv run --locked pytest -q tests/test_gym_native.py -k ng-trajectory
+```
+
+Use pytest's `--basetemp` with a fresh private directory to retain the source
+rollouts, conversion receipts, drafts, and controls for inspection; pytest
+clears that directory at the start of a run. Attachment capture in these
+scripted controls does not establish model-call capture or measured performance.
+
 Skipped native tests do not establish Gym compatibility. A live model evaluation additionally requires the actual
 agent/model configuration and credentials.
 
 ### Retained CI measurements
 
-The native Gym panel also runs daily at 07:05 UTC, without credentials or model
-calls. Use the same collector locally with a fresh output directory:
+CI runs daily at 07:05 UTC: Tier 1 static evaluation, the Python 3.12/3.13 test
+matrix, and native Gym compatibility for audit, ATIF trace, and `ng_trajectory`
+inputs. Each Gym route runs independently; a failure in one does not cancel the
+others. Daily runs have their own concurrency group so a push cannot cancel them.
+No inference credentials or model calls are used. Tier 2/3 live evaluation keeps
+its existing approval controls and is not scheduled by this workflow.
+
+The schedule becomes active after the workflow lands on `main`. GitHub schedules
+are best-effort and may be delayed or dropped; use **Actions → CI → Run workflow**
+for a missed run. See [GitHub's schedule documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+Use the same collector locally with a fresh output directory per route:
 
 ```bash
 uv run --locked python tools/collect_gym_evidence.py \
   --gym-python /path/to/Gym/.venv/bin/python --gym-root /path/to/Gym \
   --gym-revision 3045a793346a31291d7ea4ae6af3f94a35036ce5 \
-  --output /tmp/new-gym-evidence
+  --route ng-trajectory --output /tmp/new-gym-ng-trajectory-evidence
 ```
 
-`gym-summary.json` records the source revision, clean-checkout status, exact
+`--route` accepts `audit` (the default), `trace`, or `ng-trajectory`. Each run
+requires both native tests and the controls for that specific route; evidence
+from another route cannot substitute for it.
+
+`gym-summary.json` records the source route, source revision, clean-checkout status, exact
 panel digest (including fixture bytes and the harness dependency lock), runtime,
 individual test outcomes, control counts, and unobserved model health. Missing,
 skipped, malformed, or timed-out evidence cannot pass. The command returns
 nonzero for failed or incomplete measurements and retains a summary after
 runtime setup failures. Existing output directories are rejected.
 
-CI publishes `gym-evidence-<run-id>-<attempt>` for 90 days. JUnit, native rollout
-files, and detailed logs are retained separately as `gym-native-<run-id>-<attempt>`
-for 30 days while the repository is private. The fixtures dashboard imports only
-the aggregate summary. Downloaded artifacts are evidence, not executable inputs.
+CI retains separate aggregate artifacts for 90 days:
+
+| Input route | Artifact prefix | Protocol |
+| --- | --- | --- |
+| Audit | `gym-evidence` | `gym-ledger-controls-v1` |
+| ATIF trace | `gym-trace-evidence` | `gym-trace-ledger-controls-v1` |
+| Gym rollout attachment | `gym-ng-trajectory-evidence` | `gym-ng-trajectory-ledger-controls-v1` |
+
+Each name ends with `-<run-id>-<attempt>`. JUnit, native rollouts, and detailed
+logs use the corresponding `*-native` prefix and are retained for 30 days only
+while the repository is private. These include pytest's synthetic `.eval-author`
+workspaces with source rollouts, conversions, and task drafts. Missing summaries
+fail the upload step.
+
+The audit artifact retains the schema, check names, and counters expected by the
+companion fixtures importer. The trace artifacts are separate measurements;
+the current audit importer does not ingest them. Download them directly from
+the CI run. Future dashboard ingestion must recognize their distinct protocols
+rather than combine them with audit results. Downloaded artifacts are evidence,
+not executable inputs.
 
 For paired comparisons, `--source-root /path/to/other/checkout` changes the skill
 source under test while keeping this checkout's tests, fixtures and dependencies

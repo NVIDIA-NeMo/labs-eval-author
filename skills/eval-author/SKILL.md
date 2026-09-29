@@ -32,7 +32,7 @@ not-for:
   - eval-author-audit (use to generate, validate, measure, or aggregate audit.md coverage)
   - eval-author-task-create (use to propose dataset improvements; when task creation is requested, create and prove an eligible Gym or Harbor task)
   - eval-author-inspect-trace (use after this skill selects the trace sub-flow)
-  - eval-author-trace-environment (experimental; use to derive a Harbor environment from canonical ATIF evidence)
+  - eval-author-trace-environment (experimental; use to derive a Harbor or native Gym task from canonical ATIF evidence)
   - nemo-intake (use to instrument agents, ingest telemetry, or query Intake outside Eval Author)
   - mlflow-to-atif (use to convert MLflow traces into canonical ATIF files)
   - gym-to-atif (use to convert Gym Responses traces into canonical ATIF files)
@@ -64,14 +64,15 @@ each request to the narrow sub-flow that owns it.
 Choose the route before showing the onboarding checklist, gathering Ethos, or
 checking Harbor. Use the requested outcome, prior answers, and supplied material;
 do not ask the user to repeat a known starting point. These are alternative entry
-routes, not four stages everyone must complete:
+routes, not set stages that everyone must complete:
 
 | Starting situation and request | Route | First action and deliverable |
 |---|---|---|
-| The user has no evals and wants to bootstrap them | [First eval](../eval-author-first-eval/SKILL.md) | Use the authoring welcome below, then build a small working suite through the shared milestones. The user's statement settles the starting point; no discovery pass is required to prove absence. |
+| The user has no evals and wants to bootstrap them | [First eval](../eval-author-first-eval/SKILL.md) | Use the authoring welcome below, then build a suite at the agreed scope through the shared milestones. The user's statement settles the eval starting point; no discovery pass is required to prove absence. |
 | The user wants a coverage audit, with existing evals or a specification to guide future evals | [Audit](../eval-author-audit/SKILL.md) | Show the audit's five-step checklist, including generating and reviewing `audit-coverage-report.md`, and ask whether to begin; wait before Ethos work or repository inspection. Reuse an answered opening and prior progress on return. Explain what the evidence can establish; do not substitute a readiness report for the requested audit. |
 | The user is unsure whether or where evals exist | [Discovery inventory](../eval-author-discover/SKILL.md#inventory-an-uncertain-starting-point) | Report what evals exist, what they test, and their documented run instructions before Ethos or runtime setup. Finish discovery, then ask whether the user wants an audit; do not infer that next step from a general request for help. |
 | The user wants new eval recommendations based on an audit | [Dataset proposals](../eval-author-task-create/SKILL.md#step-1-propose-dataset-improvements) | Reuse the audit and its evidence for ranked proposals. A proposal-only request stops before scaffolding or execution. |
+| The user wants a task derived from a recorded interaction | [Trace environment](../eval-author-trace-environment/SKILL.md) | Prepare private trace evidence and assess candidacy, then construct the selected Harbor or native Gym output. No audit gap or Harbor setup is required to start this route. |
 
 For a fresh audit, the next deliverable is its opening checklist with descriptions
 and a question that ends the turn. Load the audit skill and return that opening
@@ -111,6 +112,12 @@ their existing sub-flow and scope. On return visits, resume the requested flow
 and reuse its completed work. Never turn an audit or recommendation request into
 the full authoring experience merely because it is the user's first visit.
 
+A request to add examples to a starter suite created by first-eval returns to
+that flow's scope stage, reusing its saved plan and source selection. Review the
+affected behaviors' breadth, difficulty, grading, and cost before expansion;
+do not restart onboarding or require an audit unless coverage measurement is
+requested. Audit-based gap creation still uses `eval-author-task-create`.
+
 ## Show the path ahead
 
 Use this opening for a fresh authoring request after selecting first-eval.
@@ -129,7 +136,7 @@ retain the labels:
 
 - [ ] **Understand your agent** — establish its purpose, boundaries, and what success looks like.
 - [ ] **Get Harbor ready** — explain the evaluation framework and verify the tooling.
-- [ ] **Draft your first evals** — choose a few meaningful cases, expected outcomes, and grading criteria.
+- [ ] **Draft your first evals** — agree on examples, coverage scope, expected outcomes, and grading criteria.
 - [ ] **Get the evals running** — prepare the environment, connect the agent, and validate the setup.
 - [ ] **Run and review** — evaluate the agent, explain results, and show how to rerun.
 
@@ -147,8 +154,9 @@ Render only the five visible steps in the user checklist. This grouping changes
 presentation only: preserve every internal stage's order, work, check-ins, and
 authorization requirements. Mark a visible step `[x]` only when all its internal
 stages are complete; mark the step containing the current internal stage
-**We're here**. A starting point already settled by the user or discovery completes that
-internal stage, but does not complete **Draft your first evals**.
+**We're here**. Reuse a starting point already settled by the user or discovery;
+first-eval also settles which traces, if any, to use before completing that
+internal stage. This does not complete **Draft your first evals**.
 
 End with “Ready to get started?” and wait. Do not follow the opening with tool
 calls in the same turn. After acceptance, read
@@ -183,8 +191,9 @@ The authority depends on the sub-flow:
   real-agent runs close the selected gap; reference controls do not measure agent ability.
 - For trace inspection, Intake establishes what happened. Local source code can
   explain behavior, but it can't replace recorded trace evidence.
-- For experimental trace-derived environments, canonical ATIF establishes the request and
-  Harbor's NOP and Oracle runs prove the generated environment.
+- For experimental trace-derived environments, canonical ATIF establishes the request.
+  Harbor's NOP and Oracle runs or Gym's native validation and repeated controls
+  establish the generated task's behavior within the reported proof limits.
 
 No sub-flow reimplements a provider's rules. When evidence can't settle a claim,
 the report marks the claim unproven or uncertain.
@@ -200,7 +209,7 @@ The sub-flows share this language, and reports use it verbatim.
 | Advisory | A warning worth surfacing that blocks nothing |
 | Rung | One step of a provider's validation ladder, ordered so a lower rung's failure often clears once a higher one is fixed |
 | Proven | A provider judged this check. An unproven check is an observation and never evidence |
-| Provider | The evaluation framework that owns the rules. Harbor; Gym is also supported for task creation |
+| Provider | The evaluation framework that owns the rules. Harbor; Gym is also supported for audit-derived and trace-derived task creation |
 | Finding | One trace claim categorized as `behavior`, `issue`, `recovery`, or `uncertainty`, with evidence IDs |
 | Outcome | The trace assessment: `success`, `failure`, or `unknown` |
 
@@ -211,12 +220,13 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 
 | Sub-flow | Use it to |
 |---|---|
-| `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and set up a small working suite while teaching the user how to run and extend it |
+| [`ethos`](../ethos/SKILL.md) | Explore intended behavior and write or update ETHOS.md through the [Local Ethos](references/local-ethos.md) handoff |
+| `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and build or expand a starter suite at the agreed breadth while teaching the user how to run it |
 | `eval-author-discover` | Establish whether a repository's evaluations run, name the rung that fails, and get the exact command to run them |
 | `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Gym or Harbor task and prove it with native controls and repeated measured runs |
 | `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
-| `eval-author-trace-environment` | **Experimental.** Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor task when evidence supports it |
+| `eval-author-trace-environment` | **Experimental.** Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor or native Gym task when evidence supports it |
 
 `eval-author-audit` works one level above tasks: it generates and validates the
 coverage denominator, measures traces against it, and aggregates deterministic

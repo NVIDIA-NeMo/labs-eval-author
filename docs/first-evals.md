@@ -18,20 +18,46 @@ Show me the plan first, and explain the cases and how they will be graded.
 
 Eval Author first helps you establish an **Ethos**: a local document describing
 your agent's purpose, boundaries, and success criteria. It can reuse an existing
-`ETHOS.md` or help you create and review one. This step needs no NeMo Helix
-account or service.
+`ETHOS.md` or help you create and review one.
 
-The initial plan usually contains two or three representative cases. Each case
-defines a request, the starting data or environment, an expected outcome, and
-checks that distinguish success from failure. For a support agent, that could
-mean answering a question from a supplied policy and handling a request the
-policy does not cover.
+If you have traces, Eval Author confirms which source and subset to use before
+searching or reading them. That selection and any exclusions carry into case
+creation and later expansion. You can also choose to plan from Ethos without
+traces; traces are not a prerequisite.
+
+Before generating cases, you review the priorities and breadth for each behavior:
+how many distinct input examples to include, their variations and difficulty,
+positive and negative scenarios, expected outcomes, grading, and exclusions.
+A **pilot** is a limited first set of examples to check the test setup and get an
+initial measure of performance on selected behaviors. Eval Author explains why
+it recommends that breadth, what you would learn, and what would remain untested
+even if every example passed. You can choose a minimal pilot or broader coverage;
+there is no fixed example quota. Difficult sentiment or complaint examples need
+labels justified by the intended meaning; a classifier score alone does not
+establish the answer.
+
+At the plan review, Eval Author explicitly asks what you want to change or
+prioritize: lower rerun cost, measuring the agent's cost or latency, broader
+coverage, harder cases, or another concern. It carries forward preferences you
+already gave. You can revise the
+proposal or accept it as written; your choices are saved before case generation.
+
+Distinct examples, Harbor tasks, and repeated attempts are counted separately.
+A task packages one or more examples with their environment and grading;
+repeating it does not add new examples. Discuss cost before generation, including
+the work each rerun requires and whether cost is a budget, a reported metric,
+or a scoring rule. Without reliable pricing or comparable measurements, the plan
+uses work counts and marks monetary cost unknown.
 
 You can plan cases before Harbor is installed. Creating runnable tasks requires
 Harbor; see the [Harbor setup guide](../skills/eval-author-discover/references/harbor-setup.md).
 Execution also needs the selected environment backend, any required application
 access, and a supported connection to your agent. See the full
 [runtime requirements](getting-started.md#requirements).
+
+The checklist shows the current stage and unfinished work at each checkpoint.
+If you detour to discuss grading, cost, or setup, Eval Author preserves the agreed
+scope and resumes from that stage without restarting onboarding.
 
 ## Check the cases and evaluate the agent
 
@@ -57,15 +83,32 @@ tasks live under `.eval-author/task-drafts/`, and run artifacts under
 `.eval-author/jobs/`. When the agent integration supports it, Eval Author creates
 `.eval-author/first-eval.yaml` with the selected cases and run settings.
 
+Start with `.eval-author/README.md` when you return to run evaluations. It saves
+the required setup, a full-suite command, and a mapping from coverage items to
+cases with commands for running them individually. It also explains where to
+find rewards, errors, and logs. These commands preserve the saved agent settings
+and use fresh output paths. Task sanity checks and actual agent evaluations are
+labeled separately.
+
+The summary compares agreed and delivered examples for each behavior, separating
+what was generated, validated, and actually run. It links the examples to their
+tasks and names missing variations, substitutions, or blocked work. Passing a
+pilot does not mean the broader planned coverage is complete.
+
 If a dependency or agent connection is unavailable, the summary identifies the
 blocked work and what is needed to continue. See [Read your results](results.md)
 for the meaning of the saved outputs.
 
-To continue, ask:
+To extend the suite, ask:
 
 ```text
-Show me how to rerun this suite, inspect one result, and add another case.
+Show me how to rerun this suite, inspect one result, and plan broader coverage.
+Update its rerun README when adding the agreed cases.
 ```
+
+For expansion, review the added examples, difficulty, expected outcomes, and
+rerun cost before generation. Existing cases and the selected corpus carry
+forward; the updated plan distinguishes retained examples from new additions.
 
 Once you have run evidence, [audit coverage and propose new evaluations](existing-evals.md#audit-coverage).
 The [first-eval skill](../skills/eval-author-first-eval/SKILL.md) documents the

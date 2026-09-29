@@ -18,6 +18,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "nemo.eval_author.gym_evidence.v1"
 PROTOCOL = "gym-ledger-controls-v1"
+ROUTES = ("audit", "trace", "ng-trajectory")
+NATIVE_TESTS = ("test_native_scaffold_and_validation", "test_native_http_execution_controls")
+# Preserve the audit protocol's published check names for existing consumers.
 TESTS = ("test_native_proposal_scaffold_and_validation", "test_native_http_execution_controls")
 EXPECTED = {
     "controls": 8,
@@ -42,16 +45,21 @@ def check_local_http():
         server.bind(("127.0.0.1", 0))
 
 
-def test_results(path):
+def checks_for(route):
+    return TESTS if route == "audit" else NATIVE_TESTS
+
+
+def test_results(path, route="audit"):
     """Never count skipped, missing, duplicated or unexpected tests as passes."""
-    rows = {name: "missing" for name in TESTS}
+    rows = {name: "missing" for name in checks_for(route)}
+    names_to_checks = {f"{name}[{route}]": check for name, check in zip(NATIVE_TESTS, checks_for(route), strict=True)}
     try:
         nodes = ET.parse(path).findall(".//testcase")
         names = [node.get("name", "") for node in nodes]
-        if sorted(names) != sorted(TESTS):
+        if sorted(names) != sorted(names_to_checks):
             return rows
         for node in nodes:
-            name = node.get("name", "")
+            name = names_to_checks[node.get("name", "")]
             rows[name] = next(
                 (
                     state
@@ -65,14 +73,14 @@ def test_results(path):
     return rows
 
 
-def summarize(output, exit_code):
-    checks = test_results(output / "junit.xml")
+def summarize(output, exit_code, route="audit"):
+    checks = test_results(output / "junit.xml", route)
     status = "failed" if "failed" in checks.values() else "incomplete"
     metrics, health = None, None
     if checks[TESTS[1]] == "passed":
         try:
-            native = json.loads((output / "native/summary.json").read_text())
-            quality = json.loads((output / "native/quality_summary.json").read_text())["run"]
+            native = json.loads((output / "native" / route / "summary.json").read_text())
+            quality = json.loads((output / "native" / route / "quality_summary.json").read_text())["run"]
             if native["model_performance_measured"] is not False:
                 raise ValueError("unexpected live measurement")
             metrics = {key: native[key] for key in EXPECTED}
@@ -92,14 +100,17 @@ def summarize(output, exit_code):
     return {"status": status, "checks": checks, "metrics": metrics, "rollout_health": health}
 
 
-def run(output, gym_python, gym_root, gym_revision, timeout, source_root=ROOT):
+def run(output, gym_python, gym_root, gym_revision, timeout, source_root=ROOT, route="audit"):
+    if route not in ROUTES:
+        raise ValueError("unsupported source route")
     output.mkdir(parents=True, exist_ok=False)
     files = ["tests/test_gym_native.py", "tools/collect_gym_evidence.py", "uv.lock"]
     files += [str(p.relative_to(ROOT)) for p in sorted((ROOT / "tests/fixtures/gym_ledger").glob("*")) if p.is_file()]
     inputs = {name: digest((ROOT / name).read_bytes()) for name in files}
     report = {
         "schema": SCHEMA,
-        "protocol": PROTOCOL,
+        "protocol": PROTOCOL if route == "audit" else f"gym-{route}-ledger-controls-v1",
+        "source_route": route,
         "repository": "NVIDIA-NeMo/labs-eval-author",
         "source_revision": git("rev-parse", "HEAD", root=source_root),
         "inputs_clean": not bool(git("status", "--porcelain", root=source_root)),
@@ -121,7 +132,7 @@ def run(output, gym_python, gym_root, gym_revision, timeout, source_root=ROOT):
         "exit_code": None,
         "reason": "execution_incomplete",
         "status": "incomplete",
-        "checks": dict.fromkeys(TESTS, "missing"),
+        "checks": dict.fromkeys(checks_for(route), "missing"),
         "metrics": None,
         "rollout_health": None,
         "artifacts": {},
@@ -162,8 +173,9 @@ def run(output, gym_python, gym_root, gym_revision, timeout, source_root=ROOT):
                         "pytest",
                         "-q",
                         "-rs",
-                        "tests/test_gym_native.py",
+                        *(f"tests/test_gym_native.py::{name}[{route}]" for name in NATIVE_TESTS),
                         f"--junitxml={output / 'junit.xml'}",
+                        f"--basetemp={output / 'pytest'}",
                     ],
                     cwd=ROOT,
                     stdout=log,
@@ -177,7 +189,7 @@ def run(output, gym_python, gym_root, gym_revision, timeout, source_root=ROOT):
                     timeout=timeout,
                 )
             report["exit_code"] = result.returncode
-            report.update(summarize(output, result.returncode))
+            report.update(summarize(output, result.returncode, route))
             report["reason"] = {
                 "passed": "controls_passed",
                 "failed": "native_test_failure",
@@ -205,6 +217,7 @@ if __name__ == "__main__":
     parser.add_argument("--gym-root", type=Path, required=True)
     parser.add_argument("--gym-revision", required=True)
     parser.add_argument("--timeout", type=int, default=300)
+    parser.add_argument("--route", choices=ROUTES, default="audit", help="Input route to exercise and retain")
     parser.add_argument(
         "--source-root",
         type=Path,
@@ -220,5 +233,6 @@ if __name__ == "__main__":
             args.gym_revision,
             args.timeout,
             args.source_root.resolve(),
+            args.route,
         )
     )

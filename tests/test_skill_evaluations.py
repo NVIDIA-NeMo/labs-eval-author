@@ -146,3 +146,14 @@ def test_unit_test_job_installs_public_dependencies_without_secrets():
     checkout = next(step for step in job["steps"] if step.get("uses", "").startswith("actions/checkout@"))
     assert checkout["with"]["persist-credentials"] is False
     assert any(step.get("run") == "uv sync --locked" for step in job["steps"])
+
+
+def test_daily_ci_includes_static_checks_and_tests_without_cancelling_for_pushes():
+    workflow = yaml.safe_load((Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml").read_text())
+    assert workflow[True]["schedule"] == [{"cron": "5 7 * * *"}]
+    for name in ("skill-evaluator", "test", "gym-compatibility"):
+        condition = workflow["jobs"][name]["if"]
+        assert "github.event_name == 'schedule'" in condition
+        assert "github.event_name == 'workflow_dispatch'" in condition
+    assert "github.event_name == 'schedule' && 'daily' || 'change'" in workflow["concurrency"]["group"]
+    assert workflow["concurrency"]["cancel-in-progress"] == "${{ github.event_name != 'schedule' }}"
