@@ -47,6 +47,12 @@ the commands. Include:
   logs, and available traces; how to inspect one case's result; the meaning of
   the actual reward fields; and remedies for known setup failures. Link the
   saved run summary for observed results and limitations.
+- **Open readable evidence:** use the installed Harbor viewer for native tasks
+  and jobs. For selected Gym JSONL records or standalone ATIF, follow
+  [Local review](local-review.md) to create and link a private `report.html`.
+  Save its exact regeneration command, selected source and rows, evidence role,
+  and any missing or unsupported content. A rendered report is not validation
+  or proof of execution.
 
 Keep task design and verifier details in their existing documents and link them
 from the guide. For an incomplete suite, save the instructions that are known,

@@ -30,6 +30,28 @@ Results from running your actual agent are separate evidence of its performance.
 A valid task, a working environment, and a successful agent run are distinct
 outcomes. See [Build your first evaluations](first-evals.md).
 
+## Open readable cases and traces
+
+Start with the generated suite's README for artifact paths and commands. Harbor
+tasks and recorded jobs use its native local viewer. For Gym JSONL and standalone
+ATIF, Eval Author includes an offline reader that creates a private `report.html`
+you can open directly in a browser; see [Local review](../skills/eval-author/references/local-review.md)
+for commands and supported formats.
+
+Gym reports keep model input separate from verifier and other row fields. The
+reader shows recorded messages, tool calls and results, and available rewards
+and errors, while preserving raw records and identifying missing or unsupported
+content. Select Gym records by their physical line numbers. Keep generated
+cases, source evidence, task controls, and actual-agent attempts in reports
+with their respective evidence roles; these are caller-supplied labels, not
+verified relationships.
+
+Read attention notices before drawing conclusions. A readable case is not a
+validated task, and rendering a trace does not establish a successful run. The
+HTML contains the selected source data and belongs in the same private,
+gitignored workspace as the evidence. Do not publish it merely because it is
+readable in a browser.
+
 ## Coverage audits
 
 The audit uses four artifact names consistently, regardless of review state:

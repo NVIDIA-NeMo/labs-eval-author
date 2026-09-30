@@ -72,6 +72,10 @@ instructions. The individual skill files document each workflow in detail.
 
 ## Validation
 
+See the [generated case review capability assessment](docs/generated-case-review-assessment.md)
+for the pinned Harbor and Gym review tools, observed limits, and remaining
+rendering scope.
+
 Run `uv sync --locked` and `make hooks` to install the DCO commit-message hook.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for sign-off and PR-title conventions.
 Before committing, check a prepared message with
