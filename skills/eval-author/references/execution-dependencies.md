@@ -3,6 +3,10 @@
 
 # Execution dependencies
 
+For execution failures, compatibility fixes, and reporting, also follow
+[Execution recovery](execution-recovery.md). External application access does
+not authorize bypassing the selected evaluation runner or replacing its verifier.
+
 Use this in first-eval when evidence points to software or state
 outside the agent process: desktop applications, licensed tools, hardware, or
 external services. A tool name alone does not establish where it executes.

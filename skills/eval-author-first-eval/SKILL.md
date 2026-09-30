@@ -230,6 +230,9 @@ connection works.
 
 ## 8. Validate the evals
 
+Follow [Execution recovery](../eval-author/references/execution-recovery.md)
+for control and target-agent runs, compatibility repairs, and all result recaps.
+
 For Gym, use native validation and positive/negative verifier controls from the
 Gym first-eval reference. The following controls and config checks are for Harbor.
 

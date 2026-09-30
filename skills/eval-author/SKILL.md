@@ -200,6 +200,11 @@ The authority depends on the sub-flow:
 No sub-flow reimplements a provider's rules. When evidence can't settle a claim,
 the report marks the claim unproven or uncertain.
 
+Before executing, recovering, or reporting evaluation runs, follow
+[Execution recovery](references/execution-recovery.md). Preserve the selected
+execution path and original verifiers; diagnostic results cannot complete the
+requested evaluation.
+
 ## Vocabulary
 
 The sub-flows share this language, and reports use it verbatim.

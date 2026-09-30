@@ -33,6 +33,10 @@ allowed-tools: Bash Read Write Grep Glob
 
 # Eval Author: trace to environment
 
+For proof execution failures and result recaps, follow
+[Execution recovery](../eval-author/references/execution-recovery.md) alongside
+this workflow's integrity protocol. Diagnostic probes never complete proof.
+
 **Experimental.** All workflows and outputs from this skill are experimental,
 including source normalization, task and fixture generation, validation, and
 publication review/export. Identify them as experimental when presenting them

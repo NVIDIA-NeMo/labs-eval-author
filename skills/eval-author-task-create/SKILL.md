@@ -290,6 +290,10 @@ reference and a realistic incorrect control; include applicable valid-alternativ
 and side-effect cases. A failing command or missing evidence is not a passing
 negative control. Use the same Harbor Python runtime for preparation and runs.
 
+Follow [Execution recovery](../eval-author/references/execution-recovery.md)
+for native controls, real-agent trials, and reporting. Compatibility repairs
+must preserve the selected provider and original grading semantics.
+
 For Gym, use the positive and negative controls and native execution in the
 [Gym guide](references/gym-tasks.md). For Harbor, run the reference command
 through the evidence recorder before spending model credentials:

@@ -40,6 +40,10 @@ allowed-tools: Bash Read Write Grep Glob
 
 # Eval Author: discover
 
+When executing checks or explaining a failed run, follow
+[Execution recovery](../eval-author/references/execution-recovery.md).
+Local diagnostics cannot substitute for native provider evidence.
+
 ## Purpose
 
 The Eval Author discovery pass. Read `eval-author` for the shared standard,
