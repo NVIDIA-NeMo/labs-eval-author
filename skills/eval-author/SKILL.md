@@ -135,7 +135,7 @@ below. Plain bullets are not the checklist. Shorten descriptions as useful, but
 retain the labels:
 
 - [ ] **Understand your agent** — establish its purpose, boundaries, and what success looks like.
-- [ ] **Get Harbor ready** — explain the evaluation framework and verify the tooling.
+- [ ] **Get the evaluation runtime ready** — explain the evaluation framework and verify the tooling.
 - [ ] **Draft your first evals** — agree on examples, coverage scope, expected outcomes, and grading criteria.
 - [ ] **Get the evals running** — prepare the environment, connect the agent, and validate the setup.
 - [ ] **Run and review** — evaluate the agent, explain results, and show how to rerun.
@@ -145,7 +145,7 @@ The five visible steps group the existing ten internal stages:
 | Visible step | Internal stages, in their existing order |
 | --- | --- |
 | Understand your agent | 1. Establish the agent’s Ethos |
-| Get Harbor ready | 2. Get Harbor ready |
+| Get the evaluation runtime ready | 2. Get the evaluation runtime ready |
 | Draft your first evals | 3. Understand the evaluation starting point → 4. Define the evaluation scope → 5. Prepare cases and grading |
 | Get the evals running | 6. Prepare the execution environment → 7. Connect the agent → 8. Validate the evals |
 | Run and review | 9. Evaluate the agent → 10. Review results and explain reruns |
@@ -209,7 +209,7 @@ The sub-flows share this language, and reports use it verbatim.
 | Advisory | A warning worth surfacing that blocks nothing |
 | Rung | One step of a provider's validation ladder, ordered so a lower rung's failure often clears once a higher one is fixed |
 | Proven | A provider judged this check. An unproven check is an observation and never evidence |
-| Provider | The evaluation framework that owns the rules. Harbor; Gym is also supported for audit-derived and trace-derived task creation |
+| Provider | The evaluation framework that owns the rules. Native Gym first, Harbor second; preserve explicit choices and existing suites |
 | Finding | One trace claim categorized as `behavior`, `issue`, `recovery`, or `uncertainty`, with evidence IDs |
 | Outcome | The trace assessment: `success`, `failure`, or `unknown` |
 
@@ -221,7 +221,7 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 | Sub-flow | Use it to |
 |---|---|
 | [`ethos`](../ethos/SKILL.md) | Explore intended behavior and write or update ETHOS.md through the [Local Ethos](references/local-ethos.md) handoff |
-| `eval-author-first-eval` | Establish required Ethos, plan cases even without Harbor, and build or expand a starter suite at the agreed breadth while teaching the user how to run it |
+| `eval-author-first-eval` | Establish required Ethos, plan cases without an installed runtime, and build or expand a starter suite at the agreed breadth while teaching the user how to run it |
 | `eval-author-discover` | Establish whether a repository's evaluations run, name the rung that fails, and get the exact command to run them |
 | `eval-author-audit` | Generate and validate a finite `audit.md` coverage denominator, measure and aggregate trace coverage, and report findings |
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Gym or Harbor task and prove it with native controls and repeated measured runs |
@@ -257,21 +257,21 @@ about missing facts affecting the next work. Never request secret values.
 ## Route after the evaluation starting point
 
 The entry routes above own discovery performed before authoring. Within an
-authoring flow, the shared milestone procedure establishes Ethos and Harbor,
+authoring flow, the shared milestone procedure establishes Ethos and the selected runtime,
 then reuses the settled starting point or calls `eval-author-discover` if source
 selection is still needed. Its runtime probes can be used separately during the
-Harbor stage. Reuse completed checks and answers when their inputs are unchanged.
+runtime stage. Reuse completed checks and answers when their inputs are unchanged.
 
 When a discovery scan found no Harbor evals, follow its **When no Harbor evals
 were found** conversation before routing candidate material; an empty Harbor
 scan does not establish that no evals exist.
 An explicitly supplied source already answers source selection. Once the evaluation
-starting point is settled, carry the established Ethos, Harbor invocation, findings,
+starting point is settled, carry the established Ethos, runtime invocation, findings,
 and answered check-ins into the selected path:
 
-- **Existing Harbor suite or tasks:** continue discovery and resolve configuration
+- **Existing Gym or Harbor suite or tasks:** continue discovery and resolve configuration
   or readiness failures. Broken evals are not a reason to start over.
-- **Existing non-Harbor material:** report what exists and its documented run
+- **Other evaluation material:** report what exists and its documented run
   instructions or missing execution details. Preserve the user's selected source
   and requested outcome. Conversion is currently unavailable; do not enter the
   disabled adaptation flow. If the desired outcome is unclear, ask one focused
@@ -307,8 +307,9 @@ user, not to you.
   the narrow local Ethos write exception above.
 - **A missing tool is a finding, not a task.** When the provider is not installed,
   say so and stop short of proving anything. Report what you found regardless, and
-  do not install the provider automatically. Use discovery's Harbor setup guidance
-  to explain installation and verification. An explicit request to install is
+  do not install the provider automatically. For Gym, report its separate runtime
+  requirements and repository setup instructions; for Harbor, use discovery's
+  setup guidance to explain installation and verification. An explicit request to install is
   authorization for that setup; a broad eval request alone is not.
 - **Do not run without approval.** Discovery proves an existing suite can run and
   hands over the command. Task creation may run Gym verifier controls or Harbor Oracle locally, then starts

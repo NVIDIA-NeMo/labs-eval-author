@@ -2,9 +2,9 @@
 name: eval-author-first-eval
 description: >-
   Establish a required Ethos, plan evaluation cases, and build first evals or
-  expand a starter Harbor suite while explaining its parts. No prior
-  traces or coverage reports are required. Missing Harbor blocks scaffolding
-  and execution, not planning.
+  expand a starter suite with native Gym first and Harbor second while explaining
+  its parts. No prior traces or coverage reports are required. Missing selected
+  runtime blocks scaffolding and execution, not planning.
 triggers:
   - help me build my first evals
   - my agent has no evals yet
@@ -16,9 +16,10 @@ not-for:
   - eval-author-discover (use to check an existing suite)
 compatibility: >-
   Ethos is required before evaluation design and is saved and checked locally
-  in the user's repository. No NeMo service, account, CLI, or upload is needed.
-  Planning needs no Harbor installation. Scaffolding requires an existing Harbor CLI;
-  validation requires its Python environment. Execution may require Docker,
+  in the user's repository. No NeMo service, account, platform CLI, or upload is needed.
+  Planning needs no evaluation runtime. Native Gym authoring needs Gym v0.6.0+
+  in its separate Python 3.13.14+ environment. Harbor authoring needs its CLI
+  and Python environment. Execution may require Docker,
   an agent adapter, and provider credentials.
 maturity: alpha
 license: Apache-2.0
@@ -40,7 +41,7 @@ For a direct invocation, use the core's first-eval entry route and authoring
 opening before repository work. The user's statement that there are no evals is
 enough to select this flow. When routed here from discovery inventory, carry its
 findings and prior answers forward, then start at the earliest unfinished
-milestone; inventory alone does not establish Ethos or Harbor readiness. Enter
+milestone; inventory alone does not establish Ethos or selected-runtime readiness. Enter
 stage 4 only when the first three milestones and applicable check-ins are settled.
 Do not repeat completed work or restart an existing intent interview.
 
@@ -66,13 +67,14 @@ existing evals. Carry its result into the later case plan: the applicable checke
 Ethos path, established intent, completed content review when needed, and any
 unresolved prerequisite.
 
-## 2. Get Harbor ready
+## 2. Get the evaluation runtime ready
 
-Use the Harbor introduction in the shared milestone procedure before obtaining
-setup evidence from [`eval-author-discover`](../eval-author-discover/SKILL.md),
-including its interpreter probe and optional assistant-skills check. For missing
-or broken installations, follow
-[Help the user get Harbor ready](../eval-author-discover/references/harbor-setup.md).
+Prefer native NeMo Gym for a new suite. Preserve an explicit provider choice or
+an existing suite's provider when expanding it; use Harbor second when requested
+or when the agent's integration or execution requirements call for it. Record the
+reason for selecting Harbor instead of silently switching because Gym is missing.
+Follow the shared milestone procedure to introduce and verify only the selected
+runtime. Missing Harbor does not block native Gym authoring or execution.
 
 ## 3. Understand the evaluation starting point
 
@@ -130,8 +132,8 @@ matching or mock away the behavior under test. If the requested case cannot be
 tested with available resources, explain the limitation and select a supported
 case with the user.
 
-Without Harbor, the deliverable at this point is the evaluation plan; native
-task creation remains blocked on setup.
+Without the selected runtime, the deliverable at this point is the evaluation
+plan; native task creation remains blocked on that runtime's setup.
 
 Present the plan using the shared [scope checkpoint](../eval-author/references/milestone-checkins.md#scope-checkpoint).
 Settle unresolved scope choices and incorporate changes before preparing cases.
@@ -140,7 +142,12 @@ the pilot's size does not determine the expansion's scope.
 
 ## 5. Prepare cases and grading
 
-Require a working Harbor CLI and Python environment. Read its
+For **Gym**, follow [Native Gym first evals](references/gym-first-eval.md) for
+scaffolding and the provider-specific parts of stages 5–9. Keep the shared scope,
+stage check-ins, explanations, suite README, and result reconciliation below.
+The Harbor commands and file layout in those stages apply only to Harbor.
+
+For **Harbor**, require a working CLI and Python environment. Read its
 `harbor task init --help` and `harbor run --help` before using options. Use an
 unused descriptive slug for each planned task under `.eval-author/task-drafts/`.
 Create the agreed examples and map their stable IDs to tasks; one task may
@@ -172,13 +179,15 @@ connection, and run configuration are completed.
 
 Apply the core's **Explain the eval pieces as they become relevant** guidance to
 the files being created. For each verifier, explain its actual assertion and an
-example it cannot distinguish yet. Introduce the Oracle as the prepared reference
-solution when creating it. Keep this teaching part of building the starter cases,
+example it cannot distinguish yet. For Harbor, introduce the Oracle as the prepared reference
+solution when creating it; for Gym, explain the known-correct verifier fixture. Keep this teaching part of building the starter cases,
 without requiring a separate tutorial or exhaustive methodology exercise.
 
 ## 6. Prepare the execution environment
 
-Populate the generated `environment/` with the dependencies, fixtures, and
+For Gym, prepare the generated components and reset behavior using the Gym
+first-eval reference. For Harbor, populate the generated `environment/` with
+the dependencies, fixtures, and
 starting state each selected case needs. Check documented access requirements,
 credential variable names, and the reset behavior that makes reruns repeatable.
 For external dependencies, apply the runtime plan from
@@ -191,13 +200,15 @@ and which cases or checks it blocks.
 
 ## 7. Connect the agent
 
-Establish a supported Harbor integration for the actual agent from its entry
+For Gym, follow the Gym first-eval reference to connect the actual agent and
+record its composition and model configuration. For Harbor, establish a supported
+integration for the actual agent from its entry
 point, installed adapter code, registry, and CLI help. Do not substitute another
 agent or rewrite the application. If the adapter is missing, identify the specific
 integration requirement. Control-agent task validation remains available, but
 performance of the user's agent remains unmeasured.
 
-When supported, write `.eval-author/first-eval.yaml` using the installed Harbor
+For Harbor, when supported, write `.eval-author/first-eval.yaml` using the installed Harbor
 JobConfig schema: explicitly select the working starter tasks, the actual agent
 and model settings, the agreed attempts per task, and jobs under `.eval-author/jobs/`.
 Propose one attempt for an initial baseline unless the purpose needs repeats;
@@ -211,6 +222,9 @@ checks under **Validate the evals**; configuration alone does not prove that the
 connection works.
 
 ## 8. Validate the evals
+
+For Gym, use native validation and positive/negative verifier controls from the
+Gym first-eval reference. The following controls and config checks are for Harbor.
 
 Use Harbor's installed validators to check task validity. Exercise the environment
 and grading with the controls below, retaining all jobs under `.eval-author/jobs/`
@@ -250,7 +264,8 @@ the selected task count, distinct examples, attempts, execution-cost assumptions
 and where rewards and errors will appear. Check that task packaging still
 executes the agreed examples. Once validated, show the tasks, agent, model,
 and command with the agreed attempt settings.
-For authorized execution, run from the repository root:
+For authorized Gym execution, use the recorded native commands from the Gym
+first-eval reference. For Harbor, run from the repository root:
 
 ```bash
 harbor job start -c .eval-author/first-eval.yaml
@@ -282,7 +297,8 @@ or checks are basic. A functioning case that the agent fails provides a useful
 baseline; do not weaken it to obtain success.
 
 Name each created eval case and explain the customer behavior it measures.
-Translate the recorded controls into their meaning: for a binary action case,
+Translate the recorded controls into their meaning. For Gym, explain the actual
+positive and negative fixtures and observed rewards. For a Harbor binary action case,
 doing nothing failed and the prepared reference solution passed, so the grader
 distinguishes those examples. Do not call NOP an empty answer unless that is what
 it tested. For graded metrics or cases where inaction is correct, explain the
@@ -312,23 +328,24 @@ hand the established Ethos and actual ATIF to `eval-author-audit`, then use
 ## Prerequisites
 
 Establish local Ethos before case design. Planning needs agent documentation and
-intended behavior, not prior traces, coverage reports, or Harbor. Scaffolding
-requires the Harbor CLI; validation needs its Python environment. Execution
+intended behavior, not prior traces, coverage reports, or an evaluation runtime.
+Scaffolding and validation require the selected Gym or Harbor installation. Execution
 needs the chosen backend, agent connection, and any configured provider access.
 Real-agent and paid-judge runs require authorization for execution and spend.
 
 ## Limitations
 
 A starter suite establishes a baseline for the selected cases, not comprehensive
-coverage. NOP and Oracle validate task wiring and selected verifier behavior;
-they do not measure the real agent. Missing runtime access can leave useful
+coverage. Gym verifier controls or Harbor NOP and Oracle validate task wiring
+and selected verifier behavior; they do not measure the real agent. Missing runtime access can leave useful
 plans and drafts complete while execution remains unproven.
 
 ## Troubleshooting
 
 - Missing Ethos: resume the shared Local Ethos procedure before case design.
-- Harbor unavailable: retain the case plan and follow discovery's setup guidance;
-  install only when that setup is authorized.
+- Selected runtime unavailable: retain the case plan and identify the Gym setup
+  requirement or follow discovery's Harbor setup guidance. Install only when
+  authorized; do not require Harbor for a Gym suite.
 - Oracle fails or NOP unexpectedly passes: inspect task state, reference solution,
   and verifier against the intended outcome; repair and rerun the controls.
 - Agent connection or credentials missing: record the verified entry point or

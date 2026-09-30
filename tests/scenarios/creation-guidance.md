@@ -23,7 +23,7 @@ that every record is available or usable.
 
 For fresh starts, request first evals and follow the normal opening and milestone
 check-ins. For staged tests, supply explicit conversation history showing the
-opening accepted, Ethos reviewed, Harbor readiness checked or explicitly deferred,
+opening accepted, Ethos reviewed, selected-runtime readiness checked or explicitly deferred,
 and the user's statement that no evals exist. State which milestone transition
 was answered and which source or scope choice remains open. File presence alone
 does not establish this history or runtime readiness. Reuse applicable history
@@ -129,7 +129,8 @@ excluded source or fabricating observed examples.
 **A — no traces:** At source selection, answer: “There are no traces. Use Ethos
 and synthetic examples.” Planning continues without a trace hunt or manufactured
 coverage report. The plan records the choice and marks examples as synthetic.
-Missing Harbor can leave a useful plan complete while scaffolding is blocked.
+Missing the selected runtime can leave a useful plan complete while scaffolding
+is blocked. Missing Harbor alone does not block native Gym authoring.
 
 **B — question detour:** At the scope checkpoint, ask: “Explain why a repeated
 attempt is not another input example.” The agent answers, preserves existing
@@ -258,3 +259,23 @@ Repository validation also passed Ruff lint/format checks, type checks for Pytho
 signed-off commit-message check. The generic skill-creator validator rejected
 this repository's pre-existing extended frontmatter fields; the repository's
 own skill contract checks passed. No live model evaluation was performed.
+
+## Gym-first provider selection
+
+**Start:** Supply the support agent with reviewed Ethos, no evals, no traces,
+a working native Gym installation, and no Harbor. Request first evals without
+specifying a provider. Answer the existing milestone and scope questions.
+
+**Inspect:** The agent selects Gym, verifies that installation, and prepares
+native drafts without Harbor setup or an audit report. It completes manifest,
+component, dataset, and verifier files instead of Harbor task files. Native
+validation and positive/negative controls remain separate from actual agent
+execution. A missing actual-agent integration is reported as a blocker, never
+replaced by a passing run of Gym's example agent. The suite README retains Gym
+commands, selected rows, agreed attempts, and fresh result paths.
+
+**Variants:** Explicitly request Harbor with a working Harbor installation;
+verify that Harbor scaffolding and NOP/Oracle checks remain available. Expand an
+existing Harbor starter suite; verify its provider is preserved. Remove Gym
+from the default new-suite workspace; verify planning can continue with setup
+recorded as pending, without silently switching to Harbor or requiring both.
