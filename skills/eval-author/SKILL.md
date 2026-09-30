@@ -209,7 +209,7 @@ The sub-flows share this language, and reports use it verbatim.
 | Advisory | A warning worth surfacing that blocks nothing |
 | Rung | One step of a provider's validation ladder, ordered so a lower rung's failure often clears once a higher one is fixed |
 | Proven | A provider judged this check. An unproven check is an observation and never evidence |
-| Provider | The evaluation framework that owns the rules. Native Gym first, Harbor second; preserve explicit choices and existing suites |
+| Provider | The evaluation framework that owns the rules. Gym first, Harbor second; they are compatible, and the user has the final say |
 | Finding | One trace claim categorized as `behavior`, `issue`, `recovery`, or `uncertainty`, with evidence IDs |
 | Outcome | The trace assessment: `success`, `failure`, or `unknown` |
 

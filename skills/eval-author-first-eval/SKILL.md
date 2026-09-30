@@ -69,12 +69,11 @@ unresolved prerequisite.
 
 ## 2. Get the evaluation runtime ready
 
-Prefer native NeMo Gym for a new suite. Preserve an explicit provider choice or
-an existing suite's provider when expanding it; use Harbor second when requested
-or when the agent's integration or execution requirements call for it. Record the
-reason for selecting Harbor instead of silently switching because Gym is missing.
-Follow the shared milestone procedure to introduce and verify only the selected
-runtime. Missing Harbor does not block native Gym authoring or execution.
+Prefer NeMo Gym first and Harbor second for a new suite. Both are available as
+needed, and Gym is compatible with Harbor. The user has the final say, including
+choosing a setup that uses both. Preserve an existing suite's setup unless the
+user requests a change. Follow the shared milestone procedure to explain the
+recommended setup and verify the runtimes it uses.
 
 ## 3. Understand the evaluation starting point
 
@@ -345,7 +344,7 @@ plans and drafts complete while execution remains unproven.
 - Missing Ethos: resume the shared Local Ethos procedure before case design.
 - Selected runtime unavailable: retain the case plan and identify the Gym setup
   requirement or follow discovery's Harbor setup guidance. Install only when
-  authorized; do not require Harbor for a Gym suite.
+  authorized, following the user's selected setup.
 - Oracle fails or NOP unexpectedly passes: inspect task state, reference solution,
   and verifier against the intended outcome; repair and rerun the controls.
 - Agent connection or credentials missing: record the verified entry point or

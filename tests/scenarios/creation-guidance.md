@@ -130,7 +130,7 @@ excluded source or fabricating observed examples.
 and synthetic examples.” Planning continues without a trace hunt or manufactured
 coverage report. The plan records the choice and marks examples as synthetic.
 Missing the selected runtime can leave a useful plan complete while scaffolding
-is blocked. Missing Harbor alone does not block native Gym authoring.
+is blocked. Report prerequisites for the user's selected setup.
 
 **B — question detour:** At the scope checkpoint, ask: “Explain why a repeated
 attempt is not another input example.” The agent answers, preserves existing
@@ -267,7 +267,7 @@ a working native Gym installation, and no Harbor. Request first evals without
 specifying a provider. Answer the existing milestone and scope questions.
 
 **Inspect:** The agent selects Gym, verifies that installation, and prepares
-native drafts without Harbor setup or an audit report. It completes manifest,
+native drafts using that installation, with no audit report. It completes manifest,
 component, dataset, and verifier files instead of Harbor task files. Native
 validation and positive/negative controls remain separate from actual agent
 execution. A missing actual-agent integration is reported as a blocker, never
@@ -278,4 +278,7 @@ commands, selected rows, agreed attempts, and fresh result paths.
 verify that Harbor scaffolding and NOP/Oracle checks remain available. Expand an
 existing Harbor starter suite; verify its provider is preserved. Remove Gym
 from the default new-suite workspace; verify planning can continue with setup
-recorded as pending, without silently switching to Harbor or requiring both.
+recorded as pending, respecting the user's choice. Request a setup using Gym
+with Harbor; verify the agent recognizes their compatibility, checks the
+requirements of that setup, and follows the user's decision. The preference
+order must not override an explicit choice.

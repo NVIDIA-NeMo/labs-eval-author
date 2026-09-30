@@ -4,9 +4,9 @@
 # Build your first evaluations
 
 Use this guide when your agent has no evaluations yet. Eval Author helps you
-build a starter suite that you can rerun after changes, using native NeMo Gym
-first and Harbor second. An explicit provider choice or an existing suite is
-preserved; Harbor remains available when the agent integration or runtime needs it.
+build a starter suite that you can rerun after changes. NeMo Gym is the first
+preference and Harbor is second. Both are available as needed, and Gym is
+compatible with Harbor. You have the final say in which tools to use.
 
 Follow [the setup guide](getting-started.md) to load Eval Author in your coding
 agent, with the repository you want to evaluate open. Then ask:
@@ -52,7 +52,7 @@ or a scoring rule. Without reliable pricing or comparable measurements, the plan
 uses work counts and marks monetary cost unknown.
 
 You can plan cases before either runtime is installed. Native Gym authoring
-requires Gym v0.6.0+ in its separate Python 3.13.14+ environment, without Harbor.
+requires Gym v0.6.0+ in its separate Python 3.13.14+ environment.
 For Harbor authoring, see the [Harbor setup guide](../skills/eval-author-discover/references/harbor-setup.md).
 Execution also needs the selected environment backend, any required application
 access, and a supported connection to your agent. See the full

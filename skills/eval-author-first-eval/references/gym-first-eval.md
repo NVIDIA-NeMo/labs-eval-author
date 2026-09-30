@@ -4,8 +4,9 @@
 # Native Gym first evals
 
 Use this reference for the Gym-specific work in first-eval stages 5–9. Keep the
-parent skill's stage boundaries and shared deliverables. No audit report,
-actionable tool gap, Harbor installation, or measured gap closure is required.
+parent skill's stage boundaries and shared deliverables. Gym is compatible with
+Harbor; follow the user's selected setup. No audit report, actionable tool gap,
+or measured gap closure is required.
 
 ## 5. Prepare cases and grading
 

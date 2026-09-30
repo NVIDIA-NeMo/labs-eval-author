@@ -105,21 +105,22 @@ nor answering an intent question completes the document procedure.
 
 ### 2. Get the evaluation runtime ready
 
-After the Ethos check-in, introduce the selected evaluation framework before
-probing its installation. Prefer native NeMo Gym for new suites; preserve an
-explicit provider choice or an existing suite's provider. Harbor is the secondary
-path when requested or required by the agent integration or execution needs.
-Explain the choice and what the framework does: run cases with their environment
-and grading, and retain results for reruns. Only the selected runtime is required.
+After the Ethos check-in, introduce the recommended evaluation setup before
+probing its installation. Prefer NeMo Gym first and Harbor second for new suites.
+Both are available as needed, and Gym is compatible with Harbor. The user has
+the final say, including choosing both. Preserve an existing suite's setup unless
+the user requests a change. Explain how the selected tools run cases with their
+environment and grading, and retain results for reruns. Verify the runtimes the
+selected setup uses; apply both checks below when it uses both.
 
 For **Gym**, link [NeMo Gym](https://github.com/NVIDIA-NeMo/Gym). Reuse the
 repository's documented installation and verify `gym --version` and `gym --help`
 with its actual CLI. Authoring requires v0.6.0+ in its separate Python 3.13.14+
 environment; verify that interpreter can import `nemo_gym.environment.scaffold`.
-Record the command, interpreter, and version. Keep Gym separate from Harbor's
-Python environment. If missing or broken, report the specific setup need and
-follow the core's installation authorization boundary. Missing Harbor does not
-block Gym readiness, and missing Gym does not silently select Harbor.
+Record the command, interpreter, and version. When using both tools, keep their
+Python environments separate as described in discovery's runtime guidance. If
+setup is missing or broken, report the specific need and follow the core's
+installation authorization boundary. Respect the user's selected setup.
 
 For **Harbor**, link [Harbor's documentation](https://www.harborframework.com/docs)
 and use discovery's [runtime prerequisite checks](../../eval-author-discover/references/runtime-prerequisites.md#runtime-prerequisite-checks),
