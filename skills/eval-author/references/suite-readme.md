@@ -51,8 +51,9 @@ the commands. Include:
   and jobs. For selected Gym JSONL records or standalone ATIF, follow
   [Local review](local-review.md) to create and link a private `report.html`.
   Save its exact regeneration command, selected source and rows, evidence role,
-  and any missing or unsupported content. A rendered report is not validation
-  or proof of execution.
+  and any missing or unsupported content. Introduce that review path in the
+  conversation using [Show the user how to review](#show-the-user-how-to-review).
+  A rendered report is not validation or proof of execution.
 
 Keep task design and verifier details in their existing documents and link them
 from the guide. For an incomplete suite, save the instructions that are known,
@@ -99,6 +100,50 @@ save a subset JSONL with the complete original rows, including verifier fields,
 in their original order. Show the exact selection and run commands, including
 service startup when using `--no-serve`; do not invent a coverage-ID flag. Keep
 full-suite and subset output paths distinct and fresh.
+
+## Show the user how to review
+
+At the first created-case checkpoint and again when handing back run results,
+include a short review walkthrough in the user-facing reply. A general README
+link or a rerun command alone does not introduce the review experience.
+
+For Harbor, explain that its viewer is a local browser for the test cases and
+saved attempts. Include the relevant launch command, working directory, and
+browser URL in the reply, using the verified runtime and actual artifact paths.
+Keep the same instructions in a clearly linked README section. Use the directory
+directly containing the tasks with `--tasks`, and the parent of the saved job
+directories with `--jobs`; verify options against the installed version. When
+both views run concurrently, use separate available ports.
+
+Give one concrete route through the relevant view:
+
+- **Created cases:** open the task view, select a named case, read its
+  **Instruction**, and use **Files** for its README, fixtures, and verifier.
+  Explain that a task is one test case and that it can be reviewed before it runs.
+- **Run results:** open the job view, select the actual agent's job, a named case,
+  and one attempt when it exists. Explain that a job groups attempts and a trial
+  is one attempt.
+  Point to its recorded reward and grading evidence; show the trajectory when
+  available. Keep control jobs separate from the actual-agent job.
+
+If only controls ran or execution was blocked before any actual-agent run, say
+the actual agent has not run and offer case review with any clearly labeled
+control evidence instead of inventing an actual-agent job.
+
+Use labels and navigation verified for the installed viewer. If a viewer is
+already running and its content was checked, give its live URL. Otherwise say
+“Run this command, then open this URL,” explain that the command stays running,
+and label launch as untested when only CLI help was checked. Do not present a
+planned localhost URL as a running service or require a new evaluation to review
+saved artifacts. If the viewer is unavailable, state the concrete limitation
+and point to the available readable report or case files.
+
+An adapter that records custom action/reply JSON without ATIF can still supply
+case files, trial results, and grading evidence. Explain that its native
+trajectory is unavailable, and link the actual capture by name and path. Do not
+promise that the Trajectory tab contains those actions or send unsupported
+custom JSON through the Gym/ATIF reader. For supported standalone ATIF or Gym
+JSONL, link the local reader's HTML report directly and explain its evidence role.
 
 ## Verify the handoff
 
