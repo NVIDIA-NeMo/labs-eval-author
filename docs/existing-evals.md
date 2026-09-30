@@ -12,21 +12,21 @@ operation you choose.
 ## Check readiness
 
 ```text
-Check whether the Harbor evaluations in this repository are ready to run.
+Check whether the Gym and Harbor evaluations in this repository are ready to run.
 Explain any blockers and show the command for each suite you check.
 ```
 
-Eval Author uses Harbor's own validators to check configuration, task resolution,
-agent and environment setup, and required host variables. It saves its findings
-and evidence in `.eval-author/discovery.md`.
+Eval Author uses provider-native checks: Harbor validates its configs and tasks,
+and Gym validates native manifests and runs verifier fixtures. Discovery also
+runs a bounded sample of Harbor tasks with Oracle. It saves findings and evidence
+in `.eval-author/discovery.md`.
 
-Verified readiness requires Harbor in the Python environment used for the
-checks, plus access to the selected backend. Without those prerequisites, the
-report explains what remains unverified. Readiness establishes whether the
-suite can run; it does not measure agent performance or evaluation quality.
+Verified checks require the corresponding runtime and execution dependencies.
+The report explains what passed, failed, or remains unverified for each suite.
+These checks do not measure the actual agent's performance or evaluation quality.
 
-Discovery can also describe non-Harbor evaluations and their documented run
-commands. Converting those suites to Harbor is currently unsupported.
+Discovery can also describe other evaluation formats and their documented run
+commands. General conversion of those suites is currently unsupported.
 
 ## Audit coverage
 

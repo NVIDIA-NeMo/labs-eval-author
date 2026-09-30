@@ -260,25 +260,32 @@ signed-off commit-message check. The generic skill-creator validator rejected
 this repository's pre-existing extended frontmatter fields; the repository's
 own skill contract checks passed. No live model evaluation was performed.
 
-## Gym-first provider selection
+## Consistent provider selection
 
 **Start:** Supply the support agent with reviewed Ethos, no evals, no traces,
-a working native Gym installation, and no Harbor. Request first evals without
-specifying a provider. Answer the existing milestone and scope questions.
+and a working native Gym installation. Explicitly request Gym first evals.
+Answer the existing milestone and scope questions.
 
-**Inspect:** The agent selects Gym, verifies that installation, and prepares
-native drafts using that installation, with no audit report. It completes manifest,
-component, dataset, and verifier files instead of Harbor task files. Native
+**Inspect:** The agent honors the choice, verifies Gym, and prepares native
+manifest, component, dataset, and verifier files with no audit report. Native
 validation and positive/negative controls remain separate from actual agent
 execution. A missing actual-agent integration is reported as a blocker, never
 replaced by a passing run of Gym's example agent. The suite README retains Gym
 commands, selected rows, agreed attempts, and fresh result paths.
 
-**Variants:** Explicitly request Harbor with a working Harbor installation;
-verify that Harbor scaffolding and NOP/Oracle checks remain available. Expand an
-existing Harbor starter suite; verify its provider is preserved. Remove Gym
-from the default new-suite workspace; verify planning can continue with setup
-recorded as pending, respecting the user's choice. Request a setup using Gym
-with Harbor; verify the agent recognizes their compatibility, checks the
-requirements of that setup, and follows the user's decision. The preference
-order must not override an explicit choice.
+**Provider matrix:** Exercise the same selection cases for first-eval,
+audit-derived task creation with an eligible synthetic gap, and trace-derived
+creation with an eligible synthetic trace:
+
+- Explicit Gym or Harbor: honor the choice even when the existing suite differs.
+- No explicit choice, existing Gym or Harbor suite: preserve that provider.
+- No explicit choice or existing suite: default to Harbor, even for Gym traces.
+- Selected runtime missing: retain useful planning and report the setup need;
+  do not silently switch providers because another runtime is installed.
+- User selects Gym with Harbor: recognize compatibility, record each tool's role,
+  and check the requirements of that setup.
+
+For Harbor, retain native scaffolding and NOP/Oracle checks. For a mixed suite,
+use the affected cases' setup or ask which cases are targeted when ambiguous.
+The user's explicit choice overrides the default. These are manual acceptance
+scenarios, not an execution record.

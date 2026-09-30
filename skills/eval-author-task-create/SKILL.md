@@ -201,9 +201,10 @@ Do not invent alternate slugs or filenames.
 
 Before generating task instructions, fixtures, or scaffolds, use the shared
 [coverage-planning checkpoint](../eval-author/references/coverage-planning.md).
-Resolve Gym or Harbor from the user's request and existing suite when mapping
-the scope to execution counts; Gym repeats selected dataset rows, while Harbor
-repeats tasks. Keep estimates conditional if that choice remains open.
+Use the core's [provider-selection rule](../eval-author/SKILL.md#select-the-evaluation-provider)
+to resolve Gym or Harbor when mapping scope to execution counts. Gym repeats
+selected dataset rows, while Harbor repeats tasks. Keep estimates conditional
+if that choice remains open.
 Present the proposed priorities and breadth for review, including an option to
 start with a minimal pilot and expand. Reuse already agreed scope rather than
 asking again. Save the agreement in

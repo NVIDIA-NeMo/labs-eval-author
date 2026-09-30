@@ -105,11 +105,9 @@ nor answering an intent question completes the document procedure.
 
 ### 2. Get the evaluation runtime ready
 
-After the Ethos check-in, introduce the recommended evaluation setup before
-probing its installation. Prefer NeMo Gym first and Harbor second for new suites.
-Both are available as needed, and Gym is compatible with Harbor. The user has
-the final say, including choosing both. Preserve an existing suite's setup unless
-the user requests a change. Explain how the selected tools run cases with their
+After the Ethos check-in, follow the core's [provider-selection rule](../SKILL.md#select-the-evaluation-provider)
+and introduce the selected setup before probing its installation. Both Gym and
+Harbor are supported. Explain how the selected tools run cases with their
 environment and grading, and retain results for reruns. Verify the runtimes the
 selected setup uses; apply both checks below when it uses both.
 

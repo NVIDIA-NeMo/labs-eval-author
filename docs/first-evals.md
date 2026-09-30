@@ -4,9 +4,11 @@
 # Build your first evaluations
 
 Use this guide when your agent has no evaluations yet. Eval Author helps you
-build a starter suite that you can rerun after changes. NeMo Gym is the first
-preference and Harbor is second. Both are available as needed, and Gym is
-compatible with Harbor. You have the final say in which tools to use.
+build a starter suite that you can rerun after changes using NeMo Gym or Harbor.
+As in audit-derived and trace-derived task creation, Eval Author follows your
+choice, otherwise preserves the existing suite's provider, and defaults to
+Harbor when neither is specified. Gym is compatible with Harbor, and you have
+the final say in which tools to use.
 
 Follow [the setup guide](getting-started.md) to load Eval Author in your coding
 agent, with the repository you want to evaluate open. Then ask:

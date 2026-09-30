@@ -2,7 +2,7 @@
 name: eval-author-first-eval
 description: >-
   Establish a required Ethos, plan evaluation cases, and build first evals or
-  expand a starter suite with native Gym first and Harbor second while explaining
+  expand a starter Gym or Harbor suite while explaining
   its parts. No prior traces or coverage reports are required. Missing selected
   runtime blocks scaffolding and execution, not planning.
 triggers:
@@ -69,11 +69,10 @@ unresolved prerequisite.
 
 ## 2. Get the evaluation runtime ready
 
-Prefer NeMo Gym first and Harbor second for a new suite. Both are available as
-needed, and Gym is compatible with Harbor. The user has the final say, including
-choosing a setup that uses both. Preserve an existing suite's setup unless the
-user requests a change. Follow the shared milestone procedure to explain the
-recommended setup and verify the runtimes it uses.
+Follow the core's [provider-selection rule](../eval-author/SKILL.md#select-the-evaluation-provider),
+as audit-derived and trace-derived creation do. Both Gym and Harbor are supported.
+Follow the shared milestone procedure to explain the selected setup and verify
+the runtimes it uses.
 
 ## 3. Understand the evaluation starting point
 

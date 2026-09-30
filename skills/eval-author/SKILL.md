@@ -178,11 +178,13 @@ worse than no report when somebody acts on it.
 
 The authority depends on the sub-flow:
 
-- For suite discovery, Harbor's validators judge runnability. A file's presence
-  doesn't prove that Harbor accepts it.
-- For first evals, Ethos establishes intended behavior. NOP and Oracle check
-  basic task wiring and verifier behavior; the user's agent run establishes
-  a baseline. Working setup does not establish evaluation quality or coverage,
+- For suite discovery, the selected provider's validators and execution checks
+  judge readiness: Gym for native manifests and Harbor for its configs and tasks.
+  File presence alone does not prove runnability.
+- For first evals, Ethos establishes intended behavior. Gym's positive/negative
+  controls or Harbor's NOP and Oracle check basic task wiring and verifier
+  behavior; the user's agent run establishes a baseline. Working setup does not
+  establish evaluation quality or coverage,
   and a plan alone is not proof of runnability.
 - For audit-spec validation, the bundled schema and validator judge the finite
   `audit.md` coverage denominator.
@@ -209,7 +211,7 @@ The sub-flows share this language, and reports use it verbatim.
 | Advisory | A warning worth surfacing that blocks nothing |
 | Rung | One step of a provider's validation ladder, ordered so a lower rung's failure often clears once a higher one is fixed |
 | Proven | A provider judged this check. An unproven check is an observation and never evidence |
-| Provider | The evaluation framework that owns the rules. Gym first, Harbor second; they are compatible, and the user has the final say |
+| Provider | The evaluation framework that owns the rules. Gym and Harbor are supported and compatible; follow the shared provider-selection rule |
 | Finding | One trace claim categorized as `behavior`, `issue`, `recovery`, or `uncertainty`, with evidence IDs |
 | Outcome | The trace assessment: `success`, `failure`, or `unknown` |
 
@@ -237,6 +239,22 @@ requests stop there. Its subsequent task-creation path consumes only actionable
 tool gaps and uses the selected Gym or Harbor native scaffolder rather than guessing a task
 layout. For a requested full workflow, proceed from audit to proposals even when
 there are no eligible tool gaps; an audit-only request ends with the findings.
+
+## Select the evaluation provider
+
+Use the same rule for first-eval, audit-derived task creation, and trace-derived
+task creation: honor the user's explicit Gym or Harbor choice; otherwise preserve
+the existing suite's provider. When neither is specified, default to Harbor.
+Both providers are supported, and Gym is compatible with Harbor. If the user
+selects a setup using both, record which provider owns each artifact and execution
+step and verify the runtimes that setup uses. For a mixed suite, preserve the
+setup of the affected cases; clarify only when the target is ambiguous. The user
+has the final say and can override the default or request a provider change.
+
+Select the output provider independently of the evidence source: a Gym trace
+does not require Gym output. Use the selected provider's native scaffolding,
+validation, and execution path. Missing setup is a reported prerequisite, not
+permission to silently switch providers.
 
 ## Establish Ethos before authoring
 

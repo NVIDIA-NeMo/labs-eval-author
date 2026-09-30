@@ -28,9 +28,10 @@ This project is in alpha. Workflows and interfaces may change.
 
 ## Prerequisites
 
-First-evaluation authoring prefers NeMo Gym first and Harbor second. Both are
-available as needed, and Gym is compatible with Harbor. The user has the final
-say; preserve existing suites unless they request a change. Gym authoring needs
+First-eval, audit-derived, and trace-derived task creation support NeMo Gym and
+Harbor. They honor the user's choice, otherwise preserve the existing suite's
+provider, and default to Harbor when neither is specified. Gym is compatible
+with Harbor, and the user has the final say. Gym authoring needs
 Gym v0.6.0+ in its separate Python 3.13.14+ environment; Harbor authoring needs its
 CLI and supported Python environment. See the [first-eval guide](docs/first-evals.md)
 and [Harbor setup guide](skills/eval-author-discover/references/harbor-setup.md).
