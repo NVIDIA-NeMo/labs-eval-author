@@ -83,7 +83,8 @@ Run `uv run <skill_dir>/scripts/task_pipeline.py <command>`:
 
 | Script | Purpose | Arguments |
 |---|---|---|
-| `scripts/task_pipeline.py` | Select, scaffold, and verify one audit-gap task | `select --report`; `scaffold --report --target` plus task metadata; `verify --before --after --target` |
+| `scripts/task_evidence.py` | Record current-revision native controls and agent runs | `prepare --task-dir --contract --out`; `run --manifest --case --run-id --result --out [--trace] -- <command>` |
+| `scripts/task_pipeline.py` | Select, scaffold, and verify one audit-gap task | `select --report`; `scaffold --report --target` plus task metadata; `verify --before --after --target --evidence` |
 
 The three deterministic commands have these verdicts:
 
@@ -91,7 +92,7 @@ The three deterministic commands have these verdicts:
 |---|---|
 | `select` | Lists only tool items with `reason: not_covered_by_any_input_report` and emits a deterministic `task_slug` plus artifact paths |
 | `scaffold` | Calls Gym's native scaffolder with `--provider gym` or Harbor's `harbor task init`, requires matching draft/proposal names for that slug, and installs the supplied instruction |
-| `verify` | Exits 0 only when the selected tool was uncovered before and covered in two distinct repeated after-reports with distinct ATIF `subject.run_id` values |
+| `verify` | Exits 0 only with current-revision control and agent receipts, matching task/trace identities, and tool coverage in both distinct agent runs |
 
 The script prints one JSON object. Exit code 0 is success; do not replace its
 verdict with model judgment.
@@ -281,8 +282,17 @@ keywords.
 
 ## Step 5: prove task correctness with native controls
 
+Apply [Task validation and execution evidence](../eval-author/references/task-validation.md).
+Prepare the result contract and revision manifest before execution. Wrap each
+native control and agent invocation with `scripts/task_evidence.py run`, retaining
+fresh native results and receipts outside the task tree. Harbor requires a
+reference and a realistic incorrect control; include applicable valid-alternative
+and side-effect cases. A failing command or missing evidence is not a passing
+negative control. Use the same Harbor Python runtime for preparation and runs.
+
 For Gym, use the positive and negative controls and native execution in the
-[Gym guide](references/gym-tasks.md). For Harbor, run Oracle before spending model credentials:
+[Gym guide](references/gym-tasks.md). For Harbor, run the reference command
+through the evidence recorder before spending model credentials:
 
 ```bash
 harbor run -p .eval-author/task-drafts/<task-slug> -a oracle
@@ -344,8 +354,18 @@ uv run <skill_dir>/scripts/task_pipeline.py verify \
   --before .eval-author/audit-coverage-report.json \
   --after .eval-author/task-measurements/<task-slug>/repeat-1-report.json \
   --after .eval-author/task-measurements/<task-slug>/repeat-2-report.json \
-  --target <tool-name>
+  --target <tool-name> \
+  --evidence .eval-author/task-measurements/<task-slug>/reference-1.json \
+  --evidence .eval-author/task-measurements/<task-slug>/incorrect-1.json \
+  --evidence .eval-author/task-measurements/<task-slug>/agent-1.json \
+  --evidence .eval-author/task-measurements/<task-slug>/agent-2.json
 ```
+
+Add receipts for every other declared control. Use absolute trace paths in the
+measurement subjects, matching the recorder's trace paths and run IDs. v2
+verification rejects stale revisions, missing controls, unrelated tasks,
+reused native runs, and traces unrelated to the execution receipts. Task
+validation, successful agent execution, and coverage closure are separate fields.
 
 Accept the draft only when `accepted` is `true`. Report native control rewards, both
 real-agent rewards, both run/trace paths, and the verify JSON. If either repeat

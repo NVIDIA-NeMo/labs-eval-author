@@ -127,8 +127,9 @@ observable result rather than a specific tool call or exact prose. Simple
 assertions are acceptable if their limits are clear.
 Do not replace subjective quality with brittle string
 matching or mock away the behavior under test. If the requested case cannot be
-tested with available resources, explain the limitation and select a supported
-case with the user.
+tested with available resources, retain the original requirement as blocked.
+Explain the limitation; select a supported alternative only with the user,
+and record it as a scope change rather than completion of the original case.
 
 Without the selected runtime, the deliverable at this point is the evaluation
 plan; native task creation remains blocked on that runtime's setup.
@@ -139,6 +140,11 @@ When expanding, record retained and added examples and the new unique totals;
 the pilot's size does not determine the expansion's scope.
 
 ## 5. Prepare cases and grading
+
+Apply [Task validation and execution evidence](../eval-author/references/task-validation.md)
+for requirement-to-check review, declared verifier controls, and revision-bound
+run receipts. Include a realistic incorrect result and applicable valid-alternative
+and side-effect cases. These are local task controls, not extra model repeats.
 
 For **Gym**, follow [Native Gym first evals](references/gym-first-eval.md) for
 scaffolding and the provider-specific parts of stages 5–9. Keep the shared scope,
@@ -176,9 +182,12 @@ the selected cases and known setup; keep it current as the environment, agent
 connection, and run configuration are completed.
 
 Apply the core's **Explain the eval pieces as they become relevant** guidance to
-the files being created. For each verifier, explain its actual assertion and an
-example it cannot distinguish yet. For Harbor, introduce the Oracle as the prepared reference
-solution when creating it; for Gym, explain the known-correct verifier fixture. Keep this teaching part of building the starter cases,
+the files being created. For each verifier, explain its actual assertion and a
+concrete incorrect example it must reject. Fix demonstrated false acceptance
+before claiming that check is validated; retain untested distinctions as explicit
+limitations. For Harbor, introduce the Oracle as the prepared reference solution;
+for Gym, explain the known-correct verifier fixture. Keep this teaching part of
+building the starter cases,
 without requiring a separate tutorial or exhaustive methodology exercise.
 
 ## 6. Prepare the execution environment
@@ -235,16 +244,18 @@ harbor run -p .eval-author/task-drafts/<slug> -a oracle \
   --jobs-dir .eval-author/jobs --job-name <slug>-oracle-1
 ```
 
-For each task, inspect Harbor trial results and recorded rewards. Require both
-runs to complete without exceptions and meet the case's predeclared NOP/Oracle
+Run these native commands through the shared evidence recorder, along with
+the other declared controls. For each task, inspect trial results and rewards.
+Require both runs to complete without exceptions and meet the case's predeclared NOP/Oracle
 criteria, including the expected reward shape. The reference solution should
 satisfy the intended outcome; doing nothing should not earn completion credit
 when the case requires an answer or action. If inaction is itself correct, NOP
 success does not show that the verifier rejects incorrect behavior: exercise
 an explicit incorrect response or action as a negative control for that case.
 These are basic wiring and verifier sanity
-checks, not evidence of broad coverage or a robust benchmark. Do not add repeated
-proof runs or a separate negative-control campaign as an onboarding gate.
+checks, not evidence of broad coverage or a robust benchmark. Keep the declared
+controls proportional to the task; do not require repeated proof or additional
+model runs as an onboarding gate.
 Investigate obvious unconditional rewards or leaked answers. Fix broken tasks
 and rerun affected checks; do not weaken the intended assertion to force a pass.
 Report blocked tasks separately and deliver the working subset without silently
