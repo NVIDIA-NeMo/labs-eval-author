@@ -12,7 +12,7 @@ operation you choose.
 ## Check readiness
 
 ```text
-Check whether the Gym and Harbor evaluations in this repository are ready to run.
+Check whether the Gym or Harbor evaluations in this repository are ready to run.
 Explain any blockers and show the command for each suite you check.
 ```
 
