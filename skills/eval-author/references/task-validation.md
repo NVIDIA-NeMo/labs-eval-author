@@ -98,15 +98,13 @@ For example, a Harbor contract begins:
 Inspect the installed runtime's actual result shape before choosing pointers.
 For Harbor, retain the trial's native `result.json`: the recorder additionally
 checks its task checksum and absence of exceptions against the prepared task.
-For Gym, select `provider: gym` and the native rollout ID pointer, such as
-`/ng_trajectory/rollout_id`. Retain the selected native row and native health
-results in a JSON object through a reviewed adapter in the task tree. Configure
-pointers to their real fields, including setup/reset/health failures; do not
-invent a `passed` boolean or replace native errors with reward zero. Include
-configuration, dataset, selected row, and reset identities in the checks where
-available. One receipt represents one native run, not an aggregate of repeats.
-The recorder does not start/reset Gym services or independently verify a remote
-service's deployed source; unresolved deployment identity remains a limitation.
+For Gym, use the maintained [native Gym evidence adapter](../../eval-author-task-create/references/gym-evidence.md).
+It reads native verifier-case reports separately from rollout JSONL and health
+artifacts; authors do not implement a result adapter. Prepare the selected dataset
+row, resolved configuration, runtime record, and reset plan before recording.
+The adapter compares executed inputs, preserves native health status, and checks
+conversion receipts against the selected rollout and ATIF bytes. It does not
+attest a remote service's deployed source.
 
 ```bash
 python <task_create_dir>/scripts/task_evidence.py prepare \
@@ -134,14 +132,16 @@ python <task_create_dir>/scripts/task_evidence.py run \
 ```
 
 The command must produce the declared result. A reviewed wrapper may select and
-copy one Harbor trial result, or retain a Gym row plus native health data; retain
+copy one Harbor trial result; Gym uses the maintained adapter described above; retain
 original jobs too. The recorder runs argv directly without adding a shell and
 uses the current directory. Put wrappers and control sources in the prepared
 task tree, and pass the actual selected task/configuration. Never copy old job
 results to simulate a new execution. This is evidence bookkeeping for trusted
 authoring, not an attestation against a malicious command or edited receipts.
 
-Run every declared control. Agent runs also require `--trace <fresh-absolute-ATIF-path>`;
+Run every declared control. Use `--purpose baseline` for first-eval runs; it
+allows one attempt without ATIF and cannot count as gap-closure evidence.
+For `--purpose closure` (the default), agent runs require `--trace <fresh-absolute-ATIF-path>`;
 produce or convert that trace inside the recorded command, retaining conversion
 receipts where required. Use that exact absolute trace path and the recorder's
 `--run-id` when measuring coverage. Distinct measurements of the same trace may

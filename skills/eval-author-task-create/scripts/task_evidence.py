@@ -104,6 +104,8 @@ def validate_contract(contract: dict[str, Any]) -> None:
         raise EvidenceError("contract provider must be harbor or gym")
     if not isinstance(contract.get("native_run_id"), str) or not contract["native_run_id"].startswith("/"):
         raise EvidenceError("contract requires native_run_id JSON pointer")
+    if contract["provider"] == "gym" and contract["native_run_id"] != "/native_run_id":
+        raise EvidenceError("Gym contracts use the maintained adapter and /native_run_id")
     cases = contract.get("cases")
     if not isinstance(cases, dict) or not cases:
         raise EvidenceError("contract requires cases")
@@ -182,6 +184,10 @@ def prepare(
         from harbor.models.task.task import Task
 
         manifest["harbor_task_checksum"] = Task(task.resolve()).checksum
+    if contract["provider"] == "gym":
+        from gym_evidence import snapshot
+
+        manifest["gym_inputs"] = snapshot(task.resolve(), contract)
     write_new(output, manifest)
     return manifest
 
@@ -225,6 +231,8 @@ def run(
     trace: Path | None,
     command: list[str],
     timeout: int = 1800,
+    purpose: str = "closure",
+    gym_source: Path | None = None,
 ) -> dict[str, Any]:
     manifest = manifest_at(manifest_path)
     if timeout <= 0:
@@ -233,18 +241,34 @@ def run(
     case = manifest["contract"]["cases"].get(case_id)
     if case is None or not run_id.strip() or not command:
         raise EvidenceError("known case, nonempty run ID, and command are required")
-    if case["kind"] == "agent" and trace is None:
+    if purpose not in ("baseline", "closure"):
+        raise EvidenceError("purpose must be baseline or closure")
+    if purpose == "closure" and case["kind"] == "agent" and trace is None:
         raise EvidenceError("agent evidence requires a fresh ATIF trace")
     paths = [output, result] + ([trace] if trace is not None else [])
     if len({p.resolve() for p in paths}) != len(paths):
         raise EvidenceError("receipt, native result, and trace must have distinct paths")
     for path in paths:
         fresh(path, Path(manifest["task_dir"]))
+    source = None
+    if manifest["contract"]["provider"] == "gym":
+        from gym_evidence import source_paths
+
+        if gym_source is None:
+            raise EvidenceError("Gym recording requires --gym-source")
+        source = read(gym_source)
+        for path in source_paths(source):
+            if path.exists() or path.is_symlink() or path.resolve().is_relative_to(Path(manifest["task_dir"])):
+                raise EvidenceError("Gym native outputs must be fresh and outside the task")
+    elif gym_source is not None:
+        raise EvidenceError("--gym-source applies only to Gym")
     receipt: dict[str, Any] = {
         "schema": SCHEMA,
         "manifest": str(manifest_path.resolve()),
         "manifest_sha256": manifest_sha,
         "case": case_id,
+        "purpose": purpose,
+        "gym_source": source,
         "run_id": run_id,
         "command": command,
         "cwd": str(Path.cwd()),
@@ -262,6 +286,10 @@ def run(
         manifest_at(manifest_path)
         if digest(manifest_path) != manifest_sha:
             raise EvidenceError("manifest changed during execution")
+        if source is not None:
+            from gym_evidence import build
+
+            write_new(result, build(source, manifest, case, purpose, trace))
         native = read(result)
         receipt["native_run_id"] = native_identity(native, manifest)
         receipt["result_sha256"] = digest(result)
@@ -270,7 +298,9 @@ def run(
         if not assertions(native, case["health"]):
             raise EvidenceError("native health checks failed")
         receipt["status"] = "passed" if assertions(native, case["checks"]) else "behavior_failed"
-    except (EvidenceError, OSError, subprocess.TimeoutExpired) as exc:
+        if source is not None:
+            receipt["health_status"] = native["health"]["verdict"]
+    except (ValueError, OSError, KeyError, TypeError, subprocess.TimeoutExpired) as exc:
         receipt["error"] = str(exc)
     write_new(output, receipt)
     return receipt
@@ -291,6 +321,8 @@ def verify_receipts(paths: list[Path], task_id: str) -> dict[str, dict[str, Any]
         receipt = read(path)
         if receipt.get("schema") != SCHEMA or receipt.get("status") != "passed" or receipt.get("returncode") != 0:
             raise EvidenceError("execution receipt is not passed")
+        if receipt.get("purpose") != "closure":
+            raise EvidenceError("baseline receipts cannot establish gap closure")
         manifest_path = Path(receipt["manifest"])
         manifest = manifest_at(manifest_path)
         sha = digest(manifest_path)
@@ -308,6 +340,13 @@ def verify_receipts(paths: list[Path], task_id: str) -> dict[str, dict[str, Any]
         if digest(result) != receipt.get("result_sha256"):
             raise EvidenceError("native result digest mismatch")
         native = read(result)
+        if contract["provider"] == "gym":
+            from gym_evidence import build
+
+            retained_trace = Path(receipt["trace"]) if receipt.get("trace") else None
+            rebuilt = build(receipt["gym_source"], manifest, case, "closure", retained_trace)
+            if rebuilt != native:
+                raise EvidenceError("Gym native source artifacts changed")
         native_run_id = native_identity(native, manifest)
         if native_run_id != receipt.get("native_run_id") or native_run_id in seen_native_runs:
             raise EvidenceError("native run identity is changed or reused")
@@ -353,6 +392,8 @@ def main() -> int:
     execute.add_argument("--result", type=Path, required=True)
     execute.add_argument("--trace", type=Path)
     execute.add_argument("--timeout", type=int, default=1800)
+    execute.add_argument("--purpose", choices=("baseline", "closure"), default="closure")
+    execute.add_argument("--gym-source", type=Path)
     execute.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     try:
@@ -361,11 +402,20 @@ def main() -> int:
         else:
             command = args.command[1:] if args.command[:1] == ["--"] else args.command
             payload = run(
-                args.manifest, args.case, args.run_id, args.out, args.result, args.trace, command, args.timeout
+                args.manifest,
+                args.case,
+                args.run_id,
+                args.out,
+                args.result,
+                args.trace,
+                command,
+                args.timeout,
+                args.purpose,
+                args.gym_source,
             )
         print(json.dumps(payload, indent=2))
         return 0 if payload.get("status", "passed") == "passed" else 1
-    except (EvidenceError, OSError, KeyError, TypeError) as exc:
+    except (ValueError, OSError, KeyError, TypeError) as exc:
         print(json.dumps({"valid": False, "error": str(exc)}))
         return 1
 

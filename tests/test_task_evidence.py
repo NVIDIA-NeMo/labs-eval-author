@@ -7,6 +7,7 @@ import importlib
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -22,13 +23,18 @@ def write(path, value):
 
 
 @pytest.fixture
-def prepared(tmp_path):
+def prepared(tmp_path, monkeypatch):
+    # Generic receipt invariants use a synthetic runtime; native Gym is tested separately.
+    import harbor.models.task.task
+
+    monkeypatch.setattr(harbor.models.task.task, "Task", lambda path: SimpleNamespace(checksum="synthetic"))
+    monkeypatch.setattr(evidence, "native_identity", lambda native, manifest: native["rollout_id"])
     task = tmp_path / "cover-read"
     task.mkdir()
     (task / "instruction.md").write_text("Read the record and return its total.")
     contract = {
         "task_id": "cover-read",
-        "provider": "gym",
+        "provider": "harbor",
         "native_run_id": "/rollout_id",
         "alternative_not_applicable": "This fixture has a single numeric output.",
         "side_effect_not_applicable": "This task only returns a value.",

@@ -331,7 +331,7 @@ def _verify(
                 for entry in report["input_reports"]
             ):
                 raise EvidenceError("aggregate tool coverage lacks supporting input evidence")
-    except (EvidenceError, OSError, KeyError, TypeError) as exc:
+    except (ValueError, OSError, KeyError, TypeError) as exc:
         raise PipelineError(f"task execution evidence: {exc}") from exc
 
     payload = {
