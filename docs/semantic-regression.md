@@ -23,8 +23,21 @@ replace the three placeholder model IDs with immutable provider deployment/versi
 identifiers. The pilot proposes ten independent runs per case. The same run count
 is required for candidate consistency checks. Budget for roughly two model calls
 per run plus clustering and retention matching; calls have 120-second timeouts
-and 8,192 output-token limits, with no automatic retries. These are work bounds,
+and 8,192 output-token limits, with no automatic provider retries. Reports are
+requested within 250 words to bound the downstream claim set. An extraction with
+an invalid run ID or nonverbatim evidence gets one correction call; the replacement
+must pass the same validation, or the case remains incomplete. Budget up to three
+calls per run when corrections are needed. These are work bounds,
 not a monetary budget. The suite accepts 5–20 runs and at most ten cases.
+
+Clustering uses compact groups of numeric claim IDs rather than asking the judge
+to repeat every claim text. Python restores the exact source texts and run IDs;
+the partition must account for every claim exactly once. Invalid JSON or an invalid
+partition gets one correction call (at most two clustering calls per case).
+Uncorrected output is reported as `clustering_invalid_output`, never repaired by
+dropping claims or inventing singleton groups. This validates the transport, not
+the semantic quality of the grouping: the mapping still requires review. This
+measurement-code change requires recalibration before comparing against a lock.
 
 Set `INFERENCE_HUB_API_KEY`. The default endpoint is the existing Inference Hub
 chat-completions endpoint; local execution may set `SEMANTIC_API_URL` to a compatible

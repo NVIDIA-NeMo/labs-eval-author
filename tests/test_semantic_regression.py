@@ -81,6 +81,110 @@ def test_template_does_not_expand_placeholders_inside_evidence(tmp_path):
     assert result.endswith("{{RUN_ID}} r1")
 
 
+def test_extraction_corrects_once_without_accepting_invented_evidence(tmp_path):
+    (tmp_path / "prompts").mkdir()
+    (tmp_path / "prompts/extract_claims.md").write_text("{{RUN_ID}} {{RESULT}}")
+    raw = "Excel coverage is **unmeasured**."
+    invalid = {"run_id": "r1", "claims": [{"text": "Excel is unmeasured", "evidence": "Excel is unmeasured"}]}
+    valid = {"run_id": "r1", "claims": [{"text": "Excel is unmeasured", "evidence": raw}]}
+    calls = []
+
+    def corrected(model, request, structured):
+        calls.append(request)
+        return invalid if len(calls) == 1 else valid
+
+    assert semantic.extract(suite(), tmp_path, corrected, "r1", raw) == valid
+    assert len(calls) == 2
+    calls.clear()
+
+    def broken(model, request, structured):
+        calls.append(request)
+        return invalid
+
+    with pytest.raises(ValueError, match="after one correction"):
+        semantic.extract(suite(), tmp_path, broken, "r1", raw)
+    assert len(calls) == 2
+
+
+def test_extraction_provider_failure_is_not_retried(tmp_path):
+    (tmp_path / "prompts").mkdir()
+    (tmp_path / "prompts/extract_claims.md").write_text("{{RUN_ID}} {{RESULT}}")
+    calls = []
+
+    def unavailable(*args):
+        calls.append(args)
+        raise OSError("provider unavailable")
+
+    with pytest.raises(OSError):
+        semantic.extract(suite(), tmp_path, unavailable, "r1", "report")
+    assert len(calls) == 1
+
+
+def test_partition_restores_exact_texts_and_empty_run_ids():
+    dedup = {
+        "run_ids": ["r1", "empty-run"],
+        "unique_claims": [{"text": text} for text in ('a "quoted" claim', "not proven\nΔ", "a near duplicate")],
+    }
+    result = semantic.expand_partition({"groups": [[1], [2, 0]]}, dedup)
+    assert result["run_ids"] == ["r1", "empty-run"]
+    assert [c["texts"] for c in result["clusters"]] == [
+        ['a "quoted" claim', "a near duplicate"],
+        ["not proven\nΔ"],
+    ]
+    assert result["clusters"][0]["canonical"] == 'a "quoted" claim'
+
+
+@pytest.mark.parametrize(
+    "groups",
+    [None, {}, [], [[]], [[0]], [[0, 0]], [[0, 2]], [[-1, 0]], [[False, 1]], [[0, 1.0]], [["0", 1]], [[{}, 1]]],
+)
+def test_partition_rejects_incomplete_or_invalid_assignments(groups):
+    dedup = {"run_ids": ["r1"], "unique_claims": [{"text": "a"}, {"text": "b"}]}
+    with pytest.raises(semantic.ClusteringError):
+        semantic.expand_partition({"groups": groups}, dedup)
+
+
+@pytest.mark.parametrize("failure", ["json", "missing", "provider"])
+def test_clustering_correction_is_bounded_and_never_retries_provider_errors(tmp_path, failure):
+    (tmp_path / "prompts").mkdir()
+    (tmp_path / "prompts/cluster_claims.md").write_text("{{DEDUP_INPUT}}")
+    dedup = {"run_ids": ["r1"], "unique_claims": [{"text": "a"}, {"text": "b"}]}
+    calls = []
+
+    def broken(*args):
+        calls.append(args)
+        if failure == "json":
+            raise json.JSONDecodeError("unterminated", '{"groups":', 10)
+        if failure == "provider":
+            raise OSError("provider unavailable")
+        return {"groups": [[0]]}
+
+    expected = OSError if failure == "provider" else semantic.ClusteringError
+    with pytest.raises(expected):
+        semantic.cluster(suite(), tmp_path, broken, dedup)
+    assert len(calls) == (1 if failure == "provider" else 2)
+
+
+def test_clustering_accepts_valid_correction_and_skips_empty_input(tmp_path):
+    (tmp_path / "prompts").mkdir()
+    (tmp_path / "prompts/cluster_claims.md").write_text("{{DEDUP_INPUT}}")
+    dedup = {"run_ids": ["r1"], "unique_claims": [{"text": "a"}, {"text": "b"}]}
+    calls = []
+
+    def corrected(*args):
+        calls.append(args)
+        if len(calls) == 1:
+            raise json.JSONDecodeError("unterminated", '{"groups":', 10)
+        return {"groups": [[0, 1]]}
+
+    result = semantic.cluster(suite(), tmp_path, corrected, dedup)
+    assert result["clusters"][0]["texts"] == ["a", "b"]
+    assert len(calls) == 2
+    empty = semantic.cluster(suite(), tmp_path, corrected, {**dedup, "unique_claims": []})
+    assert empty == {"run_ids": ["r1"], "clusters": []}
+    assert len(calls) == 2
+
+
 @pytest.mark.parametrize(
     "name,symlink", [("../escape", False), ("/escape", False), ("ratchet/x.py", True), ("ratchet/.hidden", False)]
 )
@@ -154,13 +258,7 @@ class ScriptedModel:
                 ],
             }
         if "# Prompt: cluster" in prompt:
-            return {
-                "run_ids": self.ids,
-                "clusters": [
-                    {"cluster_id": f"c{i}", "canonical": t, "example": t, "texts": [t]}
-                    for i, t in enumerate(("Excel coverage is unmeasured.", "Native CAD fidelity remains unproven."))
-                ],
-            }
+            return {"groups": [[0], [1]]}
         return {
             "run_ids": [self.ids[0]],
             "clusters": [
