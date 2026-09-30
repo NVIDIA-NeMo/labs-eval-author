@@ -336,11 +336,14 @@ def _datasets(
     task_set = set(tasks)
     referenced = _config_dataset_paths(repo_root, configs)
     grouped: dict[Path, list[Path]] = {}
+    # Sibling tasks share a parent, so decide once per parent to keep grouping linear in the task count.
+    groups_by_parent: dict[Path, bool] = {}
     for task in tasks:
         parent = task.parent
-        groupable = parent != repo_root and not (never_group is not None and never_group(parent))
-        key = parent if parent in referenced or (groupable and _holds_only_tasks(parent, task_set)) else task
-        grouped.setdefault(key, []).append(task)
+        if parent not in groups_by_parent:
+            groupable = parent != repo_root and not (never_group is not None and never_group(parent))
+            groups_by_parent[parent] = parent in referenced or (groupable and _holds_only_tasks(parent, task_set))
+        grouped.setdefault(parent if groups_by_parent[parent] else task, []).append(task)
     return [Dataset(path, members, _theme(members)) for path, members in sorted(grouped.items())]
 
 
@@ -359,13 +362,14 @@ def _holds_only_tasks(directory: Path, tasks: set[Path]) -> bool:
         children = [child for child in directory.iterdir() if child.is_dir()]
     except OSError:
         return False
+    # Check the cheap conditions first: _holds_files walks the child's whole subtree.
     return all(
         child in tasks
+        or child.name in _PRUNE_DIR_NAMES
+        or child.name == "task_template"
+        or child.name.startswith(".")
+        or not _holds_files(child)
         for child in children
-        if child.name not in _PRUNE_DIR_NAMES
-        and child.name != "task_template"
-        and not child.name.startswith(".")
-        and _holds_files(child)
     )
 
 

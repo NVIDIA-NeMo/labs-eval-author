@@ -22,7 +22,7 @@ you fix an earlier one.
 |---|---|---|
 | Probe | `harbor` | Harbor is not importable by this interpreter. Re-run with the interpreter from **Before you start** |
 | Probe | `harbor-cli` | Advisory. No `harbor` executable exists on `PATH`, so Judge's `round-trip` check cannot run |
-| Probe | `gym` | NeMo Gym is or is not importable. Gym alone lets discovery explore, judge, and solve Gym manifests; Harbor tasks still need Harbor |
+| Probe | `gym` | Advisory. Whether a `gym` command next to the interpreter or on `PATH` reports NeMo Gym 0.6.0 or later. Gym alone lets discovery explore, judge, and solve Gym manifests; Harbor tasks still need Harbor |
 | Explore | `config` | Required only when the repository holds neither a config nor a task. Confirm the location if an existing suite is expected. If the user has no evals and asked to build them, follow `eval-author-first-eval`. Advisory when datasets exist without a config, since each runs by path |
 | Explore | `config-parse` | A config file did not parse. Either PyYAML is missing, which means the wrong interpreter, or the file's YAML is broken. The hint says which |
 | Explore | `ethos` | Advisory. Explore did not find a readable root `ETHOS.md`. This check records file readability, not substantive Ethos validity |
@@ -40,21 +40,23 @@ you fix an earlier one.
 | Judge (Harbor) | `dataset-tasks` | Some tasks in a dataset are not valid Harbor tasks. The message names them |
 | Judge (Harbor) | `gym-conversion` | A Gym extension task could not be rendered as a Harbor task: both `tests/test.sh` and `tests/verifier.py`, a malformed `tasks.jsonl` row, or a template placeholder the row does not fill |
 | Judge (Gym) | `gym-validate` | `gym env validate` rejected a manifest. The message carries Gym's error; the hint holds the command that reproduces it |
+| Judge (Gym) | `gym-unavailable` | The repo holds Gym manifests, but NeMo Gym or its `gym` executable is missing, so none were checked. Each manifest's Judge status is `blocked`, and Judge is invalid until Gym is installed |
 | Solve | `solve` | A sampled eval did not run end to end. The message names the task and the telling line of its error; the hint holds the command that reproduces it, and `solve.results[].error` holds the full error. As an advisory, it means Solve ran nothing, and says why |
 | Solve | `solve-reward` | Advisory. The reference solution ran but earned no reward. The machinery works, but `solution/solve.sh` and the tests disagree |
-| Solve | `gym-runner` | A dataset holds Gym extension tasks. They pass Harbor's Judge checks once converted, but NeMo Gym has no runner for them yet, so the dataset cannot run as written |
+| Solve | `gym-runner` | Advisory. A dataset holds Gym extension tasks. They pass Harbor's Judge checks once converted, but NeMo Gym has no runner for them yet, so the dataset gets no run command and Solve skips it |
 
 ## Harbor and NeMo Gym environments
 
-If no interpreter can import Harbor, substitute one that imports NeMo Gym. Judge
-and Solve then cover Gym manifests with `gym env validate` and `gym env test`,
-and Harbor findings stay unproven. Judging Gym extension tasks needs Harbor, not
-Gym. Keep the two runtimes in separate environments: the PyPI `nemo-gym` package
-(0.4.0 and earlier) pins an `openai` version that modern Harbor cannot share.
-`nemo-gym` 0.5.0 and later need Python 3.13.14 or newer; on an older Python,
-installers silently pick 0.4.0, which lacks the `gym env validate <name>` and
-`gym env test <name>` commands Judge and Solve run. The `gym` CLI is found next
-to the interpreter or on `PATH`.
+Discovery never imports NeMo Gym. It runs the `gym` command next to the
+interpreter or on `PATH`, and counts Gym as installed only when `gym --version`
+reports 0.6.0 or later. Without Harbor, Judge and Solve cover Gym manifests with
+`gym env validate` and `gym env test`, and Harbor findings stay unproven. Judging Gym extension tasks needs Harbor, not
+Gym. Keep the two runtimes in separate environments, and install `nemo-gym`
+0.6.0 (`pip install nemo-gym==0.6.0`), which needs Python 3.13.14 or newer. On
+an older Python, installers silently pick an older version of Gym which lacks the
+critical commands that Judge and Solve need to run. Only Gym's environment needs
+Python 3.13.14; discovery itself runs on Python 3.11 or later with Gym's `bin/` on
+`PATH`.
 
 ## What Judge and Solve run
 
@@ -62,7 +64,9 @@ Judge checks every config, dataset, and manifest. It skips a Gym manifest whose
 data files are missing, such as an unprepared benchmark, and names the command
 that prepares it.
 
-Solve runs only when Judge passed. It picks at most 4 datasets or manifests, and
+Solve runs only datasets and manifests that passed Judge; a dataset with any task
+Judge rejected sits out, and the rest still run. With none passing, Solve is
+skipped. It picks at most 4 datasets or manifests, and
 at most 4 tasks from each, spread across the list from first to last and the same
 on every run; the report marks the rest `not sampled`. Harbor tasks need a
 `solution/solve.sh` for the `oracle` agent to run. A task counts as run when it

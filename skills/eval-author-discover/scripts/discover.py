@@ -98,6 +98,8 @@ _GYM_JUDGE_WORKERS = 8
 # Phase verdicts, then the Solve status of one dataset or manifest.
 _VALID, _INVALID, _SKIPPED = "valid", "invalid", "skipped"
 _PASSED, _FAILED, _NOT_SAMPLED = "passed", "failed", "not sampled"
+# A manifest Judge could not check because Gym itself is missing counts against Judge, unlike an ordinary skip.
+_BLOCKED = "blocked"
 
 
 def _unproven(checks: list[CheckResult]) -> list[CheckResult]:
@@ -213,15 +215,27 @@ def _judge_manifests(
 
     Records a ``judge`` block on each entry. A manifest Gym cannot look up, or whose
     data is missing, is skipped with the reason, since validating it would only
-    rediscover what Explore already knows.
+    rediscover what Explore already knows. Without a usable Gym, every manifest is
+    blocked instead, and a required check fails so the repo cannot pass unchecked.
     """
+    missing = None if gym_probe.is_available(runtime) else gym_probe.unavailable_reason(runtime)
+    if missing and manifests:
+        for entry in entries:
+            entry["judge"] = {"status": _BLOCKED, "reason": missing, "error": None}
+        return [
+            check(
+                "gym-unavailable",
+                "validation",
+                FAIL,
+                "{} Discovery could not check the repo's {} Gym manifest{}.".format(
+                    missing, len(manifests), "" if len(manifests) == 1 else "s"
+                ),
+                hint=gym_probe.INSTALL_HINT,
+            )
+        ]
     ready: list[tuple[dict, gym_explore.GymManifest]] = []
     for item, entry in zip(manifests, entries, strict=True):
-        if not gym_probe.is_available(runtime):
-            reason = "NeMo Gym is not installed."
-        elif runtime["gym_cli"] is None:
-            reason = "No gym executable is on PATH."
-        elif not gym_explore.is_cataloged(item):
+        if not gym_explore.is_cataloged(item):
             reason = "Gym's catalog does not list this manifest, so Gym cannot find it by name."
         elif item.missing_data and item.kind == "benchmark":
             reason = "Its data is not downloaded ({}). Prepare it with `gym eval prepare --benchmark {}`.".format(
@@ -306,7 +320,7 @@ def _solve(
     gym_ready: list[tuple[dict, gym_explore.GymManifest]] = []
     for item, entry in zip(manifests, manifest_entries, strict=True):
         judged = entry["judge"]
-        if judged["status"] == _SKIPPED:
+        if judged["status"] in {_SKIPPED, _BLOCKED}:
             reason = judged["reason"]
         elif judged["status"] == _FAILED:
             reason = "Judge found problems to fix first."
@@ -317,13 +331,24 @@ def _solve(
 
     harbor_picks = min(len(harbor_ready), max(_MAX_SOLVE_DATASETS // 2, _MAX_SOLVE_DATASETS - len(gym_ready)))
     gym_picks = min(len(gym_ready), _MAX_SOLVE_DATASETS - harbor_picks)
+    harbor_plan = [(entry, _sample(tasks, _MAX_SOLVE_TASKS)) for entry, tasks in _sample(harbor_ready, harbor_picks)]
+    gym_plan = _sample(gym_ready, gym_picks)
+    total = sum(len(tasks) for _, tasks in harbor_plan) + len(gym_plan)
+    started = 0
+
+    def announce(label: str, runner: str) -> None:
+        # Solve can take many minutes, so tell whoever is watching stderr that discovery is still working.
+        nonlocal started
+        started += 1
+        print("solve {}/{}: {} with {}".format(started, total, label, runner), file=sys.stderr, flush=True)
+
     checks: list[CheckResult] = []
     with tempfile.TemporaryDirectory(prefix="eval-author-solve-") as jobs_dir:
-        for entry, tasks in _sample(harbor_ready, harbor_picks):
-            runs = [
-                harbor_solve.run_oracle(runtime["harbor_cli"], task, repo_root, Path(jobs_dir))
-                for task in _sample(tasks, _MAX_SOLVE_TASKS)
-            ]
+        for entry, tasks in harbor_plan:
+            runs = []
+            for task in tasks:
+                announce(_display(task, repo_root), "Harbor's oracle agent")
+                runs.append(harbor_solve.run_oracle(runtime["harbor_cli"], task, repo_root, Path(jobs_dir)))
             entry["_checks"].extend(_oracle_checks(entry["path"], runs, repo_root))
             entry["solve"] = _solve_block(
                 _PASSED if all(run.completed for run in runs) else _FAILED,
@@ -337,8 +362,9 @@ def _solve(
                     for run in runs
                 ],
             )
-    for entry, item in _sample(gym_ready, gym_picks):
+    for entry, item in gym_plan:
         assert item.name is not None and item.kind is not None
+        announce(entry["path"], "`gym env test`")
         run = gym_solve.run_fixture(runtime["gym_cli"], item.name, item.kind, repo_root)
         cases = gym_solve.cases(run)
         reproduce = gym_solve.command(repo_root, item.name, item.kind)
@@ -361,16 +387,20 @@ def _solve(
 
 
 def _gym_runner_checks(described: list[dict]) -> None:
-    """Mark each judged dataset holding Gym extension tasks as unable to run as written."""
+    """Note each judged dataset holding Gym extension tasks, which nothing can run as written yet.
+
+    Advisory: the tasks pass Judge, and the user can do nothing about the missing runner.
+    """
     for entry in described:
         if entry.get("_judged") and entry["formats"].keys() - {_HARBOR_FORMAT}:
             entry["_checks"].append(
                 check(
                     "gym-runner",
                     "solve",
-                    FAIL,
+                    WARN,
                     "{} holds Gym extension tasks. They pass Harbor's checks once converted, "
                     "but NeMo Gym has no runner for them yet.".format(entry["path"]),
+                    severity=ADVISORY,
                     hint="Give each task a tests/test.sh so Harbor runs it as written, "
                     "or wait for NeMo Gym's Harbor task runner.",
                 )
@@ -533,6 +563,7 @@ async def _main(argv: list[str] | None = None) -> int:
         "task_count": 0,
         "gym_manifests": [],
         "other_eval_candidates": [],
+        "other_eval_scan": None,
         "ethos_path": None,
         "fingerprint": None,
         "input_file_count": 0,
@@ -549,7 +580,12 @@ async def _main(argv: list[str] | None = None) -> int:
     )
     manifests = [gym_explore.manifest(candidate, repo_root) for candidate in scan.excluded_configs]
     datasets = [_describe_dataset(dataset, repo_root) for dataset in scan.datasets]
-    owned = [*scan.task_paths, *(candidate.path.parent for candidate in scan.excluded_configs)]
+    # A manifest owns its environment folder and its resources server, whose code is the workload, not another eval.
+    owned = [
+        *scan.task_paths,
+        *(candidate.path.parent for candidate in scan.excluded_configs),
+        *(repo_root / "resources_servers" / item.name for item in manifests if item.name),
+    ]
     manifest_entries: list[dict] = [
         {
             "path": _display(item.path, repo_root),
@@ -582,16 +618,21 @@ async def _main(argv: list[str] | None = None) -> int:
         if not proven:
             _unproven(repository_checks)
     gym_judge_checks = _judge_manifests(manifests, manifest_entries, runtime, repo_root)
+    # A skipped manifest is left out, but a blocked one counts as failed: Gym is missing, not its data.
     verdicts += [
         entry["judge"]["status"] == _PASSED for entry in manifest_entries if entry["judge"]["status"] != _SKIPPED
     ]
     if verdicts:
         phases["judge"] = _VALID if all(verdicts) else _INVALID
 
-    # Solve: once Judge passes, run a sample end to end, Harbor tasks with Harbor and Gym manifests with Gym.
+    # Solve: run a sample of the datasets and manifests that passed Judge end to end, Harbor tasks with Harbor
+    # and Gym manifests with Gym. One failing dataset does not hold back the others; with none passing, Solve waits.
     _gym_runner_checks(datasets)
     solve_checks: list[CheckResult] = []
-    if phases["judge"] != _VALID:
+    judged = [entry for entry in datasets if entry.get("_judged")] + [
+        entry for entry in manifest_entries if entry["judge"]["status"] == _PASSED
+    ]
+    if not judged:
         for entry in [*datasets, *manifest_entries]:
             entry["solve"] = _solve_block(_SKIPPED, "Solve waits until Judge passes.")
     else:
@@ -616,7 +657,8 @@ async def _main(argv: list[str] | None = None) -> int:
             )
     for entry in datasets:
         entry["runnable"] = proven and not required_failures(entry["_checks"])
-        if entry["runnable"]:
+        # Harbor cannot run Gym extension tasks as written, so only a plain Harbor dataset gets a run command.
+        if entry["runnable"] and not entry["formats"].keys() - {_HARBOR_FORMAT}:
             entry["run_command"] = "cd {} && harbor run -p {} -a <agent>".format(repo_root, entry["path"])
         entry["checks"] = [result.as_dict() for result in entry["_checks"]]
         entry.pop("_judged", None)
@@ -629,6 +671,7 @@ async def _main(argv: list[str] | None = None) -> int:
         and all(config["runnable"] for config in configs)
         and all(dataset["runnable"] for dataset in datasets)
     )
+    other_evals, other_eval_scan = _other_evals.find(repo_root, owned)
     report.update(
         {
             "runnable": runnable,
@@ -636,7 +679,8 @@ async def _main(argv: list[str] | None = None) -> int:
             "datasets": datasets,
             "task_count": sum(dataset["task_count"] for dataset in datasets),
             "gym_manifests": manifest_entries,
-            "other_eval_candidates": _other_evals.find(repo_root, owned),
+            "other_eval_candidates": other_evals,
+            "other_eval_scan": other_eval_scan,
             "ethos_path": scan.ethos_path,
             "fingerprint": "sha256:{}".format(scan.fingerprint),
             "input_file_count": scan.input_file_count,

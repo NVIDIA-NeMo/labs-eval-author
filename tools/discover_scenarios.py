@@ -116,17 +116,9 @@ def wait_for_docker(running: bool) -> None:
     print(f"  Docker is {'running' if running else 'stopped'}")
 
 
-def gym_visible_env() -> dict[str, str]:
-    """Let Harbor's interpreter see NeMo Gym without mixing the two venvs.
-
-    Discovery only runs the `gym` CLI, but its Probe looks for the `nemo_gym` module. A shim folder
-    holding just a link to venv-gym's `nemo_gym` satisfies that, and venv-gym's bin/ goes on PATH.
-    """
-    shim = WORK_DIR / "gym-shim"
-    if not (shim / "nemo_gym").exists():
-        shim.mkdir(parents=True, exist_ok=True)
-        (shim / "nemo_gym").symlink_to(next(VENV_GYM.glob("lib/python*/site-packages/nemo_gym")))
-    return {**os.environ, "PATH": f"{VENV_GYM / 'bin'}{os.pathsep}{os.environ['PATH']}", "PYTHONPATH": str(shim)}
+def gym_on_path_env() -> dict[str, str]:
+    """Put venv-gym's `gym` on PATH, so discovery run from venv-harbor finds both runtimes without mixing venvs."""
+    return {**os.environ, "PATH": f"{VENV_GYM / 'bin'}{os.pathsep}{os.environ['PATH']}"}
 
 
 # --------------------------------------------------------------------------------------------
@@ -354,7 +346,7 @@ def build_gym_fixtures() -> None:
 def step_01() -> Result:
     """Probe: nothing installed."""
     print("  starting from a clean slate")
-    for path in (FIXTURES, HARBOR_REPO, GYM_REPO_DIR, REPORTS_DIR, WORK_DIR / "gym-shim"):
+    for path in (FIXTURES, HARBOR_REPO, GYM_REPO_DIR, REPORTS_DIR):
         if path.exists():
             shutil.rmtree(path)
     HARBOR_REPO.mkdir(parents=True)
@@ -571,7 +563,11 @@ def step_18() -> Result:
     expect("example_second judged failed", lambda: r.manifest("example_second")["judge"]["status"] == "failed")
     expect("hint gives the reproduce command", lambda: "gym env validate" in r.check("gym-validate")[0]["hint"])
     expect("Judge invalid", lambda: r.report["phases"]["judge"] == "invalid")
-    expect("Solve skipped: it waits until Judge passes", lambda: r.report["phases"]["solve"] == "skipped")
+    expect(
+        "Solve still runs the manifest that passed Judge", lambda: r.manifest(EXAMPLE)["solve"]["status"] == "passed"
+    )
+    expect("Solve skips the rejected one", lambda: r.manifest("example_second")["solve"]["status"] == "skipped")
+    expect("not runnable, exit 1", lambda: not r.report["runnable"] and r.exit_code == 1)
     return r
 
 
@@ -593,9 +589,9 @@ def step_20() -> Result:
     copy("gym/example_second-config.yaml", HARBOR_REPO / "environments" / "example_second" / "config.yaml")
     manifest = HARBOR_REPO / "environments" / "example_second" / "manifest.yaml"
     manifest.write_text(manifest.read_text().replace(f"name: {EXAMPLE}", "name: example_second", 1))
-    r = discover(VENV_HARBOR, HARBOR_REPO, 20, env=gym_visible_env())
+    r = discover(VENV_HARBOR, HARBOR_REPO, 20, env=gym_on_path_env())
     runtime = r.report["runtime"]
-    expect("Probe finds both", lambda: runtime["harbor_importable"] and runtime["gym_importable"])
+    expect("Probe finds both", lambda: runtime["harbor_importable"] and runtime["gym_available"])
     expect("Judge valid for both halves", lambda: r.report["phases"]["judge"] == "valid")
     expect("Solve ran 2 Harbor datasets", lambda: len(ran(r, "datasets")) == 2)
     expect("Solve ran 2 Gym manifests", lambda: len(ran(r, "gym_manifests")) == 2)

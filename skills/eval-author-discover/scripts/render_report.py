@@ -17,15 +17,22 @@ def _required_failures(report: dict[str, Any]) -> list[dict[str, Any]]:
     return [c for c in report.get("checks", []) if c.get("status") == "fail" and c.get("severity") == "required"]
 
 
+def _docker_failed(report: dict[str, Any]) -> bool:
+    """Whether Harbor's Docker preflight failed, which blocks every Harbor eval at once."""
+    return any(
+        c.get("name") == "backend" and "docker" in str(c.get("message", "")).lower() for c in _required_failures(report)
+    )
+
+
 def _action(check: dict[str, Any]) -> str:
     name = check.get("name")
     message = str(check.get("message", "")).lower()
     if name == "backend" and "docker" in message:
         return (
-            "Check Docker access with `docker info`. If Docker is not installed, "
-            "[install Docker](https://docs.docker.com/get-started/get-docker/) and try again. "
-            "If this session is sandboxed, retry with permission to access "
-            "Docker, then rerun discovery in that same environment. Start Docker only if it is confirmed stopped."
+            "Launch Docker if it isn't running, then rerun discovery. If Docker is not installed, "
+            "[install Docker](https://docs.docker.com/get-started/get-docker/) first. If `docker info` works "
+            "but discovery still fails, this session may be sandboxed: rerun discovery with permission to access "
+            "Docker in that same environment."
         )
     return {
         "backend": "Check the evaluation environment's setup, then rerun the readiness check.",
@@ -72,9 +79,9 @@ def _harbor_setup_guidance(report: dict[str, Any]) -> str:
     )
 
 
-_GYM_SETUP = "To work from NeMo Gym environments, install `nemo-gym` from PyPI or from the Gym repository."
+_GYM_SETUP = "To work from NeMo Gym environments, install `nemo-gym>=0.6.0` (Python 3.13.14 or newer)."
 _MAX_SOLVED = 4
-_RUNTIMES = (("Harbor", "harbor_importable"), ("NeMo Gym", "gym_importable"))
+_RUNTIMES = (("Harbor", "harbor_importable"), ("NeMo Gym", "gym_available"))
 
 
 _CELEBRATION = "🎉🎉🎉 Every phase passed and every eval Solve ran earned a reward: your evals are operational! 🎉🎉🎉"
@@ -99,6 +106,8 @@ def _judge_cell(entry: dict[str, Any]) -> str:
         return "Valid"
     if status == "failed":
         return "Invalid"
+    if status == "blocked":
+        return f"Blocked: {judge['reason']}"
     return f"Skipped: {judge['reason']}" if judge.get("reason") else "Not run"
 
 
@@ -126,7 +135,16 @@ def _other_evals_note(report: dict[str, Any]) -> str:
         "I also found code that looks like evaluations in another format: "
         + ", ".join(f"`{c['path']}`" for c in candidates)
         + ". Do you want to convert any of it into Harbor tasks?"
+        + _partial_scan_note(report)
     )
+
+
+def _partial_scan_note(report: dict[str, Any]) -> str:
+    """Say when the other-evals scan stopped early on a large repository, so there may be more."""
+    scan = report.get("other_eval_scan") or {}
+    if scan.get("complete", True):
+        return ""
+    return f" I stopped looking after {scan['files_scanned']:,} files, so there may be more."
 
 
 def _with_note(text: str, report: dict[str, Any]) -> str:
@@ -189,21 +207,23 @@ def render_summary(report: dict[str, Any]) -> str:
             + (f"\n\n{_gym_readiness(report, manifests)}" if manifests else ""),
             report,
         )
-    return _with_note(_readiness(report, configs, datasets), report)
+    readiness = _readiness(report, configs, datasets)
+    return _with_note(readiness + (f"\n\n{_gym_readiness(report, manifests)}" if manifests else ""), report)
 
 
 def _gym_readiness(report: dict[str, Any], manifests: list[dict[str, Any]]) -> str:
-    """Summarize a repository whose only evals are NeMo Gym manifests, which Solve tests with Gym."""
+    """Summarize a repository's NeMo Gym manifests, which Judge and Solve check with Gym."""
 
     def with_status(stage: str, *statuses: str) -> list[dict[str, Any]]:
         return [m for m in manifests if (m.get(stage) or {}).get("status") in statuses]
 
     headline = f"This repo has {len(manifests)} NeMo Gym environment or benchmark manifest{'s' if len(manifests) != 1 else ''}."
     judged = with_status("judge", "passed", "failed")
+    blocked = with_status("judge", "blocked")
+    if blocked:
+        reason = (blocked[0].get("judge") or {}).get("reason") or "NeMo Gym is not available."
+        return f"{headline} I could not check {'it' if len(manifests) == 1 else 'them'}: {reason}\n\n{_GYM_SETUP}"
     if not judged:
-        runtime = report.get("runtime", {})
-        if not runtime.get("gym_importable"):
-            return f"{headline} I did not check them because NeMo Gym is not installed.\n\n{_GYM_SETUP}"
         return (
             f"{headline} I could not check any of them; the most common reason is missing data. "
             "The NeMo Gym Manifests table below gives each one's reason."
@@ -250,17 +270,99 @@ def _readiness(report: dict[str, Any], configs: list[dict[str, Any]], datasets: 
         headline = f"This repo has Harbor evals: {len(ready)} of {len(units)} {noun} are ready to run."
         headline += "\n\nYou can choose a ready one: " + ", ".join(f"`{u['path']}`" for u in ready) + "."
         headline += "\n\nFor the blocked ones:"
-    elif any(
-        c.get("name") == "backend" and "docker" in str(c.get("message", "")).lower() for c in _required_failures(report)
-    ):
+    elif _docker_failed(report):
         headline = (
             "This repo has Harbor evals, but I could not verify readiness because the Docker preflight check failed."
         )
     else:
         headline = f"This repo has Harbor evals, but none of the {len(units)} {noun} is ready to run yet."
     # Group common actions so one unavailable service does not produce a wall of failures.
-    actions = list(dict.fromkeys(_action(c) for c in _required_failures(report)))
+    # The NeMo Gym paragraph that follows covers a missing Gym.
+    actions = list(dict.fromkeys(_action(c) for c in _required_failures(report) if c.get("name") != "gym-unavailable"))
     return headline + "\n\n" + "\n".join(f"- {action}" for action in actions)
+
+
+def _plural(count: int, noun: str) -> str:
+    return f"{count} {noun}{'' if count == 1 else 's'}"
+
+
+def _phase_detail(name: str, status: str, report: dict[str, Any]) -> str:
+    """Say in a few words what one phase found; a skipped phase did nothing."""
+    if status == "skipped":
+        return "N/A"
+    valid = status == "valid"
+    if name == "probe":
+        installed = [runtime for runtime, key in _RUNTIMES if (report.get("runtime") or {}).get(key)]
+        return f"found {' and '.join(installed)} installed" if valid else "found neither Harbor nor NeMo Gym installed"
+    if name == "explore":
+        if not valid:
+            return "found no evals"
+        tasks = report.get("task_count", 0) + sum(m.get("task_count", 0) for m in report.get("gym_manifests", []))
+        if tasks:
+            return f"found {_plural(tasks, 'task')}"
+        # No task rows yet, such as a config for a remote dataset or an unprepared benchmark.
+        found = [
+            _plural(len(report.get(key) or []), noun)
+            for key, noun in (("configs", "config"), ("gym_manifests", "Gym manifest"))
+            if report.get(key)
+        ]
+        return f"found {' and '.join(found)} but no tasks"
+    if name == "judge":
+        verdicts = _judge_verdicts(report)
+        # A failed Docker preflight blocks every Harbor eval, and the summary says how to fix it.
+        if _docker_failed(report):
+            return "the Docker preflight check failed"
+
+        def counted(passed: bool) -> str:
+            return " and ".join(
+                _plural(results.count(passed), f"{runtime} eval")
+                for runtime, results in verdicts.items()
+                if passed in results
+            )
+
+        validated, failed = counted(True), counted(False)
+        if not failed:
+            return f"validated {validated}"
+        return (
+            f"validated {validated}, but {failed} could not be validated"
+            if validated
+            else f"{failed} could not be validated"
+        )
+    if name == "solve":
+        runs = [
+            result.get("error") is None
+            for entry in [*report.get("datasets", []), *report.get("gym_manifests", [])]
+            for result in (entry.get("solve") or {}).get("results") or []
+        ]
+        return f"{runs.count(True)} of {len(runs)} sampled evals ran"
+    return ""
+
+
+def _judge_verdicts(report: dict[str, Any]) -> dict[str, list[bool]]:
+    """Whether each eval Judge checked passed, by format: Harbor configs and datasets when proven, and Gym manifests."""
+    harbor: list[bool] = []
+    if report.get("proven"):
+        harbor += [bool(c.get("runnable")) for c in report.get("configs", [])]
+        # Solve's checks, including gym-runner, are not Judge verdicts.
+        harbor += [
+            not any(
+                c.get("status") == "fail" and c.get("severity") == "required" and c.get("group") != "solve"
+                for c in d.get("checks", [])
+            )
+            for d in report.get("datasets", [])
+        ]
+    gym = [
+        (m.get("judge") or {}).get("status") == "passed"
+        for m in report.get("gym_manifests", [])
+        if (m.get("judge") or {}).get("status") in {"passed", "failed", "blocked"}
+    ]
+    return {"Harbor": harbor, "Gym": gym}
+
+
+def _phase_line(name: str, status: str, report: dict[str, Any]) -> str:
+    """Render one phase as a checklist line, checked only when the phase is valid."""
+    box = "x" if status == "valid" else " "
+    return f"- [{box}] **{name.capitalize()}** ({status}) - {_phase_detail(name, status, report)}"
 
 
 def render_report(report: dict[str, Any], *, evidence: str | None = None) -> str:
@@ -268,9 +370,7 @@ def render_report(report: dict[str, Any], *, evidence: str | None = None) -> str
     lines = ["# Eval Discovery", "", render_summary(report), ""]
     phases = report.get("phases")
     if phases:
-        lines.extend(
-            ["Discovery phases: " + ", ".join(f"{name.capitalize()} {phases[name]}" for name in phases) + ".", ""]
-        )
+        lines.extend([*(_phase_line(name, status, report) for name, status in phases.items()), ""])
     if _fully_operational(report):
         lines.extend([_CELEBRATION, ""])
     explored = (phases or {}).get("explore") != "skipped" or (phases or {}).get("probe") != "invalid"
@@ -340,6 +440,8 @@ def render_report(report: dict[str, Any], *, evidence: str | None = None) -> str
         if candidates:
             lines.extend(["## Other Possible Evals", ""])
             lines.extend(f"- `{c['path']}`: {', '.join(c['signals'])} ({', '.join(c['files'])})" for c in candidates)
+            if _partial_scan_note(report):
+                lines.extend(["", _partial_scan_note(report).strip()])
             lines.append("")
         # With nothing found, the summary already says so, and every check stays in the evidence below.
         found = bool(configs or datasets or manifests or report.get("task_count"))

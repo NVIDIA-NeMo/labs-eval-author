@@ -42,6 +42,7 @@ import importlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import types
@@ -210,21 +211,28 @@ def _imported_roots(path: Path) -> set[str]:
     return roots
 
 
-def _run_discover(repo: Path, *args: str, with_harbor: bool = True, gym_stub: Path | None = None) -> tuple[int, dict]:
+_FAKE_GYM = '#!/bin/sh\necho "NeMo Gym v0.6.0"\n'
+
+
+def _run_discover(
+    repo: Path, *args: str, with_harbor: bool = True, gym_stub: Path | None = None, gym_script: str = _FAKE_GYM
+) -> tuple[int, dict]:
     """Run discover.py as the skill documents it, and parse its JSON.
 
     ``with_harbor=False`` passes ``-S``, which drops site-packages from the path
     so Harbor and PyYAML are both unimportable. That reproduces a customer
     repository with no Harbor install without needing a second interpreter.
-    ``gym_stub`` puts a directory holding an empty ``nemo_gym`` package on the
-    path, so the probe sees NeMo Gym installed.
+    ``gym_stub`` puts a directory holding a fake ``gym`` command on ``PATH``, which
+    answers ``--version`` like NeMo Gym 0.6.0, so the probe sees Gym installed.
+    ``gym_script`` replaces that command, to fake Gym's Judge and Solve as well.
     """
     command = [sys.executable, *([] if with_harbor else ["-S"]), str(_DISCOVER), "--repo", str(repo), *args]
     env = None
     if gym_stub is not None:
-        (gym_stub / "nemo_gym").mkdir(parents=True, exist_ok=True)
-        (gym_stub / "nemo_gym" / "__init__.py").touch()
-        env = {**os.environ, "PYTHONPATH": str(gym_stub)}
+        gym = gym_stub / "gym"
+        gym.write_text(gym_script, encoding="utf-8")
+        gym.chmod(0o755)
+        env = {**os.environ, "PATH": f"{gym_stub}{os.pathsep}{os.environ['PATH']}"}
     result = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
     assert result.stdout, f"discover.py printed nothing; stderr:\n{result.stderr}"
     return result.returncode, json.loads(result.stdout)
@@ -1191,8 +1199,7 @@ def test_discover_report_renderer_shared_docker_blocker(
         proven=True, runnable=False, configs=configs, run_command=None, checks=[failure] * (5 - ready_count)
     )
     summary = renderer.render_summary(report)
-    assert summary.count("Check Docker access") == 1
-    assert "Start Docker only if it is confirmed stopped" in summary
+    assert summary.count("Launch Docker if it isn't running, then rerun discovery.") == 1
     assert "Docker is stopped" not in summary
     assert "same environment" in summary
     assert "backend" not in summary
@@ -4554,6 +4561,32 @@ def test_discover_reports_a_task_harbor_silently_dropped(suite: Path) -> None:
     assert "task-two" in coverage["message"]
 
 
+@_needs_harbor
+def test_discover_fails_judge_when_gym_manifests_go_unchecked(suite: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Harbor alone cannot pass a repo whose Gym manifests nobody checked."""
+    if shutil.which("gym") or (Path(sys.executable).parent / "gym").is_file():
+        pytest.skip("a gym command is installed here, so the manifest would be checked")
+    manifest = suite / "environments" / "fixture_env" / "manifest.yaml"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(
+        "name: fixture_env\nkind: environment\ndatasets:\n  - jsonl_fpath: data/fixture.jsonl\n", encoding="utf-8"
+    )
+
+    code, report = _run_discover(suite)
+
+    assert code == 1
+    assert report["runnable"] is False
+    assert report["phases"]["judge"] == "invalid"
+    assert report["phases"]["solve"] == "skipped"
+    assert report["gym_manifests"][0]["judge"]["status"] == "blocked"
+    unavailable = _named(report, "gym-unavailable")
+    assert unavailable["status"] == "fail" and unavailable["severity"] == "required"
+    rendered = _import_discover_render_report(monkeypatch).render_report(report)
+    assert "Blocked: NeMo Gym is not installed." in rendered
+    assert "I could not check it: NeMo Gym is not installed." in rendered
+    assert "- [ ] **Judge** (invalid)" in rendered
+
+
 def test_discover_exits_early_without_harbor_or_gym(suite: Path) -> None:
     """With neither runtime installed there is nothing to explore with."""
     code, report = _run_discover(suite, with_harbor=False)
@@ -4678,3 +4711,213 @@ def test_discover_fails_with_a_hint_when_the_path_is_missing(tmp_path: Path) -> 
     assert code == 1
     assert "error" in report
     assert report["hint"]
+
+
+def _import_other_evals(monkeypatch: pytest.MonkeyPatch) -> Any:
+    """Import the other-evals scan as the discover scripts see it."""
+    monkeypatch.syspath_prepend(str(_DISCOVER_SCRIPTS_DIR))
+    sys.modules.pop("_other_evals", None)
+    return importlib.import_module("_other_evals")
+
+
+def _git_repo(root: Path) -> Path:
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    return root
+
+
+def test_other_evals_needs_an_opentelemetry_import(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A service that only mentions OpenTelemetry is not an eval lead; one that imports it is."""
+    other_evals = _import_other_evals(monkeypatch)
+    (tmp_path / "service").mkdir()
+    (tmp_path / "service" / "app.py").write_text("# Traces go to our opentelemetry collector.\n", encoding="utf-8")
+    (tmp_path / "agent").mkdir()
+    (tmp_path / "agent" / "run.py").write_text("from opentelemetry import trace\n", encoding="utf-8")
+    (tmp_path / "web").mkdir()
+    (tmp_path / "web" / "tracing.ts").write_text('import { trace } from "@opentelemetry/api";\n', encoding="utf-8")
+
+    candidates, scan = other_evals.find(tmp_path, [])
+
+    assert [c["path"] for c in candidates] == ["agent", "web"]
+    assert scan == {"files_scanned": 3, "complete": True}
+
+
+def test_other_evals_leaves_out_a_manifests_resources_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A Gym workload's server and verifier code belong to its manifest, not to another eval."""
+    other_evals = _import_other_evals(monkeypatch)
+    server = tmp_path / "resources_servers" / "fixture_env"
+    server.mkdir(parents=True)
+    (server / "evaluate.py").write_text("print('score')\n", encoding="utf-8")
+
+    assert [c["path"] for c in other_evals.find(tmp_path, [])[0]] == ["resources_servers/fixture_env"]
+    assert other_evals.find(tmp_path, [server])[0] == []
+
+
+def test_other_evals_skips_what_git_ignores(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """In a git repository, .gitignore keeps build output and data dumps out of the scan."""
+    other_evals = _import_other_evals(monkeypatch)
+    repo = _git_repo(tmp_path)
+    (repo / ".gitignore").write_text("build/\n", encoding="utf-8")
+    for folder in ("build", "evals"):
+        (repo / folder).mkdir()
+        (repo / folder / "run_eval.py").write_text("print('score')\n", encoding="utf-8")
+
+    candidates, scan = other_evals.find(repo, [])
+
+    assert [c["path"] for c in candidates] == ["evals"]
+    assert scan["complete"] is True
+
+
+def test_other_evals_says_when_it_stopped_early(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """On a large repository the scan stops at its file budget, and the report says there may be more."""
+    other_evals = _import_other_evals(monkeypatch)
+    monkeypatch.setattr(other_evals, "_MAX_FILES", 2)
+    for name in ("a", "b", "c"):
+        (tmp_path / name).mkdir()
+        (tmp_path / name / "eval.py").write_text("print('score')\n", encoding="utf-8")
+
+    candidates, scan = other_evals.find(tmp_path, [])
+
+    assert [c["path"] for c in candidates] == ["a", "b"]
+    assert scan == {"files_scanned": 2, "complete": False}
+    renderer = _import_discover_render_report(monkeypatch)
+    report = _discovery_report_fixture(proven=True, runnable=True, configs=[], run_command=None)
+    report.update({"other_eval_candidates": candidates, "other_eval_scan": scan})
+    assert "I stopped looking after 2 files, so there may be more." in renderer.render_report(report)
+
+
+def _import_discover(monkeypatch: pytest.MonkeyPatch) -> Any:
+    """Import discover.py and its providers as the skill's scripts see them."""
+    monkeypatch.syspath_prepend(str(_DISCOVER_SCRIPTS_DIR))
+    sys.modules.pop("discover", None)
+    return importlib.import_module("discover")
+
+
+def test_solve_samples_evenly_from_first_to_last(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Solve's picks span the list, include both ends, and are the same on every run."""
+    discover = _import_discover(monkeypatch)
+
+    assert discover._sample(list(range(10)), 4) == [0, 3, 6, 9]
+    assert discover._sample(list(range(10)), 4) == discover._sample(list(range(10)), 4)
+    assert discover._sample(["a", "b"], 4) == ["a", "b"]
+    assert discover._sample(list(range(10)), 1) == [0]
+
+
+def test_explore_groups_sibling_tasks_into_one_dataset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Sibling tasks form a dataset; a folder that also holds other files, or Gym's environments/, does not."""
+    _import_discover(monkeypatch)
+    explore = importlib.import_module("providers.harbor._explore")
+    gym_explore = importlib.import_module("providers.gym._explore")
+    for task in ("math/add", "math/sub", "mixed/task", "environments/one", "environments/two"):
+        _write_task(tmp_path / task)
+    (tmp_path / "mixed" / "notes").mkdir()
+    (tmp_path / "mixed" / "notes" / "README.md").write_text("Not a task.\n", encoding="utf-8")
+
+    scan = explore.scan_repository(tmp_path, never_group=gym_explore.is_environments_root)
+
+    assert sorted(d.path.relative_to(tmp_path).as_posix() for d in scan.datasets) == [
+        "environments/one",
+        "environments/two",
+        "math",
+        "mixed/task",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("output", "available", "reason"),
+    [
+        ("NeMo Gym v0.6.0", True, None),
+        ("NeMo Gym v0.4.0", False, "NeMo Gym 0.4.0 is older than 0.6.0."),
+        ("gym: a workout tracker", False, "NeMo Gym is not installed."),
+    ],
+)
+def test_gym_probe_trusts_only_a_new_enough_nemo_gym(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output: str, available: bool, reason: str | None
+) -> None:
+    """The probe asks `gym --version`, so an old Gym or an unrelated `gym` command is not mistaken for Gym."""
+    _import_discover(monkeypatch)
+    gym_probe = importlib.import_module("providers.gym._probe")
+    gym = tmp_path / "bin" / "gym"
+    gym.parent.mkdir()
+    gym.write_text(f'#!/bin/sh\necho "{output}"\n', encoding="utf-8")
+    gym.chmod(0o755)
+    monkeypatch.setattr(sys, "executable", str(tmp_path / "python" / "python3"))
+    monkeypatch.setenv("PATH", f"{gym.parent}{os.pathsep}{os.environ['PATH']}")
+
+    runtime = gym_probe.probe()
+
+    assert gym_probe.is_available(runtime) is available
+    if reason:
+        assert gym_probe.unavailable_reason(runtime) == reason
+
+
+def test_judge_line_counts_each_format_and_names_a_docker_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    renderer = _import_discover_render_report(monkeypatch)
+    report = {
+        "proven": True,
+        "configs": [{"runnable": True}],
+        "datasets": [{"checks": []}],
+        "gym_manifests": [{"judge": {"status": "passed"}}, {"judge": {"status": "blocked"}}],
+        "checks": [],
+    }
+    assert renderer._phase_line("judge", "invalid", report) == (
+        "- [ ] **Judge** (invalid) - validated 2 Harbor evals and 1 Gym eval, but 1 Gym eval could not be validated"
+    )
+    docker = {"name": "backend", "status": "fail", "severity": "required", "message": "Docker daemon is not running"}
+    report["checks"] = [docker]
+    assert renderer._phase_line("judge", "invalid", report).endswith(" - the Docker preflight check failed")
+
+
+_JUDGING_GYM = """#!/bin/sh
+case "$1" in
+  --version) echo "NeMo Gym v0.6.0" ;;
+  env)
+    if [ "$3" = "broken_env" ]; then echo "Error: broken_env has a bad config" >&2; exit 1; fi
+    echo '{"cases": [{"reward": 1.0}]}' ;;
+esac
+"""
+
+
+def test_solve_runs_what_passed_judge_even_when_something_failed(
+    tmp_path: Path, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """One manifest Gym rejects keeps Judge invalid, but does not stop Solve on the one that passed."""
+    if shutil.which("gym") or (Path(sys.executable).parent / "gym").is_file():
+        pytest.skip("a real gym command is installed here and would shadow the fake one")
+    for name in ("good_env", "broken_env"):
+        folder = tmp_path / "environments" / name
+        folder.mkdir(parents=True)
+        (folder / "manifest.yaml").write_text(
+            f"name: {name}\nkind: environment\ndatasets:\n  - jsonl_fpath: data/{name}.jsonl\n", encoding="utf-8"
+        )
+    (tmp_path / "data").mkdir()
+    for name in ("good_env", "broken_env"):
+        (tmp_path / "data" / f"{name}.jsonl").write_text('{"row": 1}\n', encoding="utf-8")
+
+    code, report = _run_discover(tmp_path, gym_stub=tmp_path_factory.mktemp("gym"), gym_script=_JUDGING_GYM)
+
+    by_name = {m["name"]: m for m in report["gym_manifests"]}
+    assert by_name["broken_env"]["judge"]["status"] == "failed"
+    assert by_name["good_env"]["judge"]["status"] == "passed"
+    assert report["phases"]["judge"] == "invalid"
+    assert by_name["good_env"]["solve"]["status"] == "passed"
+    assert by_name["broken_env"]["solve"]["status"] == "skipped"
+    assert report["phases"]["solve"] == "valid"
+    assert code == 1 and report["runnable"] is False
+
+
+@_needs_harbor
+def test_gym_extension_tasks_are_an_advisory_not_a_failure(suite: Path) -> None:
+    """Nothing runs Gym extension tasks yet, which the user cannot fix, so it must not fail discovery."""
+    task = suite / "extension" / "verifier-task"
+    _write_task(task)
+    (task / "tests" / "test.sh").unlink()
+    (task / "tests" / "verifier.py").write_text("def verify(*_):\n    return 1.0\n", encoding="utf-8")
+
+    _, report = _run_discover(suite)
+
+    extension = next(d for d in report["datasets"] if d["path"].startswith("extension"))
+    runner = next((c for c in extension["checks"] if c["name"] == "gym-runner"), None)
+    if runner is None:
+        pytest.skip(f"the extension dataset did not pass Judge here: {[c['name'] for c in extension['checks']]}")
+    assert runner["status"] == "warn" and runner["severity"] == "advisory"
+    assert extension.get("run_command") is None, "Harbor cannot run extension tasks as written"
