@@ -3,8 +3,8 @@
 
 # Runtime prerequisites
 
-Read for readiness validation or the **Get Harbor ready** milestone. File-only
-inventory stays in the parent skill and does not run these probes.
+Read for readiness validation or the **Get Harbor ready** milestone. A file-only
+Explore stays in the parent skill and does not run these probes.
 
 ## Contents
 
