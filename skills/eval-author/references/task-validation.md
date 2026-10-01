@@ -152,8 +152,12 @@ Receipts store the command line verbatim. Pass credentials through the
 environment, which the recorder forwards to the command; never put secret values
 in arguments such as Harbor's `--ae KEY=VALUE`.
 
-Run every declared control. Use `--purpose baseline` for first-eval runs; it
-allows one attempt without ATIF and cannot count as gap-closure evidence.
+Run every declared control. For first-eval, recording the agent baseline is
+optional: each Gym manifest binds one dataset row and every receipt needs fresh
+native output, so per-case baseline receipts multiply model runs. Retain the
+suite-level baseline run as native evidence instead. A recorded first-eval
+baseline uses `--purpose baseline`; it allows one attempt without ATIF and cannot
+count as gap-closure evidence.
 For `--purpose closure` (the default), agent runs require `--trace <fresh-absolute-ATIF-path>`;
 produce or convert that trace inside the recorded command, retaining conversion
 receipts where required. Use that exact absolute trace path and the recorder's

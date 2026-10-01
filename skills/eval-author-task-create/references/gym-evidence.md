@@ -95,7 +95,8 @@ Use a new directory outside the draft for each recorded run: Gym writes
 
 ## Baseline and closure are different claims
 
-For first-eval use `--purpose baseline`; one agent attempt may omit `--trace` and
+Recording a first-eval agent baseline is optional; when recorded, use
+`--purpose baseline`, and one agent attempt may omit `--trace` and
 `conversion`. The receipt retains rewards, legitimate behavioral failures, and
 `health_status: unobserved` when model health was not observable. Successful native
 execution with unobserved model health must not be described as healthy.
