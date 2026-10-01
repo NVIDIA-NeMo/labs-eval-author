@@ -271,11 +271,13 @@ Then complete Harbor's generated files:
 - `README.md`: purpose, environment, verifier, layout, and persistent suite and
   individual-item run instructions.
 
-For either provider, maintain the generated suite's top-level rerun guide using
-[Suite rerun instructions](../eval-author/references/suite-readme.md).
+For either provider, create the generated suite's top-level review and rerun guide using
+[Suite review and rerun instructions](../eval-author/references/suite-readme.md).
 For a standalone draft, extend its task-level `README.md` without renaming it;
 when adding it to a generated collection, also update that collection's guide
-and coverage mapping.
+and coverage mapping. Present and link the case inventory when the cases are
+authored, with execution pending, then refresh it after native controls and
+actual-agent runs with their available results and execution traces.
 
 Do not leave generated placeholders, `pass`, unconditional reward 1, or empty
 keywords.
@@ -370,8 +372,8 @@ validation, successful agent execution, and coverage closure are separate fields
 Accept the draft only when `accepted` is `true`. Report native control rewards, both
 real-agent rewards, both run/trace paths, and the verify JSON. If either repeat
 misses the tool, revise the task and rerun both attempts.
-Finish and link the suite's rerun guide at handoff, including when execution is
-blocked. Preserve the actual agent settings in the full-suite and selected-item
+Finish and link the suite's review and rerun guide at handoff, including when
+execution is blocked. Preserve the actual agent settings in the full-suite and selected-item
 commands; link measured coverage reports separately from run instructions.
 
 At the handoff, reconcile agreed scope with delivered examples in

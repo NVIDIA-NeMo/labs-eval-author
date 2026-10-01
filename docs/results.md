@@ -19,11 +19,34 @@ validation steps completed, which could not run, and what needs attention. A
 missing backend or credential is a readiness problem, not a failed agent test.
 See [Check readiness](existing-evals.md#check-readiness) for the next step.
 
+## Review generated cases
+
+Start at the generated suite's root `README.md` as soon as cases are authored.
+For first evaluations this is `.eval-author/README.md`; standalone drafts use
+`.eval-author/task-drafts/<task-slug>/README.md`. Trace candidates use
+`<task-dir>/README.md`, and generated batches also have a collection-root guide.
+The guide is refreshed after runs and linked in the handoff, including when
+execution is blocked.
+
+Its case inventory explains what each case tests, its input, expected outcome,
+and grading criteria, with links to task and verifier details. Readable summaries
+and links let you review the cases without reconstructing the conversation or
+formatting raw JSONL. Source evidence used to design a case is labeled separately
+from task validation controls and actual-agent attempts. A source trace does not
+prove that the generated case passed.
+
+Follow the guide's result links and verified viewer commands where available to
+inspect saved evidence. Unexecuted cases remain visible as **not run**; missing
+traces or other evidence are called out explicitly. Controls that passed do not
+stand in for agent results. The same guide saves setup, full-suite and coverage
+item rerun commands, and known execution blockers.
+
 ## First evaluations
 
 The plan in `.eval-author/first-eval.md` records the intended behavior, proposed
 cases, and acceptance criteria. Task drafts and run results show which checks
-have actually completed.
+have actually completed. Use the [generated case review guide](#review-generated-cases)
+to inspect the authored cases and their available evidence.
 
 The no-op baseline and reference solution check the task and its verifier.
 Results from running your actual agent are separate evidence of its performance.
@@ -130,11 +153,11 @@ producing every artifact when prerequisites are missing.
 
 | Workflow | Main outputs |
 | --- | --- |
-| First evaluations | `ETHOS.md`, `.eval-author/first-eval.md`, `.eval-author/task-drafts/`, and `.eval-author/first-eval.yaml` when the agent integration supports it. |
+| First evaluations | `ETHOS.md`, `.eval-author/first-eval.md`, `.eval-author/README.md`, `.eval-author/task-drafts/`, and `.eval-author/first-eval.yaml` when the agent integration supports it. |
 | Discovery and readiness | `.eval-author/discovery.md` |
 | Coverage audit | The four artifacts listed under [Coverage audits](#coverage-audits), plus supporting evidence in `.eval-author/audit-measurements/` |
 | Intake trace inspection | `.eval-author/traces/` |
-| Trace-derived environments (**experimental**) | A private, gitignored workspace per task under `.eval-author/trace-environments/` |
+| Trace-derived environments (**experimental**) | A private, gitignored workspace per task under `.eval-author/trace-environments/`, with a root `README.md` for generated-case review and reruns; generated batches also have a collection-root guide. No-candidate outcomes do not create a suite guide. |
 | MLflow conversion | One `.atif.json` file per trace in the private output directory you select. |
 
 [Choose another workflow](../README.md#start-here) or review
