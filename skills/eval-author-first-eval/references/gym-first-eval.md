@@ -80,8 +80,8 @@ does not establish actual agent performance or broad coverage.
 
 Follow the native service startup and execution instructions in
 [Validate, run, and retain evidence](../../eval-author-task-create/references/gym-tasks.md#validate-run-and-retain-evidence),
-using the actual agent, selected rows, and agreed attempts. Its two-repeat
-example and measured-gap-closure requirements belong to audit task creation;
+using the actual agent, selected rows, and agreed attempts. Its two recorded
+attempts and measured-gap-closure requirements belong to audit task creation;
 first-eval uses the agreed baseline count and does not require coverage measurement.
 Check installed help before using options. Preserve the distinction between
 explicit-file execution against running services (`--no-serve --input`) and
