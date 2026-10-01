@@ -5,13 +5,15 @@
 import hashlib
 import importlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-SCRIPTS = Path(__file__).resolve().parents[1] / "skills/eval-author-task-create/scripts"
+ROOT = Path(os.environ.get("EVAL_AUTHOR_SOURCE_ROOT", Path(__file__).resolve().parents[1]))
+SCRIPTS = ROOT / "skills/eval-author-task-create/scripts"
 sys.path.insert(0, str(SCRIPTS))
 evidence = importlib.import_module("task_evidence")
 gym = importlib.import_module("gym_evidence")
