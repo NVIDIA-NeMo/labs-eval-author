@@ -146,144 +146,106 @@ for requirement-to-check review, declared verifier controls, and revision-bound
 run receipts. Include a realistic incorrect result and applicable valid-alternative
 and side-effect cases. These are local task controls, not extra model repeats.
 
-For **Gym**, follow [Native Gym first evals](references/gym-first-eval.md) for
-scaffolding and the provider-specific parts of stages 5–9. Keep the shared scope,
-stage check-ins, explanations, suite README, and result reconciliation below.
-The Harbor commands and file layout in those stages apply only to Harbor.
+Read the reference for each provider in the selected setup for the runtime-specific
+work in stages 5–9:
 
-For **Harbor**, require a working CLI and Python environment. Read its
-`harbor task init --help` and `harbor run --help` before using options. Use an
-unused descriptive slug for each planned task under `.eval-author/task-drafts/`.
-Create the agreed examples and map their stable IDs to tasks; one task may
-contain several examples. Keep source provenance and expected-label rationale
-in the plan or verifier-only data, outside the agent's starting environment.
-Start with one representative task and check its available parts before reusing
-the pattern. If its live environment or agent connection is pending, continue
-independent case and grading work for the other selected tasks. For each task:
+- [Native Gym first evals](references/gym-first-eval.md): native scaffolding,
+  component configuration, verifier fixtures, and Gym execution.
+- [Harbor first evals](references/harbor-first-eval.md): native task files,
+  environment and agent setup, NOP/Oracle controls, and Harbor execution.
 
-```bash
-harbor task init <org>/<slug> --tasks-dir .eval-author/task-drafts \
-  --description "<behavior being tested>" --author "<actual author>"
-```
+Keep the shared scope, stage check-ins, explanations, suite README, and result
+reconciliation here. A combined setup uses the relevant parts of both references;
+reading a reference does not change the selected provider.
 
-Verify that the expected directory was created. Complete Harbor's generated
-`instruction.md`, `task.toml`, `tests/test.sh`, and `solution/solve.sh` using its
-installed schema; prepare `environment/` in the next milestone. Set executable permissions,
-realistic timeouts, and deterministic rewards; leave no scaffold placeholders.
+Create the agreed examples and map their stable IDs to native tasks or dataset
+rows. Keep source provenance and expected-label rationale in the plan or
+verifier-only data, outside the agent's starting environment. Start with one
+representative case and check its available parts before reusing the pattern.
+If its live environment or agent connection is pending, continue independent
+case and grading work for the other selected cases.
+
 Before running, document each case's reward format, metric names and ranges,
-and expected NOP and Oracle acceptance criteria in its README. Derive these
-criteria from the intended outcome. For a binary completion metric, NOP should
-score 0 and Oracle 1. For named or graded metrics, specify the expected values
-or thresholds for each relevant metric instead of imposing a universal 0/1 pair.
-Add a README with the Ethos requirement, fixtures, verifier, and run commands.
+and expected control results. Derive these criteria from the intended outcome.
+Add a task README with the Ethos requirement, fixtures, verifier, and run commands.
 Also create the suite entry point `.eval-author/README.md` following
-[Suite rerun instructions](../eval-author/references/suite-readme.md). Begin with
-the selected cases and known setup; keep it current as the environment, agent
-connection, and run configuration are completed.
+[Suite review and rerun instructions](../eval-author/references/suite-readme.md).
+Present its case inventory and link the guide at this milestone, with input,
+expected outcome, grading, and available source evidence; mark new cases as not
+run until executed. Keep it current as the environment, agent connection, and run
+configuration are completed and fresh control or agent results become available.
 
 Apply the core's **Explain the eval pieces as they become relevant** guidance to
 the files being created. For each verifier, explain its actual assertion and a
 concrete incorrect example it must reject. Fix demonstrated false acceptance
 before claiming that check is validated; retain untested distinctions as explicit
-limitations. For Harbor, introduce the Oracle as the prepared reference solution;
-for Gym, explain the known-correct verifier fixture. Keep this teaching part of
-building the starter cases,
-without requiring a separate tutorial or exhaustive methodology exercise.
+limitations. Introduce the provider's reference solution or known-correct fixture
+when creating it. Keep this teaching part of building the starter cases, without
+a separate tutorial or exhaustive methodology exercise.
 
 ## 6. Prepare the execution environment
 
-For Gym, prepare the generated components and reset behavior using the Gym
-first-eval reference. For Harbor, populate the generated `environment/` with
-the dependencies, fixtures, and
-starting state each selected case needs. Check documented access requirements,
-credential variable names, and the reset behavior that makes reruns repeatable.
-For external dependencies, apply the runtime plan from
+Use the selected provider reference to prepare dependencies, fixtures, starting
+state, and reset behavior. For external dependencies, apply the runtime plan from
 [Execution dependencies](../eval-author/references/execution-dependencies.md).
 Keep solutions and verifier-only data outside the agent's initial environment.
 Verify the selected backend and required application access before declaring
 this milestone complete; identifying their requirements is only partial progress.
-For Docker-backed execution, check `docker info` first. Record unavailable access
-and which cases or checks it blocks.
+Record unavailable access and which cases or checks it blocks, naming credential
+variables without recording secret values.
 
 ## 7. Connect the agent
 
-For Gym, follow the Gym first-eval reference to connect the actual agent and
-record its composition and model configuration. For Harbor, establish a supported
-integration for the actual agent from its entry
-point, installed adapter code, registry, and CLI help. Do not substitute another
-agent or rewrite the application. If the adapter is missing, identify the specific
-integration requirement. Control-agent task validation remains available, but
-performance of the user's agent remains unmeasured.
+Use the selected provider reference to establish a supported integration for the
+actual agent from its entry point, installed interfaces, registry, and CLI help.
+Do not substitute another agent or rewrite the application. If integration is
+missing, identify the specific connection required. Verifier-control validation
+remains available, but performance of the user's agent remains unmeasured.
 
-For Harbor, when supported, write `.eval-author/first-eval.yaml` using the installed Harbor
-JobConfig schema: explicitly select the working starter tasks, the actual agent
-and model settings, the agreed attempts per task, and jobs under `.eval-author/jobs/`.
-Propose one attempt for an initial baseline unless the purpose needs repeats;
-record the choice and its cost during scope planning. Repeats do not add examples.
+Record the selected cases, agent and model settings, agreed attempts, reset
+procedure, and output paths using the provider's configuration format. Propose
+one attempt for an initial baseline unless the purpose needs repeats; record
+that choice and its cost during scope planning. Repeats do not add examples.
 Do not include unrelated drafts merely because they share a parent directory.
-Resolve paths from the repository
-root and reference credential environment variables rather than embedding secrets.
-Configure request delivery, required conversation state, and collection of outputs
-and actions for grading using supported interfaces. Record subsequent connection
-checks under **Validate the evals**; configuration alone does not prove that the
-connection works.
+Resolve paths from the repository root and reference credential environment
+variables rather than embedding secrets. Configure request delivery, required
+conversation state, and collection of outputs and actions through supported
+interfaces. Record connection checks under **Validate the evals**; configuration
+alone does not prove that the connection works.
 
 ## 8. Validate the evals
 
 Follow [Execution recovery](../eval-author/references/execution-recovery.md)
 for control and target-agent runs, compatibility repairs, and all result recaps.
 
-For Gym, use native validation and positive/negative verifier controls from the
-Gym first-eval reference. The following controls and config checks are for Harbor.
+Use the selected provider's native validation and controls, retaining fresh
+artifacts on reruns. Require checks to complete without exceptions and meet the
+case's predeclared reward criteria, including reward shape. When inaction is
+correct, also exercise an explicitly incorrect response or action: a successful
+no-action control alone does not show that incorrect behavior is rejected.
 
-Use Harbor's installed validators to check task validity. Exercise the environment
-and grading with the controls below, retaining all jobs under `.eval-author/jobs/`
-with new names on reruns:
-
-```bash
-harbor run -p .eval-author/task-drafts/<slug> -a nop \
-  --jobs-dir .eval-author/jobs --job-name <slug>-nop-1
-harbor run -p .eval-author/task-drafts/<slug> -a oracle \
-  --jobs-dir .eval-author/jobs --job-name <slug>-oracle-1
-```
-
-Run these native commands through the shared evidence recorder, along with
-the other declared controls. For each task, inspect trial results and rewards.
-Require both runs to complete without exceptions and meet the case's predeclared NOP/Oracle
-criteria, including the expected reward shape. The reference solution should
-satisfy the intended outcome; doing nothing should not earn completion credit
-when the case requires an answer or action. If inaction is itself correct, NOP
-success does not show that the verifier rejects incorrect behavior: exercise
-an explicit incorrect response or action as a negative control for that case.
-These are basic wiring and verifier sanity
-checks, not evidence of broad coverage or a robust benchmark. Keep the declared
-controls proportional to the task; do not require repeated proof or additional
-model runs as an onboarding gate.
-Investigate obvious unconditional rewards or leaked answers. Fix broken tasks
+Run the native commands through the shared evidence recorder, along with the
+other declared controls. For each case, inspect trial results and rewards.
+These are basic wiring and verifier sanity checks, not evidence of broad coverage
+or a robust benchmark. Keep the declared controls proportional to the task; do
+not require repeated proof or additional model runs as an onboarding gate.
+Investigate obvious unconditional rewards or leaked answers. Fix broken cases
 and rerun affected checks; do not weaken the intended assertion to force a pass.
-Report blocked tasks separately and deliver the working subset without silently
-dropping planned cases or claiming the whole suite passed.
-
-When the agent config is available, follow `eval-author-discover` to validate it
-and report its per-config verdict if other configs exist. Keep unfinished config
-validation visible separately from successful control runs. Do not claim a config
-is runnable from YAML presence.
+Report blocked cases separately and deliver the working subset without silently
+dropping planned cases or claiming the whole suite passed. Keep unfinished
+configuration or connection validation visible separately from successful
+verifier controls.
 
 ## 9. Evaluate the agent
 
-Confirm that the resolved task set matches the selected starter tasks. Explain
-the selected task count, distinct examples, attempts, execution-cost assumptions,
-and where rewards and errors will appear. Check that task packaging still
-executes the agreed examples. Once validated, show the tasks, agent, model,
-and command with the agreed attempt settings.
-For authorized Gym execution, use the recorded native commands from the Gym
-first-eval reference. For Harbor, run from the repository root:
+Confirm that the resolved case set matches the selected starter cases. Explain
+the task count, distinct examples, attempts, execution-cost assumptions, and
+where rewards and errors will appear. Check that packaging still executes the
+agreed examples. Once validated, show the cases, agent, model, and provider-native
+command with the agreed attempt settings, then run with established execution
+and spend authorization using the selected reference.
 
-```bash
-harbor job start -c .eval-author/first-eval.yaml
-```
-
-Inspect results for every selected task; retain outputs, actions, rewards, and
+Inspect results for every selected case; retain outputs, actions, rewards, and
 exceptions as fresh run evidence. A completed evaluation can have low scores.
 
 ## 10. Review results and explain reruns
@@ -292,7 +254,9 @@ Update `.eval-author/first-eval.md` with exact commands, artifact paths, control
 results, per-task agent rewards and exceptions, and remaining blockers. Show how
 to rerun the suite, inspect one result, and add or modify a task. Finish and link
 `.eval-author/README.md` with the full-suite command and concrete commands for
-individual coverage items, following the shared suite rerun instructions.
+individual coverage items, following the shared suite review and rerun instructions.
+Refresh the case inventory with links to control and actual-agent results and
+available execution traces, keeping source evidence and missing traces distinct.
 Save any needed subset configs and verify their selected cases and retained
 agent settings. Label rerun commands as task sanity checks or actual agent evaluation.
 
