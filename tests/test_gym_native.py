@@ -372,3 +372,9 @@ def test_native_http_execution_controls(tmp_path, draft_builder, request):
     assert len(rows) == 8
     assert [row["reward"] for row in rows] == [1, 1, 1, 1, 0, 0, 0, 0]
     assert len({row["ng_trajectory"]["rollout_id"] for row in rows}) == 8
+
+    # Validate the maintained adapter against actual native fixture, rollout and health formats.
+    # These are scripted controls; unobserved model health must never become closure evidence.
+    from test_gym_task_evidence import check_native_artifacts
+
+    check_native_artifacts(output, draft)

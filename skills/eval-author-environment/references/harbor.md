@@ -30,9 +30,12 @@ adds sidecar services.
 
 Build the shared base once per agent in the kit's `build/` directory. Either
 prebuild and push an image and reference it with `[environment].docker_image`,
-pinned by digest, or copy `build/` into each task's `environment/`. Put each
-task's own records in its `environment/` on top of the base, for example a
-`Dockerfile` that starts `FROM` the kit image and copies the task's seed files.
+pinned by digest, or copy `build/` into each task's `environment/`. Task
+evidence and Harbor's task checksum cover only the task directory, so never
+build on a local or mutable kit tag: a kit change would not change the task's
+revision. Put each task's own records in its `environment/` on top of the base,
+for example a `Dockerfile` that starts `FROM` the digest-pinned kit image and
+copies the task's seed files.
 Keep reference solutions, expected state, and verifier helpers out of
 `environment/`; anything there is visible to the agent.
 
@@ -237,7 +240,8 @@ harbor run -p .eval-author/environments/<agent-slug>/smoke/<agent-slug>-environm
 Expect NOP to export the untouched seed with the write checks failing, and both
 reference-solution runs to pass. A failing reference solution means the
 environment or the smoke script is broken; fix the environment rather than
-loosening the checks. Record each job path and result in the plan.
+loosening the checks. Record each job path and result in the plan; these runs
+are environment proof, not task evidence receipts.
 
 ## Version notes
 

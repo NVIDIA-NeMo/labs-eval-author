@@ -853,11 +853,14 @@ def test_environment_flow_relative_links_resolve() -> None:
 
 
 def test_authoring_flows_hand_environment_work_to_the_environment_flow() -> None:
-    """First-eval and task-create delegate environment construction instead of restating it."""
+    """First-eval, its provider references, and task-create delegate environment construction."""
     link = "../eval-author-environment/SKILL.md"
     for skill_dir in (_FIRST_EVAL_DIR, _TASK_CREATE_DIR):
         _, body = _frontmatter_and_body(skill_dir)
         assert link in body, f"{skill_dir.name} must hand environment work to {_ENVIRONMENT_DIR.name}"
+    for reference in ("harbor-first-eval.md", "gym-first-eval.md"):
+        text = (_FIRST_EVAL_DIR / "references" / reference).read_text(encoding="utf-8")
+        assert f"../{link}" in text, f"first-eval's {reference} must build environments from the environment kit"
 
 
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)

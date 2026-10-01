@@ -249,7 +249,7 @@ def _scaffold(
     }
 
 
-def _run_ids_from_report(report: dict[str, Any], *, report_path: Path) -> list[str]:
+def _run_ids_from_report(report: dict[str, Any], *, report_path: Path, task_id: str) -> list[str]:
     """Return ATIF ``subject.run_id`` values recorded in one aggregate coverage report."""
     input_reports = report.get("input_reports")
     if not isinstance(input_reports, list) or not input_reports:
@@ -261,6 +261,8 @@ def _run_ids_from_report(report: dict[str, Any], *, report_path: Path) -> list[s
         subject = entry.get("subject")
         if not isinstance(subject, dict):
             raise PipelineError(f"after report input_reports[{index}] must include subject: {report_path}")
+        if subject.get("task_id") != task_id:
+            raise PipelineError(f"after report subject.task_id must be {task_id!r}: {report_path}")
         run_id = subject.get("run_id")
         if not isinstance(run_id, str) or not run_id.strip():
             raise PipelineError(
@@ -270,10 +272,12 @@ def _run_ids_from_report(report: dict[str, Any], *, report_path: Path) -> list[s
     return run_ids
 
 
-def _verify(before_path: Path, after_paths: list[Path], target: str) -> tuple[int, dict[str, Any]]:
+def _verify(
+    before_path: Path, after_paths: list[Path], target: str, evidence_paths: list[Path] | None = None
+) -> tuple[int, dict[str, Any]]:
     """Accept only when ``target`` was an actionable gap before and covered in every repeat report."""
     before = _read_json(before_path)
-    _task_slug_for_target(before, target)
+    task_id = _task_slug_for_target(before, target)
     if len(after_paths) < _MIN_VERIFY_REPORTS:
         raise PipelineError(f"at least {_MIN_VERIFY_REPORTS} --after reports are required")
     resolved_paths = [path.resolve() for path in after_paths]
@@ -285,7 +289,11 @@ def _verify(before_path: Path, after_paths: list[Path], target: str) -> tuple[in
     run_ids: list[str] = []
     for path in after_paths:
         report = _read_json(path)
-        report_run_ids = _run_ids_from_report(report, report_path=path)
+        report_run_ids = _run_ids_from_report(report, report_path=path, task_id=task_id)
+        if len(set(report_run_ids)) != 1:
+            raise PipelineError("each after report must describe exactly one agent run")
+        # A report may contain several measurement methods for the same run.
+        report_run_ids = sorted(set(report_run_ids))
         run_ids.extend(report_run_ids)
         covered = target in set(report.get("covered") or [])
         still_uncovered = target in set(report.get("uncovered") or [])
@@ -303,8 +311,36 @@ def _verify(before_path: Path, after_paths: list[Path], target: str) -> tuple[in
     if len(set(run_ids)) != len(run_ids):
         raise PipelineError("--after reports must come from distinct ATIF subject.run_id values")
 
+    from task_evidence import EvidenceError, verify_receipts
+
+    try:
+        agents = verify_receipts(evidence_paths or [], task_id)
+        if set(agents) != set(run_ids):
+            raise EvidenceError("coverage report run IDs must match all supplied agent receipts")
+        for path in after_paths:
+            report = _read_json(path)
+            for entry in report["input_reports"]:
+                subject = entry["subject"]
+                trace = subject.get("trace")
+                if not isinstance(trace, str) or Path(trace).resolve() != Path(agents[subject["run_id"]]["trace"]):
+                    raise EvidenceError(
+                        "coverage subject.trace must identify the recorded agent trace (use absolute paths)"
+                    )
+            if target in report.get("covered", []) and not any(
+                entry.get("item_kind") == "tool" and target in entry.get("covered", [])
+                for entry in report["input_reports"]
+            ):
+                raise EvidenceError("aggregate tool coverage lacks supporting input evidence")
+    except (ValueError, OSError, KeyError, TypeError) as exc:
+        raise PipelineError(f"task execution evidence: {exc}") from exc
+
     payload = {
-        "schema": "nemo.eval_author.task_gap_verification.v1",
+        "schema": "nemo.eval_author.task_gap_verification.v2",
+        "task_id": task_id,
+        "task_validation": "passed",
+        "agent_execution": "passed",
+        "coverage_closed": all_covered,
+        "evidence": [str(path) for path in evidence_paths or []],
         "target_tool": target,
         "before": str(before_path),
         "repeat_count": len(runs),
@@ -339,6 +375,9 @@ def _parser() -> argparse.ArgumentParser:
     verify.add_argument("--before", type=Path, required=True)
     verify.add_argument("--after", type=Path, action="append", required=True)
     verify.add_argument("--target", required=True)
+    verify.add_argument(
+        "--evidence", type=Path, action="append", help="execution receipt; repeat for all controls and agents"
+    )
     return parser
 
 
@@ -363,7 +402,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             exit_code = 0
         else:
-            exit_code, payload = _verify(args.before, args.after, args.target)
+            exit_code, payload = _verify(args.before, args.after, args.target, args.evidence)
     except PipelineError as exc:
         payload = {"valid": False, "error": str(exc)}
         exit_code = 1

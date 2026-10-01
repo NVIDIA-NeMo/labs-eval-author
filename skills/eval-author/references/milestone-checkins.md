@@ -71,7 +71,7 @@ The owning sub-flow defines the evidence needed to complete each stage.
 Save the internal stage, evidence, pending question or answered transition, and
 next action in the existing findings or task README. Before those exist, retain early-stage
 state in the conversation or existing intent notes; do not run discovery just to
-obtain a report. Keep Harbor probe evidence, local interpreter paths, and milestone
+obtain a report. Keep selected-runtime probe evidence, local interpreter paths, and milestone
 or approval records in that workflow state, not in `ETHOS.md`. This does not exclude
 substantive evaluation requirements from Ethos's Evaluation Setup section.
 For first-eval, use `.eval-author/first-eval.md` once the source decision is
@@ -83,55 +83,53 @@ On return, reuse applicable answers and completed work, rechecking
 readiness when inputs changed. Do not infer an answer from an installed tool or
 saved file, or restart a completed opening or Ethos interview. Inventory before
 authoring may already have settled the evaluation starting point, but does not
-complete Ethos or Harbor setup. Narrow inventory, readiness, audit, proposal,
+complete Ethos or runtime setup. Narrow inventory, readiness, audit, proposal,
 trace, and internal validation requests keep their scoped flow.
 
-## Early stages: Ethos, Harbor, then evals
+## Early stages: Ethos, runtime, then evals
 
 ### 1. Establish the agent’s Ethos
 
 After the opening answer, follow [Local Ethos](local-ethos.md). Identify the agent,
 understand its intended purpose and limits, and reuse or create its document.
 This stage uses agent context, not an eval inventory. Do not load authoring or
-audit sub-flows, probe Harbor, or scan reports and traces to choose an eval source.
+audit sub-flows, probe runtimes, or scan reports and traces to choose an eval source.
 A missing Ethos calls for the next focused intent question. An applicable existing
 Ethos calls for a brief explanation of its intent, not a fresh interview.
 
 New or revised saved content is reviewed through the local procedure. That review
-is the check-in before Harbor; name Harbor as the next stage. For an applicable
-unchanged document, summarize what it establishes and check in before Harbor
+is the check-in before runtime setup; name runtime setup as the next stage. For an applicable
+unchanged document, summarize what it establishes and check in before runtime setup
 without demanding another content approval. Neither mentioning Ethos in the plan
 nor answering an intent question completes the document procedure.
 
-### 2. Get Harbor ready
+### 2. Get the evaluation runtime ready
 
-After the Ethos check-in, introduce Harbor in the conversation before probing its
-installation. The stage's checkpoint reply must also explain what Harbor
-does, state explicitly that Eval Author requires it, and link to
-[Harbor's documentation](https://www.harborframework.com/docs). Include this
-grounding when setup passes, when an existing installation is reused, or when an
-earlier progress message already introduced Harbor. A version number, “setup
-passed,” and the optional assistant-skills link do not supply this explanation.
+After the Ethos check-in, follow the core's [provider-selection rule](../SKILL.md#select-the-evaluation-provider)
+and introduce the selected setup before probing its installation. Both Gym and
+Harbor are supported. Explain how the selected tools run cases with their
+environment and grading, and retain results for reruns. Verify the runtimes the
+selected setup uses; apply both checks below when it uses both.
 
-Then use discovery's [runtime prerequisite checks](../../eval-author-discover/SKILL.md#runtime-prerequisite-checks),
-including its optional-skill advisory, without running the full evaluation scan.
-Use its [setup guide](../../eval-author-discover/references/harbor-setup.md) for a
-missing or broken installation. Preserve the actual command, interpreter, and
-version for later use; setup does not prove task-specific readiness. For a verified
-installation, the checkpoint reply can begin:
+For **Gym**, link [NeMo Gym](https://github.com/NVIDIA-NeMo/Gym). Reuse the
+repository's documented installation and verify `gym --version` and `gym --help`
+with its actual CLI. Authoring requires v0.6.0+ in its separate Python 3.13.14+
+environment; verify that interpreter can import `nemo_gym.environment.scaffold`.
+Record the command, interpreter, and version. When using both tools, keep their
+Python environments separate as described in discovery's runtime guidance. If
+setup is missing or broken, report the specific need and follow the core's
+installation authorization boundary. Respect the user's selected setup.
 
-> [Harbor](https://www.harborframework.com/docs) is the evaluation framework that
-> gives your agent test cases, runs them in their required environment, applies
-> grading checks, and records results so you can repeat the tests after changes.
-> **Eval Author requires Harbor to create, validate, and run its eval tasks.**
->
-> Setup passed: Harbor is installed and its command and Python environment work.
-> The task environment and access to your agent still need their later checks.
+For **Harbor**, link [Harbor's documentation](https://www.harborframework.com/docs)
+and use discovery's [runtime prerequisite checks](../../eval-author-discover/references/runtime-prerequisites.md#runtime-prerequisite-checks),
+including its optional-skill advisory, without a full evaluation scan. Use its
+[setup guide](../../eval-author-discover/references/harbor-setup.md) for a missing
+or broken installation. Preserve the verified command, interpreter, and version.
 
-Use actual setup evidence and adapt that result when checks failed or remain
-incomplete. Keep interpreter versions and paths in the findings unless they help
-the user act. Follow with the optional-skills advisory when relevant and the
-shared checklist; the official skills collection is separate from Harbor's docs.
+The checkpoint reply explains the selected framework and observed setup result,
+including when reusing an installation. Setup does not prove task-specific
+environment readiness, agent access, or successful runs. Keep technical paths
+in the findings unless they help the user act, and show the shared checklist.
 
 Check in before the next unfinished stage. If the evaluation starting point and
 the trace source or no-trace choice are already settled, carry them forward and
@@ -139,15 +137,15 @@ proceed to **Define the evaluation scope** after this check-in. Otherwise,
 asking about the remaining source choice can serve as the
 transition to **Understand the evaluation starting point**. If a source is already
 supplied, name the planned inspection without asking them to select it again.
-Missing Harbor can be deferred using the rule above; it does not prevent finding
+Missing selected-runtime setup can be deferred using the rule above; it does not prevent finding
 the user's eval material.
 
 ### 3. Understand the evaluation starting point
 
 Reuse an eval starting point already settled by the user or discovery inventory;
-no repeat eval scan or eval-source question is needed. Otherwise, after the Harbor
+no repeat eval scan or eval-source question is needed. Otherwise, after the runtime
 check-in use `eval-author-discover` for inventory and source selection, reusing
-verified runtime evidence. Determine whether there is an existing Harbor suite,
+verified runtime evidence. Determine whether there is an existing Gym or Harbor suite,
 other eval material, or confirmed absence of evals. Ask about actual candidates
 or a missing location; keep this stage unchecked and current until the source is
 settled. The report's summary and examples supply findings and question wording,
@@ -181,7 +179,7 @@ and agreed scope in the existing plan before generation. Make it concrete:
   variations, positive and negative scenarios, relevant difficult negatives,
   and why the proposed breadth fits the purpose. If recommending a pilot,
   explain in this reply what that limited first set will establish and what
-  remains untested even if it passes. Separate example counts from Harbor tasks
+  remains untested even if it passes. Separate example counts from native tasks
   and attempts; name exclusions and remaining gaps.
 - **Priorities and cost:** explicitly ask what the user wants to change or
   prioritize, with relevant tradeoffs such as lower ongoing cost, broader

@@ -11,8 +11,11 @@ verifier.
 
 For scaffolding, the version and rerun plan, native validation commands, and
 real-agent runs, follow
+[Native Gym first evals](../../eval-author-first-eval/references/gym-first-eval.md)
+from first-eval or
 [Author and prove a Gym evaluation](../../eval-author-task-create/references/gym-tasks.md)
-and [Component dependencies and packaging](../../eval-author-task-create/references/gym-packaging.md).
+from task-create, with
+[Component dependencies and packaging](../../eval-author-task-create/references/gym-packaging.md).
 For trace-derived output, follow
 [the Gym extension](../../eval-author-trace-environment/references/gym-output.md).
 Do not apply Harbor layouts, `task.toml` fields, or NOP and Oracle flags to Gym.
@@ -48,8 +51,13 @@ Do not apply Harbor layouts, `task.toml` fields, or NOP and Oracle flags to Gym.
   known-correct and no-action controls: a write followed by a read in the same
   session, showing state persists, and a fresh session showing it starts from
   the seed with no leakage from the previous one.
-- Run Gym's native validation and tests from the draft root, then repeat the
-  positive and negative controls at least twice from restored state, as the
-  Gym authoring guide describes.
+- Run Gym's native validation and tests from the draft root. From task-create,
+  also repeat the positive and negative controls at least twice from restored
+  state, as its Gym authoring guide describes. From first-eval, the fresh-session
+  case is the reset proof; repeated proof is not an onboarding requirement.
 - These controls establish environment and verifier behavior, not model
   performance. Record their commands, results, and evidence paths in the plan.
+  The persistence and reset cases prove the environment, so do not declare them
+  as a task's controls in its
+  [native Gym evidence](../../eval-author-task-create/references/gym-evidence.md)
+  contract.

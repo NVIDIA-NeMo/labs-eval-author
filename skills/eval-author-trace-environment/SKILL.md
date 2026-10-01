@@ -34,6 +34,10 @@ allowed-tools: Bash Read Write Grep Glob
 
 # Eval Author: trace to environment
 
+For proof execution failures and result recaps, follow
+[Execution recovery](../eval-author/references/execution-recovery.md) alongside
+this workflow's integrity protocol. Diagnostic probes never complete proof.
+
 **Experimental.** All workflows and outputs from this skill are experimental,
 including source normalization, task and fixture generation, validation, and
 publication review/export. Identify them as experimental when presenting them
@@ -47,11 +51,10 @@ scrubbing and provider-native validation.
 
 ## Instructions
 
-Choose the output provider independently of the trace source. Preserve an
-explicit Gym or Harbor choice; otherwise use the existing suite's provider,
-defaulting to Harbor when neither is specified. A Gym source does not imply Gym
-output. Follow shared steps 1-5, then the selected provider's construction path
-in Step 6, one task workspace per trace. Commands are in
+Follow the core's [provider-selection rule](../eval-author/SKILL.md#select-the-evaluation-provider),
+choosing the output provider independently of the trace source. Both Gym and
+Harbor are supported. A Gym source does not imply Gym output. Follow shared
+steps 1-5, then the selected provider's construction path in Step 6, one task workspace per trace. Commands are in
 `## Available Scripts`; an end-to-end run is in `## Examples`. Trace payloads,
 credentials, and task workspaces never go into Git.
 
@@ -263,11 +266,14 @@ minimal files needed to reproduce the starting state. Human-supplied or
 reviewed `Relevant experience` is necessary for readiness; never invent it.
 
 Create `<task-dir>/README.md` using
-[Suite rerun instructions](../eval-author/references/suite-readme.md), separate
+[Suite review and rerun instructions](../eval-author/references/suite-readme.md), separate
 from the reviewer-facing `task/README.md`. Map the generalized outcomes to the
 task and its scored checks, documenting when selecting one item runs the whole
 task. Label NOP/Oracle commands as task controls; if no real-agent configuration
 exists, state that agent evaluation is pending instead of inventing one.
+Present and link the case inventory once authored, identifying the reviewed
+source trace as provenance. Refresh it after validation with links to the
+generated task's control results and available execution traces.
 
 `tests/test.sh` must emit one `check-id\tPASS|FAIL` row per scored check to
 `/logs/verifier/results`; read and follow `references/check-grammar.md`, including its outcome-by-outcome
@@ -309,8 +315,10 @@ proof does not establish human review.
 
 ## Step 7: finalize Harbor or no_candidate and verify the summary
 
-Refresh and link the candidate suite's `README.md` with verified setup, rerun
-commands, result paths, and any remaining execution blockers before handoff.
+Refresh and link the candidate suite's `README.md` with its case inventory,
+verified setup, rerun commands, result paths, and any remaining execution blockers
+before handoff. Keep source traces, control evidence, and actual-agent evidence
+distinct in the inventory.
 No-candidate outcomes do not create a generated evaluation suite.
 For a requested export, make the guide usable from the exported product root:
 use its `task/` paths and include required setup without depending on private

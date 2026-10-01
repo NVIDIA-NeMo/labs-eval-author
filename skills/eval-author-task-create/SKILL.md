@@ -83,7 +83,8 @@ Run `uv run <skill_dir>/scripts/task_pipeline.py <command>`:
 
 | Script | Purpose | Arguments |
 |---|---|---|
-| `scripts/task_pipeline.py` | Select, scaffold, and verify one audit-gap task | `select --report`; `scaffold --report --target` plus task metadata; `verify --before --after --target` |
+| `scripts/task_evidence.py` | Record current-revision native controls and agent runs | `prepare --task-dir --contract --out`; `run --manifest --case --run-id --result --out [--trace] -- <command>` |
+| `scripts/task_pipeline.py` | Select, scaffold, and verify one audit-gap task | `select --report`; `scaffold --report --target` plus task metadata; `verify --before --after --target --evidence` |
 
 The three deterministic commands have these verdicts:
 
@@ -91,7 +92,7 @@ The three deterministic commands have these verdicts:
 |---|---|
 | `select` | Lists only tool items with `reason: not_covered_by_any_input_report` and emits a deterministic `task_slug` plus artifact paths |
 | `scaffold` | Calls Gym's native scaffolder with `--provider gym` or Harbor's `harbor task init`, requires matching draft/proposal names for that slug, and installs the supplied instruction |
-| `verify` | Exits 0 only when the selected tool was uncovered before and covered in two distinct repeated after-reports with distinct ATIF `subject.run_id` values |
+| `verify` | Exits 0 only with current-revision control and agent receipts, matching task/trace identities, and tool coverage in both distinct agent runs |
 
 The script prints one JSON object. Exit code 0 is success; do not replace its
 verdict with model judgment.
@@ -201,9 +202,10 @@ Do not invent alternate slugs or filenames.
 
 Before generating task instructions, fixtures, or scaffolds, use the shared
 [coverage-planning checkpoint](../eval-author/references/coverage-planning.md).
-Resolve Gym or Harbor from the user's request and existing suite when mapping
-the scope to execution counts; Gym repeats selected dataset rows, while Harbor
-repeats tasks. Keep estimates conditional if that choice remains open.
+Use the core's [provider-selection rule](../eval-author/SKILL.md#select-the-evaluation-provider)
+to resolve Gym or Harbor when mapping scope to execution counts. Gym repeats
+selected dataset rows, while Harbor repeats tasks. Keep estimates conditional
+if that choice remains open.
 Present the proposed priorities and breadth for review, including an option to
 start with a minimal pilot and expand. Reuse already agreed scope rather than
 asking again. Save the agreement in
@@ -273,19 +275,38 @@ Then complete Harbor's generated files:
 - `README.md`: purpose, environment, verifier, layout, and persistent suite and
   individual-item run instructions.
 
-For either provider, maintain the generated suite's top-level rerun guide using
-[Suite rerun instructions](../eval-author/references/suite-readme.md).
+For either provider, create the generated suite's top-level review and rerun guide using
+[Suite review and rerun instructions](../eval-author/references/suite-readme.md).
 For a standalone draft, extend its task-level `README.md` without renaming it;
 when adding it to a generated collection, also update that collection's guide
-and coverage mapping.
+and coverage mapping. Present and link the case inventory when the cases are
+authored, with execution pending, then refresh it after native controls and
+actual-agent runs with their available results and execution traces.
 
 Do not leave generated placeholders, `pass`, unconditional reward 1, or empty
 keywords.
 
 ## Step 5: prove task correctness with native controls
 
+Confirm the environment kit's proof passed first; a proof failure is an
+environment defect to fix, not a task result, and that proof stays in the kit's
+plan rather than among the task's receipts.
+
+Apply [Task validation and execution evidence](../eval-author/references/task-validation.md).
+Prepare the result contract and revision manifest before execution. Wrap each
+native control and agent invocation with `scripts/task_evidence.py run`, retaining
+fresh native results and receipts outside the task tree. Harbor requires a
+reference and a realistic incorrect control; include applicable valid-alternative
+and side-effect cases. A failing command or missing evidence is not a passing
+negative control. Use the same Harbor Python runtime for preparation and runs.
+
+Follow [Execution recovery](../eval-author/references/execution-recovery.md)
+for native controls, real-agent trials, and reporting. Compatibility repairs
+must preserve the selected provider and original grading semantics.
+
 For Gym, use the positive and negative controls and native execution in the
-[Gym guide](references/gym-tasks.md). For Harbor, run Oracle before spending model credentials:
+[Gym guide](references/gym-tasks.md). For Harbor, run the reference command
+through the evidence recorder before spending model credentials:
 
 ```bash
 harbor run -p .eval-author/task-drafts/<task-slug> -a oracle
@@ -347,14 +368,24 @@ uv run <skill_dir>/scripts/task_pipeline.py verify \
   --before .eval-author/audit-coverage-report.json \
   --after .eval-author/task-measurements/<task-slug>/repeat-1-report.json \
   --after .eval-author/task-measurements/<task-slug>/repeat-2-report.json \
-  --target <tool-name>
+  --target <tool-name> \
+  --evidence .eval-author/task-measurements/<task-slug>/reference-1.json \
+  --evidence .eval-author/task-measurements/<task-slug>/incorrect-1.json \
+  --evidence .eval-author/task-measurements/<task-slug>/agent-1.json \
+  --evidence .eval-author/task-measurements/<task-slug>/agent-2.json
 ```
+
+Add receipts for every other declared control. Use absolute trace paths in the
+measurement subjects, matching the recorder's trace paths and run IDs. v2
+verification rejects stale revisions, missing controls, unrelated tasks,
+reused native runs, and traces unrelated to the execution receipts. Task
+validation, successful agent execution, and coverage closure are separate fields.
 
 Accept the draft only when `accepted` is `true`. Report native control rewards, both
 real-agent rewards, both run/trace paths, and the verify JSON. If either repeat
 misses the tool, revise the task and rerun both attempts.
-Finish and link the suite's rerun guide at handoff, including when execution is
-blocked. Preserve the actual agent settings in the full-suite and selected-item
+Finish and link the suite's review and rerun guide at handoff, including when
+execution is blocked. Preserve the actual agent settings in the full-suite and selected-item
 commands; link measured coverage reports separately from run instructions.
 
 At the handoff, reconcile agreed scope with delivered examples in

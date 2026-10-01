@@ -101,7 +101,10 @@ a hosted endpoint and inspects a hosted result afterwards. It controls neither
 the starting state nor trial isolation, and it can write to production. Gym
 helps only if the agent's tool calls can be pointed at tools the environment
 provides. Record the decision and its evidence in the plan, and raise a fit
-problem in the calling flow's current check-in.
+problem in the calling flow's current check-in. A poor fit is a proposal under
+the core's [provider-selection rule](../eval-author/SKILL.md#select-the-evaluation-provider):
+the user decides whether to change provider, and the calling flow verifies the
+new runtime before continuing. Never switch providers silently.
 
 ## Step 2: Inventory the repository
 
@@ -192,7 +195,9 @@ generated identifiers, it should ignore.
   Follow [Gym environments](references/gym.md#state-and-verification).
 
 A missing or unreadable export is an infrastructure failure, never evidence that
-the agent did or did not act.
+the agent did or did not act. Each task's side-effect control in
+[Task validation and execution evidence](../eval-author/references/task-validation.md)
+reads this export as its trusted observation.
 
 ## Step 6: Isolate the run and protect hidden answers
 
@@ -204,7 +209,8 @@ the agent did or did not act.
   kit, task files, plans, or reports.
 - Keep expected state, decoy labels, reference solutions, and verifier helpers
   out of everything the agent can see: images, mounted files, tool outputs, and
-  dataset fields it receives.
+  dataset fields it receives. This covers the shared kit; each task's own
+  leakage inspection stays with the calling flow's task validation.
 - Start every trial from the seeded state. Resetting containers does not reset
   external services; document their reset and keep such trials serial until
   isolation is proven.
@@ -226,22 +232,31 @@ Prove the environment once, before task controls interpret anything:
   one run of the actual agent, which requires the existing authorization for
   agent execution and spend; until then, record discovery as unproven.
 
+Record each proof run's command, job path, and result in `environment-plan.md`.
+These runs prove the environment, not a task: do not declare them as a task's
+controls or count them among its evidence receipts.
+
 Treat setup failures as infrastructure, not agent results. Fix and rerun them,
-recording each repair and its reason in the plan, with at most three repairs
-before reporting the environment as failed. Do not weaken a smoke check to make
-it pass. Record the outcome as `proven`, `unproven` (prerequisites missing or
-checks not run), `blocked` (a required dependency cannot be provided), or
-`failed`.
+recording each repair and its reason in the plan as
+[Execution recovery](../eval-author/references/execution-recovery.md) describes,
+with at most three repairs before reporting the environment as failed. That
+budget is separate from any task's revision chain, and diagnostic probes never
+complete the proof. Do not weaken a smoke check to make it pass. Record the
+outcome as `proven`, `unproven` (prerequisites missing or checks not run),
+`blocked` (a required dependency cannot be provided), or `failed`.
 
 ## Step 8: Hand off the kit
 
 - Finish `environment-plan.md`: choices, fidelity card, proof results, and
   evidence paths.
 - Add setup, service startup, credential variable names, and reset steps to the
-  suite's rerun guide using [Suite rerun instructions](../eval-author/references/suite-readme.md).
+  suite's review and rerun guide using
+  [Suite review and rerun instructions](../eval-author/references/suite-readme.md),
+  and list the fidelity-card gaps that affect each case among its known
+  limitations in the case inventory.
 - Tell the calling flow how its tasks use the kit: a Harbor task builds on the
-  kit image or its copied build files and adds its own records; a Gym task
-  reuses the backend and seeds its records per session.
+  kit image pinned by digest, or on its copied build files, and adds its own
+  records; a Gym task reuses the backend and seeds its records per session.
 - Return to the calling step. A proven environment shows the world works; it
   does not validate a task's grader or measure the agent.
 

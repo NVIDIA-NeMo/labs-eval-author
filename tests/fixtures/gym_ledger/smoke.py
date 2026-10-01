@@ -148,6 +148,26 @@ async def run(output, resources_app, dataset):
         agent_port = await serve(agent.setup_webserver(), stack)
         config.ledger_agent = {"responses_api_agents": {"simple_agent": {"host": "127.0.0.1", "port": agent_port}}}
         output.mkdir(parents=True, exist_ok=False)
+        verifier_report = importlib.import_module("nemo_gym.environment.onboarding").VerifierReport(
+            name="cover_ledger_total",
+            kind="environment",
+            resources_server="ledger",
+            manifest_path=str(resources_app.parents[2] / "environments/cover_ledger_total/manifest.yaml"),
+            fixture_path=str(task_module.VERIFIER_FIXTURE.cases_path),
+            cases=verifier_results,
+        )
+        (output / "verifier-report.json").write_text(json.dumps(verifier_report.to_dict()))
+        (output / "executed-dataset.jsonl").write_bytes(dataset.read_bytes())
+        (output / "executed-config.yaml").write_text(OmegaConf.to_yaml(config))
+        (output / "executed-runtime.json").write_text(
+            json.dumps(
+                {
+                    "gym_version": importlib.metadata.version("nemo-gym"),
+                    "python": sys.version,
+                }
+            )
+        )
+        (output / "executed-reset.json").write_text(json.dumps({"scenario": "stateless ledger"}))
         # Exercise the documented native CLI against the same running Gym services.
         head = server_utils.HeadServer(config=server_utils.BaseServerConfig(host="127.0.0.1", port=1))
         head._cached_yaml = OmegaConf.to_yaml(config)

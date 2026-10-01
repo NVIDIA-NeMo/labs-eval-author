@@ -40,6 +40,10 @@ allowed-tools: Bash Read Write Grep Glob
 
 # Eval Author: discover
 
+When executing checks or explaining a failed run, follow
+[Execution recovery](../eval-author/references/execution-recovery.md).
+Local diagnostics cannot substitute for native provider evidence.
+
 ## Purpose
 
 The Eval Author discovery pass. Read `eval-author` for the shared standard,
@@ -76,11 +80,11 @@ authoring setup and a full discovery run:
 - **Uncertain starting point:** use **Explore an uncertain starting point**
   below before Ethos, runtime probes, or the authoring welcome. This entry uses
   file inspection only; do not run the four phases in Steps 1–6.
-- **Harbor prerequisites:** during **Get Harbor ready**, use only the runtime
-  checks and optional assistant-skills check below. Return their findings to the
+- **Harbor prerequisites:** when Harbor is selected during **Get the evaluation runtime ready**,
+  use only the runtime checks and optional assistant-skills check below. Return their findings to the
   caller; do not run `discover.py`, explore eval sources, or ask which evals to
   use at this stage.
-- **Understand the evaluation starting point:** after the Ethos and Harbor stage
+- **Understand the evaluation starting point:** after the Ethos and selected-runtime stage
   check-ins, use Steps 1–6 for full discovery and source selection, reusing
   applicable runtime evidence, only when the starting point remains unsettled.
   Follow [Milestone check-ins](../eval-author/references/milestone-checkins.md)
@@ -152,8 +156,8 @@ or repair without substituting an audit.
 
 ## Runtime prerequisite checks
 
-For a readiness request or the **Get Harbor ready** authoring milestone, read
-and follow [Runtime prerequisites](references/runtime-prerequisites.md) before
+For Harbor readiness or the Harbor path of **Get the evaluation runtime ready**,
+read and follow [Runtime prerequisites](references/runtime-prerequisites.md) before
 probing tools. It contains the interpreter selection commands, verification
 criteria, setup recovery, and optional Harbor-skills check. Reuse still-current
 setup evidence and return prerequisite-only findings to the calling stage.

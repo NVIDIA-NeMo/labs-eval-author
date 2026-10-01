@@ -351,42 +351,14 @@ def test_verify_rejects_non_actionable_uncovered_item(tmp_path: Path) -> None:
     assert "not an actionable uncovered tool" in payload["error"]
 
 
-def test_verify_requires_every_repeat_to_cover_target(tmp_path: Path) -> None:
-    """Verify accepts only when every distinct after-report covers the target tool."""
+def test_verify_rejects_coverage_without_execution_receipts(tmp_path: Path) -> None:
+    """Coverage by itself cannot establish task correctness or successful execution."""
     before = tmp_path / "before.json"
     first = tmp_path / "first.json"
     second = tmp_path / "second.json"
     _write_report(before, covered=["write"], uncovered=["read"])
     _write_report(first, covered=["read"], uncovered=[], run_id="repeat-1")
     _write_report(second, covered=["read"], uncovered=[], run_id="repeat-2")
-
-    result = _run(
-        "verify",
-        "--before",
-        str(before),
-        "--after",
-        str(first),
-        "--after",
-        str(second),
-        "--target",
-        "read",
-    )
-    payload = json.loads(result.stdout)
-    assert result.returncode == 0
-    assert payload["accepted"] is True
-    assert payload["repeat_count"] == 2
-
-    _write_report(second, covered=[], uncovered=["read"], run_id="repeat-2")
-    failed = _run(
-        "verify",
-        "--before",
-        str(before),
-        "--after",
-        str(first),
-        "--after",
-        str(second),
-        "--target",
-        "read",
-    )
-    assert failed.returncode == 1
-    assert json.loads(failed.stdout)["accepted"] is False
+    result = _run("verify", "--before", str(before), "--after", str(first), "--after", str(second), "--target", "read")
+    assert result.returncode == 1
+    assert "execution receipts are required" in json.loads(result.stdout)["error"]
