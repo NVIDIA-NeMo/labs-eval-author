@@ -63,6 +63,12 @@ From each draft root, use the verified Gym CLI:
 /path/to/Gym/.venv/bin/gym env test <name> --json
 ```
 
+Apply [Task validation and execution evidence](../../eval-author/references/task-validation.md)
+to retain the task revision and native control results. Include the declared
+incorrect, valid-alternative, and side-effect cases, with explicit reasons for
+non-applicability. Use the shared recorder with the maintained
+[native Gym adapter](../../eval-author-task-create/references/gym-evidence.md)
+and `--purpose baseline`; this does not require an audit report or repeated agent baselines.
 Retain validation and verifier-control output under fresh run paths. Require the
 controls to complete without exceptions and meet their predeclared reward
 criteria, exercising real tools and reset behavior for stateful cases. Repair

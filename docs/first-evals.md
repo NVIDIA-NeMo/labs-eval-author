@@ -75,6 +75,12 @@ known-correct and negative/no-action controls through `gym env validate` and
 - **Oracle** runs the prepared reference solution to check that the grader
   recognizes the expected outcome.
 
+A realistic incorrect result must also be rejected. Where relevant, Eval Author
+checks a different valid solution and the actual state changes requested by the
+task. It retains the task revision and run evidence, so editing a case requires
+fresh validation. Missing evidence and setup errors stay separate from behavior
+failures.
+
 These checks test the cases themselves. The agent's performance is measured by
 running your actual agent with its configured model and credentials. Eval Author
 reports that run separately, including scores and execution errors.

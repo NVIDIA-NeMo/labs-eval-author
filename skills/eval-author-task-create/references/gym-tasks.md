@@ -110,6 +110,13 @@ environments. Its Helix export section applies only when that consumer is select
 
 ## Validate, run, and retain evidence
 
+Apply [Task validation and execution evidence](../../eval-author/references/task-validation.md)
+for the shared control contract and recorder. Prepare the revision manifest after
+completing native files. Use the maintained [native evidence adapter](gym-evidence.md) to retain native
+verifier cases, rollout and health records, and verified ATIF conversion receipts. Keep job outputs outside the hashed draft. Report unverified
+service deployment identity explicitly; the local digest does not attest a
+running remote service. Verifier fixtures alone do not establish task-gap closure.
+
 Before validation or execution, compare the actual runtime, installed dependencies and lock,
 task/configuration, and dataset identities with `reproducibility.md`. Resolve
 unexpected drift before claiming a comparable rerun. Intentional changes create

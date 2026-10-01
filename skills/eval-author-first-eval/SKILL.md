@@ -127,8 +127,9 @@ observable result rather than a specific tool call or exact prose. Simple
 assertions are acceptable if their limits are clear.
 Do not replace subjective quality with brittle string
 matching or mock away the behavior under test. If the requested case cannot be
-tested with available resources, explain the limitation and select a supported
-case with the user.
+tested with available resources, retain the original requirement as blocked.
+Explain the limitation; select a supported alternative only with the user,
+and record it as a scope change rather than completion of the original case.
 
 Without the selected runtime, the deliverable at this point is the evaluation
 plan; native task creation remains blocked on that runtime's setup.
@@ -139,6 +140,11 @@ When expanding, record retained and added examples and the new unique totals;
 the pilot's size does not determine the expansion's scope.
 
 ## 5. Prepare cases and grading
+
+Apply [Task validation and execution evidence](../eval-author/references/task-validation.md)
+for requirement-to-check review, declared verifier controls, and revision-bound
+run receipts. Include a realistic incorrect result and applicable valid-alternative
+and side-effect cases. These are local task controls, not extra model repeats.
 
 Read the reference for each provider in the selected setup for the runtime-specific
 work in stages 5–9:
@@ -170,10 +176,12 @@ run until executed. Keep it current as the environment, agent connection, and ru
 configuration are completed and fresh control or agent results become available.
 
 Apply the core's **Explain the eval pieces as they become relevant** guidance to
-the files being created. For each verifier, explain its actual assertion and an
-example it cannot distinguish yet. Introduce the provider's reference solution
-or known-correct fixture when creating it. Keep this teaching part of building
-the starter cases, without a separate tutorial or exhaustive methodology exercise.
+the files being created. For each verifier, explain its actual assertion and a
+concrete incorrect example it must reject. Fix demonstrated false acceptance
+before claiming that check is validated; retain untested distinctions as explicit
+limitations. Introduce the provider's reference solution or known-correct fixture
+when creating it. Keep this teaching part of building the starter cases, without
+a separate tutorial or exhaustive methodology exercise.
 
 ## 6. Prepare the execution environment
 
@@ -213,14 +221,17 @@ case's predeclared reward criteria, including reward shape. When inaction is
 correct, also exercise an explicitly incorrect response or action: a successful
 no-action control alone does not show that incorrect behavior is rejected.
 
+Run the native commands through the shared evidence recorder, along with the
+other declared controls. For each case, inspect trial results and rewards.
 These are basic wiring and verifier sanity checks, not evidence of broad coverage
-or a robust benchmark. Do not add repeated proof runs or a separate negative-control
-campaign as an onboarding gate. Investigate obvious unconditional rewards or
-leaked answers. Fix broken cases and rerun affected checks; do not weaken the
-intended assertion to force a pass. Report blocked cases separately and deliver
-the working subset without silently dropping planned cases or claiming the
-whole suite passed. Keep unfinished configuration or connection validation
-visible separately from successful verifier controls.
+or a robust benchmark. Keep the declared controls proportional to the task; do
+not require repeated proof or additional model runs as an onboarding gate.
+Investigate obvious unconditional rewards or leaked answers. Fix broken cases
+and rerun affected checks; do not weaken the intended assertion to force a pass.
+Report blocked cases separately and deliver the working subset without silently
+dropping planned cases or claiming the whole suite passed. Keep unfinished
+configuration or connection validation visible separately from successful
+verifier controls.
 
 ## 9. Evaluate the agent
 
