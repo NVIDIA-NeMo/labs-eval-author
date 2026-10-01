@@ -163,8 +163,11 @@ Before running, document each case's reward format, metric names and ranges,
 and expected control results. Derive these criteria from the intended outcome.
 Add a task README with the Ethos requirement, fixtures, verifier, and run commands.
 Also create the suite entry point `.eval-author/README.md` following
-[Suite rerun instructions](../eval-author/references/suite-readme.md). Keep it
-current as the environment, agent connection, and run configuration are completed.
+[Suite review and rerun instructions](../eval-author/references/suite-readme.md).
+Present its case inventory and link the guide at this milestone, with input,
+expected outcome, grading, and available source evidence; mark new cases as not
+run until executed. Keep it current as the environment, agent connection, and run
+configuration are completed and fresh control or agent results become available.
 
 Apply the core's **Explain the eval pieces as they become relevant** guidance to
 the files being created. For each verifier, explain its actual assertion and an
@@ -237,7 +240,9 @@ Update `.eval-author/first-eval.md` with exact commands, artifact paths, control
 results, per-task agent rewards and exceptions, and remaining blockers. Show how
 to rerun the suite, inspect one result, and add or modify a task. Finish and link
 `.eval-author/README.md` with the full-suite command and concrete commands for
-individual coverage items, following the shared suite rerun instructions.
+individual coverage items, following the shared suite review and rerun instructions.
+Refresh the case inventory with links to control and actual-agent results and
+available execution traces, keeping source evidence and missing traces distinct.
 Save any needed subset configs and verify their selected cases and retained
 agent settings. Label rerun commands as task sanity checks or actual agent evaluation.
 

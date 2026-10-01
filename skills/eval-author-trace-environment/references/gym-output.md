@@ -128,6 +128,13 @@ the grading path free of live services and dependency downloads. Gym HTTP
 service communication is not Harbor's separate no-network verifier container;
 describe and test the actual trust boundary without claiming Harbor isolation.
 
+Create and link `<task-dir>/README.md` when presenting the authored cases, using
+[Suite review and rerun instructions](../../eval-author/references/suite-readme.md).
+Include the native dataset rows, their readable inputs and grading explanations,
+and the reviewed source trace as provenance. Refresh the inventory after native
+validation or actual-agent runs, with links to their separate evidence and any
+missing-trace or execution blockers.
+
 ## Validate and retain native evidence
 
 Write `gym/reproducibility.md` using the **Version and rerun plan** in the
