@@ -215,6 +215,9 @@ alone does not prove that the connection works.
 
 ## 8. Validate the evals
 
+Follow [Execution recovery](../eval-author/references/execution-recovery.md)
+for control and target-agent runs, compatibility repairs, and all result recaps.
+
 Use the selected provider's native validation and controls, retaining fresh
 artifacts on reruns. Require checks to complete without exceptions and meet the
 case's predeclared reward criteria, including reward shape. When inaction is
