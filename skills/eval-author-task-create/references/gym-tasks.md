@@ -81,6 +81,9 @@ proposal works or exercises its selected tool.
 - `resources_servers/<name>/app.py` implements the scenario tools, per-session
   state/reset, and verifier. Grade the requested outcome; do not award full reward
   merely for a tool call when the requirement includes arguments or side effects.
+  Choose the backends these tools wrap, build their starting data, and prove
+  state and reset with the
+  [environment sub-flow's Gym guide](../../eval-author-environment/references/gym.md).
 - Dataset JSONL rows supply `responses_create_params` and task-specific verifier
   fields. Keep expected answers out of the model input unless the task requires
   them. Distinguish training, validation, and benchmark splits. Document fixture

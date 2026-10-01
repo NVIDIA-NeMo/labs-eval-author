@@ -62,7 +62,9 @@ scope and resumes from that stage without restarting onboarding.
 ## Check the cases and evaluate the agent
 
 Eval Author creates each case's instructions, environment, reference solution,
-and grader. It then checks the tasks with Harbor:
+and grader. The environment reuses your repository's own services where it can,
+starts from realistic seeded data, and is checked with a smoke task before any
+case relies on it. It then checks the tasks with Harbor:
 
 - **NOP** runs a no-op baseline to check what happens when no work is done.
 - **Oracle** runs the prepared reference solution to check that the grader

@@ -33,6 +33,7 @@ not-for:
   - eval-author-task-create (use to propose dataset improvements; when task creation is requested, create and prove an eligible Gym or Harbor task)
   - eval-author-inspect-trace (use after this skill selects the trace sub-flow)
   - eval-author-trace-environment (experimental; use to derive a Harbor or native Gym task from canonical ATIF evidence)
+  - eval-author-environment (use after an authoring sub-flow hands over its cases to build and prove their task environment)
   - nemo-intake (use to instrument agents, ingest telemetry, or query Intake outside Eval Author)
   - mlflow-to-atif (use to convert MLflow traces into canonical ATIF files)
   - gym-to-atif (use to convert Gym Responses traces into canonical ATIF files)
@@ -184,6 +185,9 @@ The authority depends on the sub-flow:
   basic task wiring and verifier behavior; the user's agent run establishes
   a baseline. Working setup does not establish evaluation quality or coverage,
   and a plan alone is not proof of runnability.
+- For task environments, the environment's Harbor smoke runs or Gym native
+  controls establish that its dependencies, starting data, reset, and end-state
+  export work. Build files and an environment plan are not that proof.
 - For audit-spec validation, the bundled schema and validator judge the finite
   `audit.md` coverage denominator.
 - For task creation, Gym's positive/negative controls and native execution, or
@@ -227,6 +231,7 @@ This file carries the standard and boundaries; the sub-flow carries the steps.
 | `eval-author-task-create` | Propose concrete dataset improvements from audit findings; when task creation is requested, create one eligible Gym or Harbor task and prove it with native controls and repeated measured runs |
 | `eval-author-inspect-trace` | Understand one Intake trace without presuming that the trace contains a failure. Not user-invocable; this skill selects it |
 | `eval-author-trace-environment` | **Experimental.** Normalize one trace to ATIF, make a privacy-reviewed candidate decision, and build a private Harbor or native Gym task when evidence supports it |
+| `eval-author-environment` | Build and prove the environment a Harbor or Gym task runs in: provider fit, how each dependency is provided, starting data and reset, end-state export, and isolation. Not user-invocable; first-eval and task-create hand it their agreed cases |
 
 `eval-author-audit` works one level above tasks: it generates and validates the
 coverage denominator, measures traces against it, and aggregates deterministic
@@ -304,7 +309,9 @@ user, not to you.
   proposals, job outputs, and measurements there; `eval-author-trace-environment`
   writes only private, gitignored task workspaces there.
   `eval-author-first-eval` writes plans, drafts, configs, and jobs there and uses
-  the narrow local Ethos write exception above.
+  the narrow local Ethos write exception above. `eval-author-environment` writes
+  environment kits, generated data, and smoke tasks under
+  `.eval-author/environments/`, copying any repository file it needs.
 - **A missing tool is a finding, not a task.** When the provider is not installed,
   say so and stop short of proving anything. Report what you found regardless, and
   do not install the provider automatically. Use discovery's Harbor setup guidance

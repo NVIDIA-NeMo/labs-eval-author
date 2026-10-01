@@ -112,6 +112,10 @@ Harbor YAML or choose a framework.
 When agent or setup evidence points to software or state outside the agent
 process, use [Execution dependencies](../eval-author/references/execution-dependencies.md)
 to establish the selected cases' runtime and result-collection requirements.
+When the cases depend on data, services, or tools, also record the agent's
+provider fit and dependency inventory using Steps 1 and 2 of
+[the environment sub-flow](../eval-author-environment/SKILL.md); building the
+environment waits for stage 6.
 
 Save `.eval-author/first-eval.md` with the Ethos path and requirement references,
 selected corpus (or no-trace choice), per-behavior scope and example counts,
@@ -178,12 +182,13 @@ without requiring a separate tutorial or exhaustive methodology exercise.
 
 ## 6. Prepare the execution environment
 
-Populate the generated `environment/` with the dependencies, fixtures, and
-starting state each selected case needs. Check documented access requirements,
-credential variable names, and the reset behavior that makes reruns repeatable.
-For external dependencies, apply the runtime plan from
-[Execution dependencies](../eval-author/references/execution-dependencies.md).
-Keep solutions and verifier-only data outside the agent's initial environment.
+Follow [`eval-author-environment`](../eval-author-environment/SKILL.md) with the
+agreed cases, Ethos, and the requirements recorded at scope. It checks provider
+fit, decides how each dependency is provided, builds realistic starting data
+and its reset, makes the end state readable by the verifier, and proves the
+environment with a smoke task. Populate each task's generated `environment/`
+from that environment kit, adding the records its cases need. Keep solutions
+and verifier-only data outside the agent's initial environment.
 Verify the selected backend and required application access before declaring
 this milestone complete; identifying their requirements is only partial progress.
 For Docker-backed execution, check `docker info` first. Record unavailable access
@@ -212,9 +217,11 @@ connection works.
 
 ## 8. Validate the evals
 
-Use Harbor's installed validators to check task validity. Exercise the environment
-and grading with the controls below, retaining all jobs under `.eval-author/jobs/`
-with new names on reruns:
+Use Harbor's installed validators to check task validity. Confirm the current
+environment kit's smoke proof passed first; a smoke failure is an environment
+defect to fix, not a task or agent result. Exercise the environment and grading
+with the controls below, retaining all jobs under `.eval-author/jobs/` with new
+names on reruns:
 
 ```bash
 harbor run -p .eval-author/task-drafts/<slug> -a nop \

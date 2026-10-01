@@ -65,6 +65,7 @@ _INSPECT_DIR = _SKILLS_DIR / "eval-author-inspect-trace"
 _MLFLOW_TO_ATIF_DIR = _SKILLS_DIR / "mlflow-to-atif"
 _GYM_TO_ATIF_DIR = _SKILLS_DIR / "gym-to-atif"
 _TRACE_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-trace-environment"
+_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-environment"
 _ETHOS_DIR = _SKILLS_DIR / "ethos"
 _SKILL_DIRS = (
     _ETHOS_DIR,
@@ -77,6 +78,7 @@ _SKILL_DIRS = (
     _MLFLOW_TO_ATIF_DIR,
     _GYM_TO_ATIF_DIR,
     _TRACE_ENVIRONMENT_DIR,
+    _ENVIRONMENT_DIR,
 )
 _SUB_FLOW_DIRS = (
     _DISCOVER_DIR,
@@ -85,6 +87,7 @@ _SUB_FLOW_DIRS = (
     _FIRST_EVAL_DIR,
     _INSPECT_DIR,
     _TRACE_ENVIRONMENT_DIR,
+    _ENVIRONMENT_DIR,
 )
 _DISCOVER_SCRIPTS_DIR = _DISCOVER_DIR / "scripts"
 _AUDIT_SPEC_DIR = _AUDIT_DIR / "scripts" / "audit_spec"
@@ -710,6 +713,7 @@ def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
     task_create_tools = _allowed_tools(_frontmatter_and_body(_TASK_CREATE_DIR)[0])
     inspect_tools = _allowed_tools(_frontmatter_and_body(_INSPECT_DIR)[0])
     trace_environment_tools = _allowed_tools(_frontmatter_and_body(_TRACE_ENVIRONMENT_DIR)[0])
+    environment_tools = _allowed_tools(_frontmatter_and_body(_ENVIRONMENT_DIR)[0])
 
     assert "Write" in core_tools, "the core must be able to save Ethos before selecting an authoring flow"
     assert "Bash" not in core_tools, "the core delegates executable work to a sub-flow"
@@ -727,6 +731,9 @@ def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
     )
     assert {"Bash", "Write"} <= trace_environment_tools, (
         f"{_TRACE_ENVIRONMENT_DIR.name} prepares and verifies task artifacts; it has {sorted(trace_environment_tools)}"
+    )
+    assert {"Bash", "Write"} <= environment_tools, (
+        f"{_ENVIRONMENT_DIR.name} builds and proves environment kits; it has {sorted(environment_tools)}"
     )
 
 
@@ -792,6 +799,65 @@ def test_inspect_flow_resolves_the_cli_without_changing_the_environment() -> Non
     positions = [body.index(candidate) for candidate in candidates]
     assert positions == sorted(positions), "CLI candidates must appear in priority order"
     assert "Use the resolved invocation for every command" in body
+
+
+def test_environment_flow_is_reached_only_through_authoring_flows() -> None:
+    """The environment sub-flow serves authoring flows and must not compete with trace-environment.
+
+    Both skills talk about building environments. If the environment flow were
+    user-invocable or reused trace-environment's phrases, a request to turn a
+    trace into a task could start the wrong workflow.
+    """
+    frontmatter, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    trace_frontmatter, _ = _frontmatter_and_body(_TRACE_ENVIRONMENT_DIR)
+    core_frontmatter, _ = _frontmatter_and_body(_CORE_DIR)
+
+    assert frontmatter["user-invocable"] is False
+    assert "Reached through eval-author" in frontmatter["description"]
+    assert _TRACE_ENVIRONMENT_DIR.name in _not_for_names(frontmatter)
+    assert _ENVIRONMENT_DIR.name in _not_for_names(trace_frontmatter)
+    assert _ENVIRONMENT_DIR.name in _not_for_names(core_frontmatter)
+    for phrase in (*trace_frontmatter["triggers"], *core_frontmatter["triggers"]):
+        assert phrase not in frontmatter["triggers"]
+        assert phrase not in frontmatter["description"]
+    assert "never open `.env` files" in body
+
+
+def test_every_environment_path_the_skill_names_exists() -> None:
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    for relative in (
+        "references/dependencies.md",
+        "references/starting-data.md",
+        "references/harbor.md",
+        "references/gym.md",
+        "templates/environment-plan.md",
+    ):
+        assert relative in body, f"SKILL.md no longer documents {relative}"
+        assert (_ENVIRONMENT_DIR / relative).exists(), f"SKILL.md names {relative}, which is missing on disk"
+
+
+def test_environment_flow_relative_links_resolve() -> None:
+    """Every relative link in the environment skill reaches a file that ships with the skills."""
+    documents = [
+        _ENVIRONMENT_DIR / "SKILL.md",
+        *sorted((_ENVIRONMENT_DIR / "references").glob("*.md")),
+        *sorted((_ENVIRONMENT_DIR / "templates").glob("*.md")),
+    ]
+    for document in documents:
+        for target in re.findall(r"\]\(([^)\s]+)\)", document.read_text(encoding="utf-8")):
+            if target.startswith(("http://", "https://", "#")):
+                continue
+            path = (document.parent / target.split("#", 1)[0]).resolve()
+            assert path.is_file(), f"{document.relative_to(_SKILLS_DIR)} links to missing {target}"
+            assert path.is_relative_to(_SKILLS_DIR), f"{document.name} links outside the installed skills: {target}"
+
+
+def test_authoring_flows_hand_environment_work_to_the_environment_flow() -> None:
+    """First-eval and task-create delegate environment construction instead of restating it."""
+    link = "../eval-author-environment/SKILL.md"
+    for skill_dir in (_FIRST_EVAL_DIR, _TASK_CREATE_DIR):
+        _, body = _frontmatter_and_body(skill_dir)
+        assert link in body, f"{skill_dir.name} must hand environment work to {_ENVIRONMENT_DIR.name}"
 
 
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)

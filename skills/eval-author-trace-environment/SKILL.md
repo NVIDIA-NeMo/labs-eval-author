@@ -15,6 +15,7 @@ not-for:
   - gym-to-atif (use only to normalize Gym Responses traces into ATIF)
   - eval-author-task-create (use to close an actionable audit coverage gap)
   - eval-author-inspect-trace (use to explain an Intake trace without creating an environment)
+  - eval-author-environment (use when first-eval or task-create needs a reusable environment for its agreed cases)
 compatibility: >-
   Python 3.11+, jsonschema 4.23+, referencing 0.28.4+; mlflow-to-atif for MLflow; gym-to-atif for Gym; nemo CLI for Intake; Harbor and
   Docker for Harbor proof. Gym output uses the sibling eval-author-task-create
