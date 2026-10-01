@@ -5,12 +5,11 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 from pathlib import Path
 from typing import Any
 
-from task_evidence import EvidenceError, digest, read
+from task_evidence import EvidenceError, digest, loads, read
 
 INPUTS = ("dataset", "config", "runtime", "reset")
 
@@ -21,21 +20,9 @@ def jsonl(path: Path) -> list[tuple[bytes, dict[str, Any]]]:
     for raw in path.read_bytes().splitlines(keepends=True):
         if not raw.strip():
             raise EvidenceError("blank JSONL rows are not supported in evidence")
-
         # Use the same strict decoder as ordinary evidence, without temporary files.
-        def pairs(items):
-            value = {}
-            for key, item in items:
-                if key in value:
-                    raise EvidenceError("duplicate JSONL key")
-                value[key] = item
-            return value
-
-        def constant(value):
-            raise EvidenceError(f"nonfinite JSONL value: {value}")
-
         try:
-            value = json.loads(raw, object_pairs_hook=pairs, parse_constant=constant)
+            value = loads(raw)
         except (ValueError, UnicodeError) as exc:
             raise EvidenceError("invalid native JSONL") from exc
         if not isinstance(value, dict):
