@@ -36,7 +36,11 @@ Declare a small set of controls appropriate to the task:
   why the task has no side-effect requirement.
 
 NOP can serve as the incorrect control only when doing nothing is incorrect and
-its failure exercises the intended assertion. Include a copy control when a
+its failure exercises the intended assertion. Harbor's built-in control agents
+are `nop` and `oracle`; run any other control as a custom agent
+(`-a <module:Class>`) whose source lives in the task tree. The recorder adds no
+shell, so set its import path with `env PYTHONPATH=<dir> harbor ...`. Do not swap
+`solution/` to run a control: that changes the task revision. Include a copy control when a
 concrete visible-answer shortcut is plausible. Inspect actual image layers,
 mounts, histories, and runtime access for reference/expected-answer leakage.
 Keep grading and reward files verifier-owned and fresh. Use the provider's
@@ -120,21 +124,27 @@ external services still need the provider's version and rerun plan.
 
 ## Record controls and agent runs
 
-Use the recorder around the trusted native invocation, with fresh output paths:
+Record each control and each agent attempt as its own invocation around the
+trusted native command. Every receipt needs fresh native output, so one job with
+several attempts can back only one receipt:
 
 ```bash
+TRIALS="$PWD/.eval-author/jobs/cover-read"
 python <task_create_dir>/scripts/task_evidence.py run \
   --manifest .eval-author/task-measurements/cover-read/revision-1.json \
   --case reference --run-id reference-1 \
-  --result .eval-author/jobs/reference-1/native-result.json \
+  --result "$TRIALS/reference-1/result.json" \
   --out .eval-author/task-measurements/cover-read/reference-1.json \
-  -- <reviewed-native-command-and-arguments>
+  -- harbor trial start -p .eval-author/task-drafts/cover-read -a oracle \
+  --trial-name reference-1 --trials-dir "$TRIALS"
 ```
 
-The command must produce the declared result. A reviewed wrapper may select and
-copy one Harbor trial result; Gym uses the maintained adapter described above; retain
-original jobs too. The recorder runs argv directly without adding a shell and
-uses the current directory. Put wrappers and control sources in the prepared
+The command must produce the declared result. `harbor trial start` writes the
+trial's `result.json` and `agent/trajectory.json` under its `--trials-dir` and
+`--trial-name`, so they can be the declared `--result` and `--trace` without a
+copying wrapper; Harbor jobs name their trials randomly. Gym uses the maintained
+adapter described above. The recorder runs argv directly without adding a shell
+and uses the current directory. Put wrappers and control sources in the prepared
 task tree, and pass the actual selected task/configuration. Never copy old job
 results to simulate a new execution. This is evidence bookkeeping for trusted
 authoring, not an attestation against a malicious command or edited receipts.
