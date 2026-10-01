@@ -317,6 +317,11 @@ target-agent settings and native verifier results; the low agent score remains.
 Raw rewards and exceptions are preserved while infrastructure failures,
 blocked/missing trials and agent-quality failures are explained separately.
 
+Repeat the blocked variant with a native Gym suite. The reports lead with
+**Diagnostic only — Gym evaluation incomplete**, preserve rollout failure reasons
+and health records, and do not substitute a Harbor run or local grader for the
+requested Gym rollouts.
+
 This scenario tests recovery and reporting, not an allegation that the author
 fabricated application outputs. Static checks of this file do not establish
 that a live author passed the scenario.

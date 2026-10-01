@@ -30,14 +30,14 @@
       "files": []
     },
     {
-      "id": "recovery-partial-harbor-evidence",
-      "prompt": "Use eval-author-first-eval to summarize this synthetic evaluation status without executing anything. Eight Harbor trials were requested for the selected agent. Six completed with the original verifier: five reward 1 and one reward 0. One trial has an endpoint exception and raw reward 0, and the eighth has no job or trial artifacts. A local diagnostic grader reports success on the two remaining cases. Can I mark all eight complete? Give the counts and next action.",
-      "expected_output": "Reports the evaluation incomplete: six completed trials, five passes and one agent-quality failure; one infrastructure exception with raw reward 0 preserved; one missing trial. The local successes are diagnostic only. Repair and rerun the outstanding work through Harbor and cite retained native evidence without turning all eight into completed trials.",
+      "id": "recovery-partial-gym-evidence",
+      "prompt": "Use eval-author-first-eval to summarize this synthetic evaluation status without executing anything. Our first-eval suite uses native Gym. Eight rollouts were requested for the selected agent, one per selected dataset row. Six completed with the original verifier: five reward 1 and one reward 0. One rollout has a failure_reason from an endpoint error and raw reward 0, and the eighth row has no rollout or health record. A local diagnostic grader reports success on the two remaining rows. Can I mark all eight complete? Give the counts and next action.",
+      "expected_output": "Reports the Gym evaluation incomplete: six completed rollouts, five passes and one agent-quality failure; one infrastructure failure with its failure reason and raw reward 0 preserved; one missing rollout. The local successes are diagnostic only. Repair and rerun the outstanding rows through Gym and cite retained native rollouts and health records without turning all eight into completed runs or switching to Harbor.",
       "assertions": [
-        "Reports six completed of eight requested, with five passes and one agent-quality failure.",
-        "Preserves the infrastructure trial raw reward 0 while distinguishing its exception from agent-quality failure.",
-        "Keeps the missing trial explicit and excludes diagnostic successes from the Harbor aggregate.",
-        "Does not mark all eight or the pipeline complete; requires fresh native evidence for outstanding work."
+        "Reports six completed of eight requested rollouts, with five passes and one agent-quality failure.",
+        "Preserves the failed rollout's raw reward 0 and failure reason while distinguishing it from agent-quality failure.",
+        "Keeps the missing rollout explicit and excludes diagnostic successes from the Gym aggregate.",
+        "Does not mark all eight or the pipeline complete; requires fresh native Gym evidence for outstanding work."
       ],
       "expected_skill": "eval-author-first-eval",
       "files": []
