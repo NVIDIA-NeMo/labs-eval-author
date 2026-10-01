@@ -79,7 +79,8 @@ tool-gap task creation still requires the aggregate JSON report.
 
 ## Available Scripts
 
-Run `uv run <skill_dir>/scripts/task_pipeline.py <command>`:
+Run `uv run <skill_dir>/scripts/task_pipeline.py <command>`. Run `task_evidence.py`
+with the selected runtime's Python; Harbor preparation imports Harbor.
 
 | Script | Purpose | Arguments |
 |---|---|---|

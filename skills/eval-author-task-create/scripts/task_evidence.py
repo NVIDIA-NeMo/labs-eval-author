@@ -181,7 +181,10 @@ def prepare(
         "repairs": repairs,
     }
     if contract["provider"] == "harbor":
-        from harbor.models.task.task import Task
+        try:
+            from harbor.models.task.task import Task
+        except ImportError as exc:
+            raise EvidenceError("Harbor preparation needs the Harbor Python runtime used for execution") from exc
 
         manifest["harbor_task_checksum"] = Task(task.resolve()).checksum
     if contract["provider"] == "gym":

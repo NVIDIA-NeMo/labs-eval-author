@@ -145,8 +145,8 @@ def build(
     if type(index) is not int or not 1 <= index <= len(rows):
         raise EvidenceError("Gym rollout row must be one-based and present")
     raw, native = rows[index - 1]
-    trajectory = native.get("ng_trajectory", {})
-    identity = trajectory.get("rollout_id")
+    trajectory = native.get("ng_trajectory")
+    identity = trajectory.get("rollout_id") if isinstance(trajectory, dict) else None
     if not isinstance(identity, str) or not identity:
         raise EvidenceError("missing native Gym rollout ID")
     if native.get("_ng_rollout_id", identity) != identity:
@@ -173,14 +173,16 @@ def build(
     for name in ("_ng_task_index", "_ng_rollout_index"):
         if name not in native or health.get(name) != native[name]:
             raise EvidenceError("health record selects a different task or repeat")
-    summary = read(Path(source["summary"])).get("run", {})
-    if summary.get("ignored_checks") != []:
+    summary = read(Path(source["summary"])).get("run")
+    if not isinstance(summary, dict) or summary.get("ignored_checks") != []:
         raise EvidenceError("Gym health checks are missing or disabled")
+    artifacts = summary.get("artifacts")
     counts = {v: sum(r.get("verdict") == v for r in verdicts) for v in ("healthy", "unhealthy", "unobserved")}
     if (
         summary.get("verdicts") != counts
         or sum(counts.values()) != len(verdicts)
-        or summary.get("artifacts", {}).get("records") != len(rows)
+        or not isinstance(artifacts, dict)
+        or artifacts.get("records") != len(rows)
         or len(verdicts) != len(rows)
     ):
         raise EvidenceError("Gym health summary does not match retained rollouts")

@@ -295,6 +295,13 @@ def test_diagnostic_cannot_replace_reference_control(tmp_path, prepared):
         evidence.verify_receipts([receipt], "cover-read")
 
 
+def test_harbor_preparation_without_harbor_is_an_evidence_error(tmp_path, prepared, monkeypatch):
+    task, contract_path, _ = prepared
+    monkeypatch.setitem(sys.modules, "harbor.models.task.task", None)
+    with pytest.raises(evidence.EvidenceError, match="Harbor Python runtime"):
+        evidence.prepare(task, contract_path, tmp_path / "without-harbor.json")
+
+
 def test_numeric_bands_and_missing_health_are_distinct():
     assert evidence.assertions({"score": 0.8}, [{"pointer": "/score", "min": 0.7, "max": 1}])
     assert not evidence.assertions({"score": True}, [{"pointer": "/score", "min": 0, "max": 1}])

@@ -134,6 +134,9 @@ def test_native_rollout_binds_input_health_and_conversion(inputs):
         ("conversion_hash", "does not bind"),
         ("trace", "does not bind"),
         ("duplicate_health", "missing or duplicate"),
+        ("null_trajectory", "missing native Gym rollout ID"),
+        ("summary_shape", "missing or disabled"),
+        ("artifacts_shape", "does not match retained rollouts"),
     ],
 )
 def test_rejects_wrong_native_evidence(inputs, mutation, message):
@@ -144,6 +147,9 @@ def test_rejects_wrong_native_evidence(inputs, mutation, message):
         native = gym.jsonl(Path(source["rollouts"]))[0][1]
         native["amounts"] = [9]
         line(Path(source["rollouts"]), native)
+    elif mutation == "null_trajectory":
+        native = gym.jsonl(Path(source["rollouts"]))[0][1]
+        line(Path(source["rollouts"]), {**native, "ng_trajectory": None})
     elif mutation in ("conversion_row", "conversion_hash"):
         path = Path(source["conversion"])
         value = evidence.read(path)
@@ -151,10 +157,15 @@ def test_rejects_wrong_native_evidence(inputs, mutation, message):
         dump(path, value)
     elif mutation == "trace":
         trace.write_text("{}")
-    elif mutation == "disabled":
+    elif mutation in ("disabled", "summary_shape", "artifacts_shape"):
         path = Path(source["summary"])
         value = evidence.read(path)
-        value["run"]["ignored_checks"] = ["some-check"]
+        if mutation == "disabled":
+            value["run"]["ignored_checks"] = ["some-check"]
+        elif mutation == "summary_shape":
+            value["run"] = []
+        else:
+            value["run"]["artifacts"] = []
         dump(path, value)
     else:
         path = Path(source["verdicts"])
@@ -211,10 +222,7 @@ def test_fixture_cases_have_no_rollout_or_trace_requirement(inputs, tmp_path):
     assert "reward" not in result and result["case"]["kind"] == "malformed"
 
 
-@pytest.mark.parametrize("via_cli", [False, True])
-def test_recorder_baseline_can_run_without_trace(tmp_path, inputs, via_cli):
-    manifest, case, source, _ = inputs
-    source.pop("conversion")
+def stage_native_outputs(source):
     # Stage native artifacts as command inputs, then produce fresh outputs during recording.
     copies = []
     for path in gym.source_paths(source):
@@ -224,6 +232,14 @@ def test_recorder_baseline_can_run_without_trace(tmp_path, inputs, via_cli):
     code = "from pathlib import Path\n"
     for src, dest in copies:
         code += f"Path({str(dest)!r}).write_bytes(Path({str(src)!r}).read_bytes())\n"
+    return code
+
+
+@pytest.mark.parametrize("via_cli", [False, True])
+def test_recorder_baseline_can_run_without_trace(tmp_path, inputs, via_cli):
+    manifest, case, source, _ = inputs
+    source.pop("conversion")
+    code = stage_native_outputs(source)
     source_path = dump(tmp_path / "source.json", source)
     output = tmp_path / "receipt.json"
     if via_cli:
@@ -271,6 +287,28 @@ def test_recorder_baseline_can_run_without_trace(tmp_path, inputs, via_cli):
     assert receipt["status"] == "passed" and receipt["trace"] is None
     with pytest.raises(evidence.EvidenceError, match="baseline receipts"):
         evidence.verify_receipts([output], "cover-read")
+
+
+def test_malformed_native_output_still_writes_a_receipt(tmp_path, inputs):
+    manifest, _, source, _ = inputs
+    source.pop("conversion")
+    native = gym.jsonl(Path(source["rollouts"]))[0][1]
+    line(Path(source["rollouts"]), {**native, "ng_trajectory": None})
+    code = stage_native_outputs(source)
+    output = tmp_path / "receipt.json"
+    evidence.run(
+        manifest,
+        "agent",
+        "malformed",
+        output,
+        tmp_path / "normalized.json",
+        None,
+        [sys.executable, "-c", code],
+        purpose="baseline",
+        gym_source=dump(tmp_path / "source.json", source),
+    )
+    receipt = evidence.read(output)
+    assert receipt["status"] == "infrastructure_error" and "rollout ID" in receipt["error"]
 
 
 def check_native_artifacts(output, draft):

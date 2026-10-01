@@ -148,6 +148,9 @@ and uses the current directory. Put wrappers and control sources in the prepared
 task tree, and pass the actual selected task/configuration. Never copy old job
 results to simulate a new execution. This is evidence bookkeeping for trusted
 authoring, not an attestation against a malicious command or edited receipts.
+Receipts store the command line verbatim. Pass credentials through the
+environment, which the recorder forwards to the command; never put secret values
+in arguments such as Harbor's `--ae KEY=VALUE`.
 
 Run every declared control. Use `--purpose baseline` for first-eval runs; it
 allows one attempt without ATIF and cannot count as gap-closure evidence.
