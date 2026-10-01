@@ -28,10 +28,14 @@ This project is in alpha. Workflows and interfaces may change.
 
 ## Prerequisites
 
-Harbor is required for first-evaluation authoring and Harbor task execution. Use a Python
-environment supported by your Harbor installation; see the
-[setup guide](skills/eval-author-discover/references/harbor-setup.md) for installation
-and verification. Repository inventory and case planning can start without Harbor.
+First-eval, audit-derived, and trace-derived task creation support NeMo Gym and
+Harbor. They honor the user's choice, otherwise preserve the existing suite's
+provider, and default to Harbor when neither is specified. Gym is compatible
+with Harbor, and the user has the final say. Gym authoring needs
+Gym v0.6.0+ in its separate Python 3.13.14+ environment; Harbor authoring needs its
+CLI and supported Python environment. See the [first-eval guide](docs/first-evals.md)
+and [Harbor setup guide](skills/eval-author-discover/references/harbor-setup.md).
+Repository inventory and case planning can start without either runtime.
 
 First-evaluation design and coverage audits require a local **Ethos** describing
 your agent's purpose, boundaries, and success criteria.

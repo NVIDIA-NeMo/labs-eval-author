@@ -23,7 +23,7 @@ that every record is available or usable.
 
 For fresh starts, request first evals and follow the normal opening and milestone
 check-ins. For staged tests, supply explicit conversation history showing the
-opening accepted, Ethos reviewed, Harbor readiness checked or explicitly deferred,
+opening accepted, Ethos reviewed, selected-runtime readiness checked or explicitly deferred,
 and the user's statement that no evals exist. State which milestone transition
 was answered and which source or scope choice remains open. File presence alone
 does not establish this history or runtime readiness. Reuse applicable history
@@ -129,7 +129,8 @@ excluded source or fabricating observed examples.
 **A — no traces:** At source selection, answer: “There are no traces. Use Ethos
 and synthetic examples.” Planning continues without a trace hunt or manufactured
 coverage report. The plan records the choice and marks examples as synthetic.
-Missing Harbor can leave a useful plan complete while scaffolding is blocked.
+Missing the selected runtime can leave a useful plan complete while scaffolding
+is blocked. Report prerequisites for the user's selected setup.
 
 **B — question detour:** At the scope checkpoint, ask: “Explain why a repeated
 attempt is not another input example.” The agent answers, preserves existing
@@ -258,3 +259,33 @@ Repository validation also passed Ruff lint/format checks, type checks for Pytho
 signed-off commit-message check. The generic skill-creator validator rejected
 this repository's pre-existing extended frontmatter fields; the repository's
 own skill contract checks passed. No live model evaluation was performed.
+
+## Consistent provider selection
+
+**Start:** Supply the support agent with reviewed Ethos, no evals, no traces,
+and a working native Gym installation. Explicitly request Gym first evals.
+Answer the existing milestone and scope questions.
+
+**Inspect:** The agent honors the choice, verifies Gym, and prepares native
+manifest, component, dataset, and verifier files with no audit report. Native
+validation and positive/negative controls remain separate from actual agent
+execution. A missing actual-agent integration is reported as a blocker, never
+replaced by a passing run of Gym's example agent. The suite README retains Gym
+commands, selected rows, agreed attempts, and fresh result paths.
+
+**Provider matrix:** Exercise the same selection cases for first-eval,
+audit-derived task creation with an eligible synthetic gap, and trace-derived
+creation with an eligible synthetic trace:
+
+- Explicit Gym or Harbor: honor the choice even when the existing suite differs.
+- No explicit choice, existing Gym or Harbor suite: preserve that provider.
+- No explicit choice or existing suite: default to Harbor, even for Gym traces.
+- Selected runtime missing: retain useful planning and report the setup need;
+  do not silently switch providers because another runtime is installed.
+- User selects Gym with Harbor: recognize compatibility, record each tool's role,
+  and check the requirements of that setup.
+
+For Harbor, retain native scaffolding and NOP/Oracle checks. For a mixed suite,
+use the affected cases' setup or ask which cases are targeted when ambiguous.
+The user's explicit choice overrides the default. These are manual acceptance
+scenarios, not an execution record.

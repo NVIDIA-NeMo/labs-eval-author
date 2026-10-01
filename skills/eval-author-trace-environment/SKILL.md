@@ -46,11 +46,10 @@ scrubbing and provider-native validation.
 
 ## Instructions
 
-Choose the output provider independently of the trace source. Preserve an
-explicit Gym or Harbor choice; otherwise use the existing suite's provider,
-defaulting to Harbor when neither is specified. A Gym source does not imply Gym
-output. Follow shared steps 1-5, then the selected provider's construction path
-in Step 6, one task workspace per trace. Commands are in
+Follow the core's [provider-selection rule](../eval-author/SKILL.md#select-the-evaluation-provider),
+choosing the output provider independently of the trace source. Both Gym and
+Harbor are supported. A Gym source does not imply Gym output. Follow shared
+steps 1-5, then the selected provider's construction path in Step 6, one task workspace per trace. Commands are in
 `## Available Scripts`; an end-to-end run is in `## Examples`. Trace payloads,
 credentials, and task workspaces never go into Git.
 
