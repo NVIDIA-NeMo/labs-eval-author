@@ -1,14 +1,14 @@
 ---
 name: eval-author-environment
 description: >-
-  Use when an Eval Author authoring flow (first-eval, task-create, or
-  trace-environment) needs the environment a Harbor or Gym task runs in: the
-  agent's databases, files, services, and tools, realistic starting data, and
-  how the end state is read back for grading. Checks provider fit, inventories
-  the agent repository read-only, chooses real, sandboxed, faked, or replayed
-  dependencies, builds starting data, and proves the environment with a smoke
-  task before tasks rely on it. Reached through eval-author and its sub-flows
-  rather than invoked directly.
+  Required by Eval Author's first-eval and task-create flows before they write
+  a Harbor or Gym task's tests, and available to trace-environment: builds the
+  environment the task runs in, meaning the agent's databases, files, services,
+  and tools, seeded realistic starting data, and how the end state is read back
+  for grading. Checks provider fit, inventories the agent repository read-only,
+  chooses real, sandboxed, faked, or replayed dependencies, generates starting
+  data, and proves the environment with a smoke task before tasks rely on it.
+  Reached through eval-author and its sub-flows rather than invoked directly.
 triggers:
   - eval-author routed to environment preparation
   - prepare the environment for the selected eval tasks
@@ -35,13 +35,33 @@ allowed-tools: Bash Read Write Grep Glob
 
 # Eval Author: environment
 
+## Required outputs
+
+First-eval and task-create are not finished with an environment until the kit
+under `.eval-author/environments/<agent-slug>/` holds:
+
+- `environment-plan.md`, started from [the template](templates/environment-plan.md),
+  with fit, inventory, dependency choices, fidelity card, and proof status;
+- a seeded generator in `data/` that produces the starting data, with its
+  integrity check. Size it like the data the agent meets in practice, large
+  enough that the agent must search and choose, with the variety real data has:
+  mixed statuses, similar records, and edge values;
+- the smoke proof in `smoke/` and its retained results.
+
+Build the data before the tests: generate the starting data first, then derive
+every expected value with an independent reference query over that data. A few
+hand-typed fixture rows with hand-computed answers are not starting data, and a
+task's own NOP, Oracle, or verifier controls never prove the environment.
+
 ## Purpose
 
 Read `eval-author` for the shared evidence standard and boundaries. Start this
-sub-flow when an authoring flow hands over its agreed cases: first-eval at
-**Prepare the execution environment**, or task-create while completing a draft.
-It builds the world those tasks run in and proves that world works before any
-task depends on it.
+sub-flow as soon as an authoring flow has agreed its cases and before it writes
+their tests: first-eval at **Prepare cases and grading**, or task-create before
+it writes a draft's verifier. Steps 1 to 4 build the data the tests are written
+against; Steps 5 to 8 finish and prove the kit before task controls run. It
+builds the world those tasks run in and proves that world works before any task
+depends on it.
 
 A task is only as informative as its environment. When the starting data holds
 just the records a case needs, the agent succeeds without searching, choosing,
@@ -179,8 +199,10 @@ Read [Starting data](references/starting-data.md) before generating records.
   statuses permit the expected actions, totals recompute, and identifiers the
   system assigns at runtime are not pre-created.
 - Derive each case's expected end state from its Ethos-backed outcome applied to
-  this data. When Ethos does not settle what is correct, mark it unresolved and
-  raise it in the calling flow's check-in instead of choosing.
+  this data, with an independent reference query over the generated records
+  rather than arithmetic over a few rows, before the verifier is written. When
+  Ethos does not settle what is correct, mark it unresolved and raise it in the
+  calling flow's check-in instead of choosing.
 
 ## Step 5: Make the end state readable
 
@@ -234,7 +256,8 @@ Prove the environment once, before task controls interpret anything:
 
 Record each proof run's command, job path, and result in `environment-plan.md`.
 These runs prove the environment, not a task: do not declare them as a task's
-controls or count them among its evidence receipts.
+controls or count them among its evidence receipts. Likewise, a task's own NOP,
+Oracle, or verifier controls never substitute for this proof.
 
 Treat setup failures as infrastructure, not agent results. Fix and rerun them,
 recording each repair and its reason in the plan as

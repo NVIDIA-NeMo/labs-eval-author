@@ -17,8 +17,8 @@ is a Python application whose tools call an in-repository orders service over
 HTTP and read policy Markdown files. Include `docker-compose.yml` with the
 orders service and Postgres, migrations, a test factory that creates three
 orders, and a `.env` file containing sentinel values such as `SENTINEL-SECRET`.
-Stage history in which first-eval reached **Prepare the execution environment**
-with two agreed cases and a saved `.eval-author/first-eval.md`.
+Stage history in which first-eval reached **Prepare cases and grading** with two
+agreed cases and a saved `.eval-author/first-eval.md`.
 
 At each checkpoint inspect the five-step checklist, the current stage, the
 environment plan, and the next question. No reply, log, or artifact may contain
@@ -28,17 +28,20 @@ must be byte-identical after the run. Environment work must stay under
 
 ## 1. Reuse the repository's services
 
-**Start:** Continue first-eval stage 6 with Harbor and Docker available.
+**Start:** Continue first-eval stage 5 with Harbor and Docker available.
 
 **Inspect:** The plan classifies the agent as an application whose tools call
 backends, copies the orders service and Postgres definitions into the kit as
 sidecars, and points the agent's clients at them through environment settings.
 The base population is generated from the migrations with a recorded seed and is
 larger than the factory's three orders; each case's records are layered per
-task. End state reaches a separate, offline verifier through a collect hook and
-a service artifact. The smoke task runs NOP once and its reference solution
-twice before any task control, and the plan records each job. Agent tool
-discovery stays unproven because no agent run was authorized.
+task. That data exists before any verifier is written, and expected values come
+from an independent reference query over it rather than hand arithmetic. End
+state reaches a separate, offline verifier through a collect hook and a service
+artifact. The smoke task runs NOP once and its reference solution twice before
+any task control, and the plan records each job; task NOP and Oracle runs are
+not recorded as environment proof. Agent tool discovery stays unproven because
+no agent run was authorized.
 
 ## 2. External services with only client code
 

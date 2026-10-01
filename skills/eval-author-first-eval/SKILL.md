@@ -112,11 +112,11 @@ Harbor YAML or choose a framework.
 When agent or setup evidence points to software or state outside the agent
 process, use [Execution dependencies](../eval-author/references/execution-dependencies.md)
 to establish the selected cases' runtime and result-collection requirements.
-When the cases depend on data, services, or tools, also record the agent's
-provider fit and dependency inventory using Steps 1 and 2 of
-[the environment sub-flow](../eval-author-environment/SKILL.md); building the
-environment waits for stage 6. Raise a poor fit for the provider selected at
-stage 2 in the scope checkpoint; if the user changes provider, verify that
+Record the agent's provider fit and dependency inventory using Steps 1 and 2 of
+[the environment sub-flow](../eval-author-environment/SKILL.md); files and
+embedded databases the agent works on count as dependencies. Its starting data
+is built at stage 5, before any test. Raise a poor fit for the provider selected
+at stage 2 in the scope checkpoint; if the user changes provider, verify that
 runtime as stage 2 describes before preparing cases.
 
 Save `.eval-author/first-eval.md` with the Ethos path and requirement references,
@@ -164,6 +164,13 @@ Keep the shared scope, stage check-ins, explanations, suite README, and result
 reconciliation here. A combined setup uses the relevant parts of both references;
 reading a reference does not change the selected provider.
 
+Build the data before the tests. Before writing any case's verifier, complete
+Steps 3 and 4 of [`eval-author-environment`](../eval-author-environment/SKILL.md):
+choose how each dependency is provided and generate the kit's seeded starting
+data. Write each case's own records on top of that data, and derive its expected
+values with an independent reference query over the generated data rather than
+by hand. Hand-typed fixtures of a few rows are not starting data.
+
 Create the agreed examples and map their stable IDs to native tasks or dataset
 rows. Keep source provenance and expected-label rationale in the plan or
 verifier-only data, outside the agent's starting environment. Start with one
@@ -191,14 +198,15 @@ a separate tutorial or exhaustive methodology exercise.
 
 ## 6. Prepare the execution environment
 
-Follow [`eval-author-environment`](../eval-author-environment/SKILL.md) with the
-agreed cases, Ethos, and the requirements recorded at scope. It checks provider
-fit, decides how each dependency is provided, builds realistic starting data
-and its reset, makes the end state readable by the verifier, and proves the
-environment before any case relies on it. Then use the selected provider
-reference to populate each task's environment from that environment kit, adding
-the records its cases need. Keep solutions and verifier-only data outside the
-agent's initial environment.
+Finish the environment kit with Steps 5 to 8 of
+[`eval-author-environment`](../eval-author-environment/SKILL.md): make the end
+state readable by the verifier, isolate the run, prove the environment with its
+smoke task, and hand the kit off. Use the selected provider reference to confirm
+each task's environment builds on that kit. Keep solutions and verifier-only
+data outside the agent's initial environment. This milestone is complete only
+when the kit's `environment-plan.md`, seeded data generator, and smoke results
+exist under `.eval-author/environments/<agent-slug>/`; the tasks' own controls
+never count as environment proof.
 Verify the selected backend and required application access before declaring
 this milestone complete; identifying their requirements is only partial progress.
 Record unavailable access and which cases or checks it blocks, naming credential

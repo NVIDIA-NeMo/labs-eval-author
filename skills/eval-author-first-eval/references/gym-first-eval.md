@@ -21,9 +21,11 @@ first-eval has no coverage report or uncovered-tool selector.
 Follow [Complete the task without changing its intended capability](../../eval-author-task-create/references/gym-tasks.md#complete-the-task-without-changing-its-intended-capability)
 for the generated manifest, component configuration, resources server, dataset
 rows, and verifier fixtures. Replace template tools, rewards, and fixtures with
-the agreed cases. Map stable case IDs to selected dataset rows; keep expected
-answers and provenance outside model inputs. Start with one representative case
-before extending the pattern to the agreed breadth.
+the agreed cases. Seed the resources server from the environment kit's generated
+data before writing verifier fixtures, and derive expected rewards and end states
+with an independent reference over that data. Map stable case IDs to selected
+dataset rows; keep expected answers and provenance outside model inputs. Start
+with one representative case before extending the pattern to the agreed breadth.
 
 Document each case's reward contract and expected positive and negative control
 results before testing. Include a known-correct response or interaction and a
@@ -36,8 +38,8 @@ Maintain each task README and the shared `.eval-author/README.md`.
 Prepare the generated resources, agent, and model components, dependency inputs,
 fixtures, and state reset. Build the backends the resources server wraps, their
 seeded session state, and its reset from the environment kit that
-[`eval-author-environment`](../../eval-author-environment/SKILL.md) built,
-following its [Gym environments](../../eval-author-environment/references/gym.md)
+[`eval-author-environment`](../../eval-author-environment/SKILL.md) started at
+stage 5, following its [Gym environments](../../eval-author-environment/references/gym.md)
 reference, and add each case's own records to its dataset row or session seed.
 Apply the [Gym version and rerun plan](../../eval-author-task-create/references/gym-tasks.md#version-and-rerun-plan)
 to the selected suite, recording it in `.eval-author/first-eval.md` and the drafts'

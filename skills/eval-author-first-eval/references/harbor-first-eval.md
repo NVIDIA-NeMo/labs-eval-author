@@ -20,11 +20,13 @@ harbor task init <org>/<slug> --tasks-dir .eval-author/task-drafts \
   --description "<behavior being tested>" --author "<actual author>"
 ```
 
-Verify that the expected directory was created. Complete the generated
-`instruction.md`, `task.toml`, `tests/test.sh`, and `solution/solve.sh` using the
-installed schema; prepare `environment/` in the next milestone. Set executable
-permissions, realistic timeouts, and deterministic rewards; leave no scaffold
-placeholders. Introduce the Oracle as the prepared reference solution.
+Verify that the expected directory was created. Build its `environment/` first,
+from the environment kit's generated data plus the case's own records. Then
+complete the generated `instruction.md`, `task.toml`, `tests/test.sh`, and
+`solution/solve.sh` using the installed schema, deriving expected values with an
+independent reference query over that data. Set executable permissions,
+realistic timeouts, and deterministic rewards; leave no scaffold placeholders.
+Introduce the Oracle as the prepared reference solution.
 
 Before testing, document each case's expected NOP and Oracle acceptance criteria
 in its README. For a binary completion metric, NOP should score 0 and Oracle 1.
@@ -34,13 +36,14 @@ explicit incorrect-behavior control when inaction itself is correct.
 
 ## 6. Prepare the execution environment
 
-Populate the generated `environment/` from the environment kit that
-[`eval-author-environment`](../../eval-author-environment/SKILL.md) built and
-proved, following its [Harbor environments](../../eval-author-environment/references/harbor.md)
-reference, and add the records each selected case needs. Check documented access
-requirements, credential variable names, and reset behavior. Keep solutions and
-verifier-only data outside the agent's initial environment. For Docker-backed
-execution, check `docker info` first.
+Finish and prove the environment kit that
+[`eval-author-environment`](../../eval-author-environment/SKILL.md) started at
+stage 5, following its [Harbor environments](../../eval-author-environment/references/harbor.md)
+reference: export the end state, set the network policy, and run its smoke task.
+Confirm each task's `environment/` builds on the proven kit. Check documented
+access requirements, credential variable names, and reset behavior. Keep
+solutions and verifier-only data outside the agent's initial environment. For
+Docker-backed execution, check `docker info` first.
 Verify the selected backend and required application access; record unavailable
 access and the cases it blocks.
 
@@ -65,7 +68,8 @@ agent connection.
 
 Use Harbor's installed validators to check task validity. Confirm the current
 environment kit's smoke proof passed first; a smoke failure is an environment
-defect to fix, not a task or agent result. Exercise the environment and grading
+defect to fix, not a task or agent result, and NOP and Oracle never stand in for
+that proof. Exercise the environment and grading
 with NOP and Oracle, retaining all jobs under `.eval-author/jobs/` with fresh
 names on reruns:
 

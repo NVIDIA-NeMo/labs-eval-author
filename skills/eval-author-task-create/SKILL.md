@@ -246,8 +246,9 @@ for native scaffolding, verifier controls, and real-agent runs. Keep Steps 1–3
 selected gap and instruction, then return to the shared coverage verification
 steps. Do not apply Harbor file layouts or Oracle CLI flags to Gym. For either
 provider, build the task's environment with
-[`eval-author-environment`](../eval-author-environment/SKILL.md), reusing the
-agent's existing environment kit when one exists.
+[`eval-author-environment`](../eval-author-environment/SKILL.md) before writing
+its verifier, reusing the agent's existing environment kit when one exists, and
+derive expected values with an independent reference query over the kit's data.
 
 For **Harbor**, use the following native scaffold:
 
@@ -290,7 +291,8 @@ keywords.
 
 Confirm the environment kit's proof passed first; a proof failure is an
 environment defect to fix, not a task result, and that proof stays in the kit's
-plan rather than among the task's receipts.
+plan rather than among the task's receipts. The task's own controls never count
+as environment proof.
 
 Apply [Task validation and execution evidence](../eval-author/references/task-validation.md).
 Prepare the result contract and revision manifest before execution. Wrap each

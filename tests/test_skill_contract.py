@@ -863,6 +863,33 @@ def test_authoring_flows_hand_environment_work_to_the_environment_flow() -> None
         assert f"../{link}" in text, f"first-eval's {reference} must build environments from the environment kit"
 
 
+def test_environment_flow_states_its_required_outputs_first() -> None:
+    """Authors who read only the top of the skill must still learn what the kit has to contain.
+
+    Bench sessions read the skill once, sometimes only its first lines, and then
+    hand-typed a few fixture rows while treating task NOP and Oracle runs as
+    environment proof.
+    """
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    assert re.findall(r"^## (.+)$", body, re.MULTILINE)[0] == "Required outputs"
+    section = body.split("## Required outputs", 1)[1].split("\n## ", 1)[0]
+    for required in ("environment-plan.md", "`data/`", "`smoke/`", "independent reference query", "never prove"):
+        assert required in section, f"Required outputs no longer states {required!r}"
+
+
+def test_first_eval_builds_environment_data_before_tests() -> None:
+    """Expected values come from the kit's data, so the data exists before any verifier."""
+    _, body = _frontmatter_and_body(_FIRST_EVAL_DIR)
+    stage5 = body.split("## 5. Prepare cases and grading", 1)[1].split("\n## ", 1)[0]
+    stage6 = body.split("## 6. Prepare the execution environment", 1)[1].split("\n## ", 1)[0]
+    assert "Build the data before the tests" in stage5
+    assert "../eval-author-environment/SKILL.md" in stage5
+    assert "environment-plan.md" in stage6
+    assert "never count as environment proof" in stage6
+    harbor = (_FIRST_EVAL_DIR / "references" / "harbor-first-eval.md").read_text(encoding="utf-8")
+    assert "in the next milestone" not in harbor, "Harbor first-eval must not defer environment/ until after the tests"
+
+
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)
 def test_each_sub_flow_defers_to_the_core(skill_dir: Path) -> None:
     """A sub-flow points at the core rather than restating the standard itself.
