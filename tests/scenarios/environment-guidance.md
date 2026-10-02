@@ -39,7 +39,7 @@ task. That data exists before any verifier is written, and expected values come
 from an independent reference query over it rather than hand arithmetic. End
 state reaches a separate, offline verifier through a collect hook and a service
 artifact. The smoke task runs NOP once and its reference solution twice before
-any task control, and the plan records each job; task NOP and Oracle runs are
+any task's tests are written, and the plan records each job; task NOP and Oracle runs are
 not recorded as environment proof. Agent tool discovery stays unproven because
 no agent run was authorized.
 

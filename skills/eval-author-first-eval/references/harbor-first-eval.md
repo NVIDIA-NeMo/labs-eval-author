@@ -21,7 +21,8 @@ harbor task init <org>/<slug> --tasks-dir .eval-author/task-drafts \
 ```
 
 Verify that the expected directory was created. Build its `environment/` first,
-from the environment kit's generated data plus the case's own records. Then
+on the environment kit proven at stage 5: its generated data, which passed the
+kit's smoke task, plus the case's own records. Then
 complete the generated `instruction.md`, `task.toml`, `tests/test.sh`, and
 `solution/solve.sh` using the installed schema, deriving expected values with an
 independent reference query over that data. Set executable permissions,
@@ -36,11 +37,10 @@ explicit incorrect-behavior control when inaction itself is correct.
 
 ## 6. Prepare the execution environment
 
-Finish and prove the environment kit that
-[`eval-author-environment`](../../eval-author-environment/SKILL.md) started at
-stage 5, following its [Harbor environments](../../eval-author-environment/references/harbor.md)
-reference: export the end state, set the network policy, and run its smoke task.
-Confirm each task's `environment/` builds on the proven kit. Check documented
+Confirm each task's `environment/` builds on the kit that
+[`eval-author-environment`](../../eval-author-environment/SKILL.md) built and
+proved at stage 5, following its [Harbor environments](../../eval-author-environment/references/harbor.md)
+reference, and rerun its smoke task if the kit changed after it passed. Check documented
 access requirements, credential variable names, and reset behavior. Keep
 solutions and verifier-only data outside the agent's initial environment. For
 Docker-backed execution, check `docker info` first.

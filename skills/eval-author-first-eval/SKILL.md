@@ -114,8 +114,8 @@ process, use [Execution dependencies](../eval-author/references/execution-depend
 to establish the selected cases' runtime and result-collection requirements.
 Record the agent's provider fit and dependency inventory using Steps 1 and 2 of
 [the environment sub-flow](../eval-author-environment/SKILL.md); files and
-embedded databases the agent works on count as dependencies. Its starting data
-is built at stage 5, before any test. Raise a poor fit for the provider selected
+embedded databases the agent works on count as dependencies. The kit is built
+and proven at stage 5, before any test. Raise a poor fit for the provider selected
 at stage 2 in the scope checkpoint; if the user changes provider, verify that
 runtime as stage 2 describes before preparing cases.
 
@@ -164,12 +164,14 @@ Keep the shared scope, stage check-ins, explanations, suite README, and result
 reconciliation here. A combined setup uses the relevant parts of both references;
 reading a reference does not change the selected provider.
 
-Build the data before the tests. Before writing any case's verifier, complete
-Steps 3 and 4 of [`eval-author-environment`](../eval-author-environment/SKILL.md):
-choose how each dependency is provided and generate the kit's seeded starting
-data. Write each case's own records on top of that data, and derive its expected
-values with an independent reference query over the generated data rather than
-by hand. Hand-typed fixtures of a few rows are not starting data.
+Build and prove the kit before the tests. Before writing any case's verifier,
+complete Steps 3 to 7 of [`eval-author-environment`](../eval-author-environment/SKILL.md):
+choose how each dependency is provided, generate the kit's seeded starting data,
+make its end state readable, set its isolation, and run its smoke task, recording
+each job in `environment-plan.md`. Write each case's own records on top of that
+data, and derive its expected values with an independent reference query over
+the generated data rather than by hand. Hand-typed fixtures of a few rows are
+not starting data.
 
 Create the agreed examples and map their stable IDs to native tasks or dataset
 rows. Keep source provenance and expected-label rationale in the plan or
@@ -198,12 +200,11 @@ a separate tutorial or exhaustive methodology exercise.
 
 ## 6. Prepare the execution environment
 
-Finish the environment kit with Steps 5 to 8 of
-[`eval-author-environment`](../eval-author-environment/SKILL.md): make the end
-state readable by the verifier, isolate the run, prove the environment with its
-smoke task, and hand the kit off. Use the selected provider reference to confirm
-each task's environment builds on that kit. Keep solutions and verifier-only
-data outside the agent's initial environment. This milestone is complete only
+Hand off the kit proven at stage 5 with Step 8 of
+[`eval-author-environment`](../eval-author-environment/SKILL.md), and use the
+selected provider reference to confirm each task's environment builds on that
+kit; rerun the smoke task if the kit changed after it passed. Keep solutions and
+verifier-only data outside the agent's initial environment. This milestone is complete only
 when the kit's `environment-plan.md`, seeded data generator, and smoke results
 exist under `.eval-author/environments/<agent-slug>/`; the tasks' own controls
 never count as environment proof, and without the smoke task's own jobs the

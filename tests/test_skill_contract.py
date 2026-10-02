@@ -872,7 +872,7 @@ def test_environment_flow_states_its_required_outputs_first() -> None:
     """
     _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
     assert re.findall(r"^## (.+)$", body, re.MULTILINE)[0] == "Required outputs"
-    section = body.split("## Required outputs", 1)[1].split("\n## ", 1)[0]
+    section = " ".join(body.split("## Required outputs", 1)[1].split("\n## ", 1)[0].split())
     for required in ("environment-plan.md", "`data/`", "`smoke/`", "independent reference query", "never prove"):
         assert required in section, f"Required outputs no longer states {required!r}"
 
@@ -900,12 +900,13 @@ def test_environment_kit_records_digests_for_preservation_checks() -> None:
     assert "per-table content digests" in body
 
 
-def test_first_eval_builds_environment_data_before_tests() -> None:
-    """Expected values come from the kit's data, so the data exists before any verifier."""
+def test_first_eval_builds_and_proves_the_kit_before_tests() -> None:
+    """Bench sessions did the stage 5 work but skipped stage 6, so the smoke proof moved into stage 5."""
     _, body = _frontmatter_and_body(_FIRST_EVAL_DIR)
     stage5 = body.split("## 5. Prepare cases and grading", 1)[1].split("\n## ", 1)[0]
     stage6 = body.split("## 6. Prepare the execution environment", 1)[1].split("\n## ", 1)[0]
-    assert "Build the data before the tests" in stage5
+    assert "Build and prove the kit before the tests" in stage5
+    assert "smoke task" in stage5
     assert "../eval-author-environment/SKILL.md" in stage5
     assert "environment-plan.md" in stage6
     assert "never count as environment proof" in stage6

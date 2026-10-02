@@ -53,8 +53,9 @@ under `.eval-author/environments/<agent-slug>/` holds:
 Start the plan from its template at Step 1 and keep it current; it is a working
 record, not a summary written at the end.
 
-Build the data before the tests: generate the starting data first, then derive
-every expected value with an independent reference query over that data. A few
+Build and prove the kit before the tests: generate the starting data and pass the
+smoke task first, then derive every expected value with an independent reference
+query over that data. A few
 hand-typed fixture rows with hand-computed answers are not starting data, and a
 task's own NOP, Oracle, or verifier controls never prove the environment.
 
@@ -63,10 +64,10 @@ task's own NOP, Oracle, or verifier controls never prove the environment.
 Read `eval-author` for the shared evidence standard and boundaries. Start this
 sub-flow as soon as an authoring flow has agreed its cases and before it writes
 their tests: first-eval at **Prepare cases and grading**, or task-create before
-it writes a draft's verifier. Steps 1 to 4 build the data the tests are written
-against; Steps 5 to 8 finish and prove the kit before task controls run. It
-builds the world those tasks run in and proves that world works before any task
-depends on it.
+it writes a draft's verifier. Steps 1 and 2 happen at scope; Steps 3 to 7 build
+and prove the kit before the calling flow writes any test; Step 8 hands it off.
+It builds the world those tasks run in and proves that world works before any
+task depends on it.
 
 A task is only as informative as its environment. When the starting data holds
 just the records a case needs, the agent succeeds without searching, choosing,
@@ -246,7 +247,8 @@ reads this export as its trusted observation.
 
 ## Step 7: Prove the environment
 
-Prove the environment once, before task controls interpret anything:
+Prove the environment once, right after building it and before any task's tests
+are written:
 
 - **Harbor:** run the smoke task in `smoke/`. Its reference solution performs
   one read and one write per dependency through the agent's own client code,
