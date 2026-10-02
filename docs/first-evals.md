@@ -78,10 +78,11 @@ known-correct and negative/no-action controls through `gym env validate` and
 A realistic incorrect result must also be rejected. Where relevant, Eval Author
 checks a different valid solution and the actual state changes requested by the
 task. Instructions read like your own request, without the root cause, the fix,
-or the expected results, and data a task must leave unchanged is checked by
-content rather than by row counts. It retains the task revision and run evidence, so editing a case requires
-fresh validation. Missing evidence and setup errors stay separate from behavior
-failures.
+or the expected results; data a task must leave unchanged is checked by content
+rather than by row counts; and when a task requires an action, doing nothing
+earns no credit. It retains the task revision and run evidence, so editing a
+case requires fresh validation. Missing evidence and setup errors stay separate
+from behavior failures.
 
 These checks test the cases themselves. The agent's performance is measured by
 running your actual agent with its configured model and credentials. Eval Author

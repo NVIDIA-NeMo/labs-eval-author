@@ -37,6 +37,9 @@ must reject. Exercise the supported interface and observe the actual result or
 side effect; a tool name, success message, or agent-written log is insufficient.
 Keep graded metrics and correct inaction when the task calls for them. Do not
 require every no-action check to fail or force all rewards into binary form.
+When a case requires an action, though, doing nothing must earn no completion
+credit: if the reward combines several checks, gate it on the requested outcome
+so checks the starting state already passes cannot add up to partial credit.
 
 Declare a small set of controls appropriate to the task:
 

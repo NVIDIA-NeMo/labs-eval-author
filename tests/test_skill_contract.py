@@ -805,6 +805,7 @@ def test_task_validation_covers_instructions_preservation_and_names() -> None:
         "Check preserved data by content",
         "a row count still matches",
         "rename it",
+        "doing nothing must earn no completion credit",
     ):
         assert required in review, f"Task validation no longer states {required!r}"
 
