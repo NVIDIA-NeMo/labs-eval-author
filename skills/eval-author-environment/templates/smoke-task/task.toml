@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version = "1.3"
+artifacts = [
+  # FILL: one export per dependency, named as in tests/test.sh. Add service = "<compose service>"
+  # when a sidecar holds the state.
+  { source = "/tmp/export/<dependency>.txt" },
+]
+
+[task]
+# FILL: <org>/<agent-slug>-environment-smoke
+name = "org/agent-slug-environment-smoke"
+description = "Environment smoke check, not an agent evaluation"
+keywords = ["environment", "smoke"]
+[[task.authors]]
+# FILL: the actual author
+name = "<actual author>"
+
+[metadata]
+
+[verifier]
+timeout_sec = 120.0
+environment_mode = "separate"
+network_mode = "no-network"
+
+# FILL: one hook per dependency, in the compose service that holds its state: main or a sidecar.
+# The command prints that state as text, read from the store itself. Hooks run after the agent
+# phase in every trial, so NOP exports the untouched seed the same way.
+[[verifier.collect]]
+service = "main"
+command = "mkdir -p /tmp/export && <print the dependency's state> > /tmp/export/<dependency>.txt"
+timeout_sec = 60.0
+
+[verifier.env]
+
+[verifier.environment]
+network_mode = "no-network"
+
+[agent]
+timeout_sec = 300.0
+
+[environment]
+network_mode = "public"
+build_timeout_sec = 600.0
+os = "linux"
+mcp_servers = []
+
+[environment.env]
+# FILL: the settings that point the agent's clients at the kit's services, as in the kit's tasks.
+
+[solution.env]
