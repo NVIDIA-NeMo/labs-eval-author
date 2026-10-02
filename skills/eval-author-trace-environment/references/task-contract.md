@@ -9,8 +9,8 @@
 The Harbor task lives under `<task-dir>/task/` and contains:
 
 - `task.toml` with realistic timeouts and resources;
-- `instruction.md` matching `candidate.json` without leaking tool names or test
-  logic;
+- `instruction.md` matching `candidate.json`, including required public tool
+  interfaces while keeping private verifier logic out of the instruction;
 - `environment/` containing prerequisites but never the solution;
 - `tests/test.sh` grading only the observable outcome, following
   `references/check-grammar.md`;
@@ -62,3 +62,6 @@ rather than claiming it is ready. Do not copy private trace payloads into the
 task: include only the minimal files needed to reproduce the starting state,
 pinning external source to an exact public commit when truly required and
 otherwise preferring a small local fixture.
+Apply [task fidelity review](task-fidelity.md) to ensure the fixture contains
+the actual artifacts and setup needed for the requested behavior, and that
+checks accept valid implementations beyond the reference solution.

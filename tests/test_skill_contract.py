@@ -17,7 +17,7 @@ These tests are that enforcement:
 - The bundled scripts depend on Harbor and nothing else. Harbor is acceptable
   because a repository holding Harbor evaluations has Harbor by construction; a
   NeMo import would not be, and that is the boundary these tests defend.
-- ``_ladder.py`` stays out of module scope in ``discover.py``, so a repository
+- ``providers/harbor/_judge.py`` stays out of module scope in ``discover.py``, so a repository
   without Harbor gets an inventory instead of an ImportError.
 - No bundled directory is named after a provider package. ``scripts/harbor/``
   would be importable as ``harbor``, which makes ``find_spec`` succeed on a
@@ -42,6 +42,7 @@ import importlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import types
@@ -64,7 +65,10 @@ _INSPECT_DIR = _SKILLS_DIR / "eval-author-inspect-trace"
 _MLFLOW_TO_ATIF_DIR = _SKILLS_DIR / "mlflow-to-atif"
 _GYM_TO_ATIF_DIR = _SKILLS_DIR / "gym-to-atif"
 _TRACE_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-trace-environment"
+_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-environment"
+_ETHOS_DIR = _SKILLS_DIR / "ethos"
 _SKILL_DIRS = (
+    _ETHOS_DIR,
     _CORE_DIR,
     _DISCOVER_DIR,
     _AUDIT_DIR,
@@ -74,6 +78,7 @@ _SKILL_DIRS = (
     _MLFLOW_TO_ATIF_DIR,
     _GYM_TO_ATIF_DIR,
     _TRACE_ENVIRONMENT_DIR,
+    _ENVIRONMENT_DIR,
 )
 _SUB_FLOW_DIRS = (
     _DISCOVER_DIR,
@@ -82,14 +87,17 @@ _SUB_FLOW_DIRS = (
     _FIRST_EVAL_DIR,
     _INSPECT_DIR,
     _TRACE_ENVIRONMENT_DIR,
+    _ENVIRONMENT_DIR,
 )
 _DISCOVER_SCRIPTS_DIR = _DISCOVER_DIR / "scripts"
+_CORE_SCRIPTS_DIR = _CORE_DIR / "scripts"
 _AUDIT_SPEC_DIR = _AUDIT_DIR / "scripts" / "audit_spec"
 _TASK_CREATE_SCRIPTS_DIR = _TASK_CREATE_DIR / "scripts"
 _MLFLOW_TO_ATIF_SCRIPTS_DIR = _MLFLOW_TO_ATIF_DIR / "scripts"
 _GYM_TO_ATIF_SCRIPTS_DIR = _GYM_TO_ATIF_DIR / "scripts"
 _TRACE_ENVIRONMENT_SCRIPTS_DIR = _TRACE_ENVIRONMENT_DIR / "scripts"
 _SCRIPT_DIRS = (
+    _CORE_SCRIPTS_DIR,
     _DISCOVER_SCRIPTS_DIR,
     _AUDIT_SPEC_DIR,
     _TASK_CREATE_SCRIPTS_DIR,
@@ -99,7 +107,7 @@ _SCRIPT_DIRS = (
 )
 _DISCOVER = _DISCOVER_SCRIPTS_DIR / "discover.py"
 _DISCOVER_RENDER_REPORT = _DISCOVER_SCRIPTS_DIR / "render_report.py"
-_LADDER = _DISCOVER_SCRIPTS_DIR / "providers" / "harbor" / "_ladder.py"
+_HARBOR_JUDGE = _DISCOVER_SCRIPTS_DIR / "providers" / "harbor" / "_judge.py"
 _AUDIT_VALIDATE = _AUDIT_SPEC_DIR / "validate.py"
 _AUDIT_GENERATE = _AUDIT_SPEC_DIR / "generate.py"
 _AUDIT_MEASURE = _AUDIT_SPEC_DIR / "measure.py"
@@ -208,15 +216,29 @@ def _imported_roots(path: Path) -> set[str]:
     return roots
 
 
-def _run_discover(repo: Path, *args: str, with_harbor: bool = True) -> tuple[int, dict]:
+_FAKE_GYM = '#!/bin/sh\necho "NeMo Gym v0.6.0"\n'
+
+
+def _run_discover(
+    repo: Path, *args: str, with_harbor: bool = True, gym_stub: Path | None = None, gym_script: str = _FAKE_GYM
+) -> tuple[int, dict]:
     """Run discover.py as the skill documents it, and parse its JSON.
 
     ``with_harbor=False`` passes ``-S``, which drops site-packages from the path
     so Harbor and PyYAML are both unimportable. That reproduces a customer
     repository with no Harbor install without needing a second interpreter.
+    ``gym_stub`` puts a directory holding a fake ``gym`` command on ``PATH``, which
+    answers ``--version`` like NeMo Gym 0.6.0, so the probe sees Gym installed.
+    ``gym_script`` replaces that command, to fake Gym's Judge and Solve as well.
     """
     command = [sys.executable, *([] if with_harbor else ["-S"]), str(_DISCOVER), "--repo", str(repo), *args]
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    env = None
+    if gym_stub is not None:
+        gym = gym_stub / "gym"
+        gym.write_text(gym_script, encoding="utf-8")
+        gym.chmod(0o755)
+        env = {**os.environ, "PATH": f"{gym_stub}{os.pathsep}{os.environ['PATH']}"}
+    result = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
     assert result.stdout, f"discover.py printed nothing; stderr:\n{result.stderr}"
     return result.returncode, json.loads(result.stdout)
 
@@ -693,6 +715,7 @@ def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
     task_create_tools = _allowed_tools(_frontmatter_and_body(_TASK_CREATE_DIR)[0])
     inspect_tools = _allowed_tools(_frontmatter_and_body(_INSPECT_DIR)[0])
     trace_environment_tools = _allowed_tools(_frontmatter_and_body(_TRACE_ENVIRONMENT_DIR)[0])
+    environment_tools = _allowed_tools(_frontmatter_and_body(_ENVIRONMENT_DIR)[0])
 
     assert "Write" in core_tools, "the core must be able to save Ethos before selecting an authoring flow"
     assert "Bash" not in core_tools, "the core delegates executable work to a sub-flow"
@@ -710,6 +733,9 @@ def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
     )
     assert {"Bash", "Write"} <= trace_environment_tools, (
         f"{_TRACE_ENVIRONMENT_DIR.name} prepares and verifies task artifacts; it has {sorted(trace_environment_tools)}"
+    )
+    assert {"Bash", "Write"} <= environment_tools, (
+        f"{_ENVIRONMENT_DIR.name} builds and proves environment kits; it has {sorted(environment_tools)}"
     )
 
 
@@ -777,6 +803,128 @@ def test_inspect_flow_resolves_the_cli_without_changing_the_environment() -> Non
     assert "Use the resolved invocation for every command" in body
 
 
+def test_environment_flow_is_reached_only_through_authoring_flows() -> None:
+    """The environment sub-flow serves authoring flows and must not compete with trace-environment.
+
+    Both skills talk about building environments. If the environment flow were
+    user-invocable or reused trace-environment's phrases, a request to turn a
+    trace into a task could start the wrong workflow.
+    """
+    frontmatter, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    trace_frontmatter, _ = _frontmatter_and_body(_TRACE_ENVIRONMENT_DIR)
+    core_frontmatter, _ = _frontmatter_and_body(_CORE_DIR)
+
+    assert frontmatter["user-invocable"] is False
+    assert "Reached through eval-author" in frontmatter["description"]
+    assert _TRACE_ENVIRONMENT_DIR.name in _not_for_names(frontmatter)
+    assert _ENVIRONMENT_DIR.name in _not_for_names(trace_frontmatter)
+    assert _ENVIRONMENT_DIR.name in _not_for_names(core_frontmatter)
+    for phrase in (*trace_frontmatter["triggers"], *core_frontmatter["triggers"]):
+        assert phrase not in frontmatter["triggers"]
+        assert phrase not in frontmatter["description"]
+    assert "never open `.env` files" in body
+
+
+def test_every_environment_path_the_skill_names_exists() -> None:
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    for relative in (
+        "references/dependencies.md",
+        "references/starting-data.md",
+        "references/harbor.md",
+        "references/gym.md",
+        "templates/environment-plan.md",
+    ):
+        assert relative in body, f"SKILL.md no longer documents {relative}"
+        assert (_ENVIRONMENT_DIR / relative).exists(), f"SKILL.md names {relative}, which is missing on disk"
+
+
+def test_environment_flow_relative_links_resolve() -> None:
+    """Every relative link in the environment skill reaches a file that ships with the skills."""
+    documents = [
+        _ENVIRONMENT_DIR / "SKILL.md",
+        *sorted((_ENVIRONMENT_DIR / "references").glob("*.md")),
+        *sorted((_ENVIRONMENT_DIR / "templates").glob("*.md")),
+    ]
+    for document in documents:
+        for target in re.findall(r"\]\(([^)\s]+)\)", document.read_text(encoding="utf-8")):
+            if target.startswith(("http://", "https://", "#")):
+                continue
+            path = (document.parent / target.split("#", 1)[0]).resolve()
+            assert path.is_file(), f"{document.relative_to(_SKILLS_DIR)} links to missing {target}"
+            assert path.is_relative_to(_SKILLS_DIR), f"{document.name} links outside the installed skills: {target}"
+
+
+def test_authoring_flows_hand_environment_work_to_the_environment_flow() -> None:
+    """First-eval, its provider references, and task-create delegate environment construction."""
+    link = "../eval-author-environment/SKILL.md"
+    for skill_dir in (_FIRST_EVAL_DIR, _TASK_CREATE_DIR):
+        _, body = _frontmatter_and_body(skill_dir)
+        assert link in body, f"{skill_dir.name} must hand environment work to {_ENVIRONMENT_DIR.name}"
+    for reference in ("harbor-first-eval.md", "gym-first-eval.md"):
+        text = (_FIRST_EVAL_DIR / "references" / reference).read_text(encoding="utf-8")
+        assert f"../{link}" in text, f"first-eval's {reference} must build environments from the environment kit"
+
+
+def test_environment_flow_states_its_required_outputs_first() -> None:
+    """Authors who read only the top of the skill must still learn what the kit has to contain.
+
+    Bench sessions read the skill once, sometimes only its first lines, and then
+    hand-typed a few fixture rows while treating task NOP and Oracle runs as
+    environment proof.
+    """
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    assert re.findall(r"^## (.+)$", body, re.MULTILINE)[0] == "Required outputs"
+    section = " ".join(body.split("## Required outputs", 1)[1].split("\n## ", 1)[0].split())
+    for required in ("environment-plan.md", "`data/`", "`smoke/`", "independent reference query", "never prove"):
+        assert required in section, f"Required outputs no longer states {required!r}"
+
+
+def test_environment_plan_claims_proven_only_with_smoke_jobs() -> None:
+    """A pilot session wrote the plan last and listed task NOP and Oracle runs as its smoke proof."""
+    template = (_ENVIRONMENT_DIR / "templates" / "environment-plan.md").read_text(encoding="utf-8")
+    status = next(line for line in template.splitlines() if line.startswith("- **Status:**"))
+    assert "`proven` only when" in status
+    proof = template.split("## Proof", 1)[1].split("\n## ", 1)[0]
+    assert "never fill these rows" in proof
+    assert "`unproven`" in proof
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    step7 = body.split("## Step 7: Prove the environment", 1)[1].split("\n## ", 1)[0]
+    assert "without them the outcome is `unproven`" in step7
+
+
+def test_environment_kit_records_digests_for_preservation_checks() -> None:
+    """Bench tasks checked preserved tables by row count, which still passes after values are edited."""
+    starting_data = (_ENVIRONMENT_DIR / "references" / "starting-data.md").read_text(encoding="utf-8")
+    section = starting_data.split("## Digests for preservation checks", 1)[1].split("\n## ", 1)[0]
+    for required in ("data/digests.json", "Row counts are no substitute", "verifier-only"):
+        assert required in section, f"Digest guidance no longer states {required!r}"
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    assert "per-table content digests" in body
+
+
+def test_first_eval_builds_and_proves_the_kit_before_tests() -> None:
+    """Bench sessions did the stage 5 work but skipped stage 6, so the smoke proof moved into stage 5."""
+    _, body = _frontmatter_and_body(_FIRST_EVAL_DIR)
+    stage5 = body.split("## 5. Prepare cases and grading", 1)[1].split("\n## ", 1)[0]
+    stage6 = body.split("## 6. Prepare the execution environment", 1)[1].split("\n## ", 1)[0]
+    assert "Build and prove the kit before the tests" in stage5
+    assert "smoke task" in stage5
+    assert "../eval-author-environment/SKILL.md" in stage5
+    assert "environment-plan.md" in stage6
+    assert "never count as environment proof" in stage6
+    harbor = (_FIRST_EVAL_DIR / "references" / "harbor-first-eval.md").read_text(encoding="utf-8")
+    assert "in the next milestone" not in harbor, "Harbor first-eval must not defer environment/ until after the tests"
+
+
+def test_harbor_tasks_build_without_the_session_kit_image() -> None:
+    """Bench tasks started FROM a kit tag that existed only in the authoring session's Docker engine."""
+    environment = " ".join((_ENVIRONMENT_DIR / "references" / "harbor.md").read_text(encoding="utf-8").split())
+    assert "Never start a task `FROM` a locally built kit tag" in environment
+    harbor = (_FIRST_EVAL_DIR / "references" / "harbor-first-eval.md").read_text(encoding="utf-8")
+    before_controls = harbor.split("## 8. Validate the evals", 1)[1].split("```", 1)[0]
+    assert "docker image rm" in before_controls, "remove the local kit image before the first control"
+
+
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)
 def test_each_sub_flow_defers_to_the_core(skill_dir: Path) -> None:
     """A sub-flow points at the core rather than restating the standard itself.
@@ -809,8 +957,13 @@ def test_every_bundled_path_the_skill_names_exists() -> None:
         "references/harbor-setup.md",
         "scripts/_checks.py",
         "scripts/providers/harbor/_probe.py",
-        "scripts/providers/harbor/_inventory.py",
-        "scripts/providers/harbor/_ladder.py",
+        "scripts/providers/harbor/_explore.py",
+        "scripts/providers/harbor/_judge.py",
+        "scripts/providers/harbor/_solve.py",
+        "scripts/providers/gym/_probe.py",
+        "scripts/providers/gym/_explore.py",
+        "scripts/providers/gym/_judge.py",
+        "scripts/providers/gym/_solve.py",
     ):
         assert relative in body, f"SKILL.md no longer documents {relative}"
         assert (_DISCOVER_DIR / relative).exists(), f"SKILL.md names {relative}, which is missing on disk"
@@ -910,7 +1063,7 @@ def _discovery_report_fixture(
     checks: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "repo_root": "/repo",
         "provider": "harbor",
         "proven": proven,
@@ -921,8 +1074,14 @@ def _discovery_report_fixture(
             "harbor_version": "0.21.0" if proven else None,
             "harbor_cli": "/repo/.venv/bin/harbor",
         },
+        "phases": {
+            "probe": "valid",
+            "explore": "valid",
+            "judge": "valid" if runnable else "invalid",
+            "solve": "skipped",
+        },
         "configs": configs,
-        "dataset_paths": ["dataset"],
+        "datasets": [],
         "task_count": 1,
         "ethos_path": None,
         "fingerprint": "sha256:abc123",
@@ -1028,7 +1187,7 @@ def test_discover_report_renderer_handles_single_ready_config(monkeypatch: pytes
     assert "| `harbor-job.yaml` | Ready |" in markdown
     assert "Run the evals with:" in markdown
     assert "```bash\ncd /repo && harbor job start -c harbor-job.yaml\n```" in markdown
-    assert "No required failures." in markdown
+    assert "## Diagnostic Details" not in markdown, "a report with no failures omits the empty section"
 
 
 def test_discover_report_renderer_handles_multiple_ready_configs(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1055,10 +1214,11 @@ def test_discover_report_renderer_handles_multiple_ready_configs(monkeypatch: py
 def test_discover_report_renderer_empty_repo(monkeypatch: pytest.MonkeyPatch, proven: bool) -> None:
     renderer = _import_discover_render_report(monkeypatch)
     report = _discovery_report_fixture(proven=proven, runnable=False, configs=[], run_command=None)
-    report.update(task_count=0, dataset_paths=[])
+    report.update(task_count=0, datasets=[])
     summary = renderer.render_summary(report)
-    assert summary.startswith("Eval Author uses [Harbor](https://www.harborframework.com/docs) to run evals.")
-    assert "It doesn't look like you have any Harbor evals in the locations I checked" in summary
+    opening = "You have Harbor installed, but it doesn't look" if proven else "It doesn't look"
+    assert summary.startswith(opening + " like you have any evals in the locations I checked.")
+    assert "Eval Author uses" not in summary, "an installed runtime needs no introduction"
     assert "other kinds of evaluations" in summary
     assert "Do you already have evals in any form" in summary
     assert summary.endswith("Can you point me to them?")
@@ -1066,14 +1226,31 @@ def test_discover_report_renderer_empty_repo(monkeypatch: pytest.MonkeyPatch, pr
     assert "Python" not in summary
     markdown = renderer.render_report(report)
     assert summary in markdown
+    assert "## Configs" not in markdown and "## Datasets" not in markdown, "nothing found means no empty tables"
     evidence = markdown.split("```json\n", 1)[1].split("\n```", 1)[0]
     assert json.loads(evidence) == report
 
 
 def test_discover_report_renderer_tasks_without_config(monkeypatch: pytest.MonkeyPatch) -> None:
     renderer = _import_discover_render_report(monkeypatch)
-    report = _discovery_report_fixture(proven=True, runnable=False, configs=[], run_command=None)
-    assert "task or dataset files, but no run configuration" in renderer.render_summary(report)
+    report = _discovery_report_fixture(proven=True, runnable=True, configs=[], run_command=None)
+    command = "cd /repo && harbor run -p dataset -a <agent>"
+    report["datasets"] = [
+        {
+            "path": "dataset",
+            "task_count": 1,
+            "formats": {"harbor": 1},
+            "theme": {"categories": {"math": 1}, "tags": {}, "keywords": {}},
+            "runnable": True,
+            "run_command": command,
+            "required_env_vars": [],
+            "checks": [],
+        }
+    ]
+    summary = renderer.render_summary(report)
+    assert "Each dataset runs directly by path" in summary
+    assert command in summary
+    assert "| `dataset` | harbor (1) | 1 | Ready | Not run | math |" in renderer.render_report(report)
 
 
 @pytest.mark.parametrize("has_evals", [False, True])
@@ -1088,7 +1265,7 @@ def test_discover_report_renderer_setup_matches_runtime(
         configs=[_config_fixture(path="harbor-job.yaml", runnable=False)] if has_evals else [],
         run_command=None,
     )
-    report.update(task_count=int(has_evals), dataset_paths=[])
+    report.update(task_count=int(has_evals), datasets=[])
     report["runtime"]["harbor_cli"] = "/existing/bin/harbor" if runtime_state == "other_environment" else None
     if runtime_state == "unknown":
         report.pop("runtime")
@@ -1153,8 +1330,7 @@ def test_discover_report_renderer_shared_docker_blocker(
         proven=True, runnable=False, configs=configs, run_command=None, checks=[failure] * (5 - ready_count)
     )
     summary = renderer.render_summary(report)
-    assert summary.count("Check Docker access") == 1
-    assert "Start Docker only if it is confirmed stopped" in summary
+    assert summary.count("Launch Docker if it isn't running, then rerun discovery.") == 1
     assert "Docker is stopped" not in summary
     assert "same environment" in summary
     assert "backend" not in summary
@@ -1713,6 +1889,8 @@ def test_every_audit_spec_path_the_skill_or_reference_readme_names_exists() -> N
     docs = f"{skill_body}\n{readme_body}"
     assert "scripts/audit_spec/README.md" in skill_body
     for relative in (
+        "references/guided-audit.md",
+        "references/coverage-report.md",
         "scripts/audit_spec/README.md",
         "scripts/audit_spec/generate.py",
         "scripts/audit_spec/measure.py",
@@ -1745,6 +1923,7 @@ def test_every_audit_spec_path_the_skill_or_reference_readme_names_exists() -> N
         "examples/schemas/tool_calls.details.json",
         "requirements.txt",
         "templates/audit.md",
+        "templates/audit-coverage-report.md",
     ):
         assert relative in docs, f"audit docs no longer document {relative}"
         assert (_AUDIT_DIR / relative).exists(), f"audit docs name {relative}, which is missing on disk"
@@ -1778,6 +1957,9 @@ def test_local_ethos_handoff_resources_are_self_contained() -> None:
         links = re.findall(r"\[Local Ethos\]\(([^)]+)\)", body)
         assert links, f"{skill_dir.name} has no local Ethos handoff"
         assert all((skill_dir / link).resolve() == reference.resolve() for link in links)
+    skill_links = re.findall(r"\[ethos skill\]\(([^)]+)\)", reference.read_text())
+    assert len(skill_links) == 1
+    assert (reference.parent / skill_links[0]).resolve() == (_ETHOS_DIR / "SKILL.md").resolve()
     links = re.findall(r"\[the local template\]\(([^)]+)\)", reference.read_text())
     assert len(links) == 1
     assert (reference.parent / links[0]).resolve() == template.resolve()
@@ -1787,6 +1969,11 @@ def test_local_ethos_handoff_resources_are_self_contained() -> None:
     assert {"name", "created_timestamp", "author"} <= front.keys()
     headings = re.findall(r"^## (.+)$", body, re.MULTILINE)
     assert len(headings) == len(set(headings)) == 15
+    _, ethos_body = _frontmatter_and_body(_ETHOS_DIR)
+    inline_template = ethos_body.split("```markdown\n", 1)[1].split("\n```", 1)[0]
+    inline_headings = re.findall(r"^## (.+)$", inline_template, re.MULTILINE)
+    assert len(inline_headings) == len(set(inline_headings)) == 15
+    assert set(inline_headings) == set(headings)
 
 
 def test_local_ethos_template_is_compatible_with_existing_parser() -> None:
@@ -2386,7 +2573,7 @@ def test_audit_generate_rejects_outputs_outside_eval_author(tmp_path: Path) -> N
     assert out.read_text(encoding="utf-8") == "customer source must stay intact\n"
 
 
-def test_audit_generate_explains_missing_ethos_with_docs_link(tmp_path: Path) -> None:
+def test_audit_generate_explains_missing_ethos_with_bundled_skill_path(tmp_path: Path) -> None:
     items = tmp_path / "items.yaml"
     _write_audit_items(items, _template_payload()["items"])
     out = tmp_path / ".eval-author" / "audit.md"
@@ -2407,13 +2594,12 @@ def test_audit_generate_explains_missing_ethos_with_docs_link(tmp_path: Path) ->
     assert "before it can generate an audit coverage report" in result.stderr
     assert "ETHOS.md records intended behavior" in result.stderr
     assert "Missing file:" in result.stderr
-    assert "Docs: https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos" in result.stderr
+    assert f"Ethos skill: {_ETHOS_DIR / 'SKILL.md'}" in result.stderr
     assert "Next steps:\n" in result.stderr
     assert "rerun this command with --ethos <path>" in result.stderr
-    assert "https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos" in result.stderr
+    assert "docs.nvidia.com" not in result.stderr
     assert "skills/eval-author/references/local-ethos.md" in result.stderr
     assert "Save ETHOS.md in the repository and review its contents" in result.stderr
-    assert "No platform service or upload is required" in result.stderr
     assert "nemo-explore" not in result.stderr
     assert "nemo-ethos" not in result.stderr
     assert "Traceback" not in result.stderr
@@ -2421,7 +2607,7 @@ def test_audit_generate_explains_missing_ethos_with_docs_link(tmp_path: Path) ->
 
 
 @pytest.mark.skipif(os.name == "nt", reason="chmod-based unreadable-file check is POSIX-specific")
-def test_audit_generate_explains_unreadable_ethos_with_docs_link(tmp_path: Path) -> None:
+def test_audit_generate_explains_unreadable_ethos_with_bundled_skill_path(tmp_path: Path) -> None:
     ethos = tmp_path / "ETHOS.md"
     ethos.write_text("# Ethos\n", encoding="utf-8")
     items = tmp_path / "items.yaml"
@@ -2446,7 +2632,7 @@ def test_audit_generate_explains_unreadable_ethos_with_docs_link(tmp_path: Path)
     assert result.stderr.startswith("Unreadable Ethos\n\n")
     assert "needs a source of truth for how the agent is supposed to behave" in result.stderr
     assert "Unreadable file:" in result.stderr
-    assert "Docs: https://docs.nvidia.com/nemo-platform/documentation/agents/optimize-agents/ethos" in result.stderr
+    assert f"Ethos skill: {_ETHOS_DIR / 'SKILL.md'}" in result.stderr
     assert "Next steps:\n" in result.stderr
     assert "- Fix read access for the Ethos file, then rerun this command." in result.stderr
     assert "- Or pass a readable Ethos path with --ethos <path>." in result.stderr
@@ -4394,29 +4580,26 @@ def test_no_bundled_directory_is_named_after_a_provider_package() -> None:
         )
 
 
-def test_only_the_ladder_imports_harbor() -> None:
+def test_only_the_harbor_judge_imports_harbor() -> None:
     """Every other discover module must keep working when Harbor is absent."""
-    assert "harbor" in _imported_roots(_LADDER), "the ladder is the Harbor boundary and must import Harbor"
+    assert "harbor" in _imported_roots(_HARBOR_JUDGE), "Harbor's Judge is the Harbor boundary and must import Harbor"
     for path in _bundled_scripts(_DISCOVER_SCRIPTS_DIR):
-        if path == _LADDER:
+        if path == _HARBOR_JUDGE:
             continue
         assert "harbor" not in _imported_roots(path), (
             f"{path.relative_to(_DISCOVER_SCRIPTS_DIR)} imports Harbor; move that call behind the probe"
         )
 
 
-def test_discover_defers_the_ladder_import_to_call_time() -> None:
-    """A module-scope ladder import would break every Harbor-free repository."""
+def test_discover_defers_the_harbor_judge_import_to_call_time() -> None:
+    """A module-scope import of Harbor's Judge would break every Harbor-free repository."""
     tree = ast.parse(_DISCOVER.read_text(encoding="utf-8"), filename=str(_DISCOVER))
-    module_scope: set[str] = set()
+    named: list[str] = []
     for node in tree.body:
-        if isinstance(node, ast.Import):
-            module_scope.update(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            module_scope.update(alias.name for alias in node.names)
-            if node.module:
-                module_scope.add(node.module)
-    named = sorted(name for name in module_scope if "_ladder" in name)
+        if isinstance(node, ast.ImportFrom) and node.module == "providers.harbor._judge":
+            named.append(node.module)
+        elif isinstance(node, ast.ImportFrom) and node.module == "providers.harbor":
+            named.extend(f"providers.harbor.{alias.name}" for alias in node.names if alias.name == "_judge")
     assert not named, f"discover.py imports {named} at module scope; move it inside a function, after the probe"
 
 
@@ -4426,7 +4609,7 @@ def test_discover_proves_a_valid_suite_runnable(suite: Path) -> None:
 
     assert report["proven"] is True, f"Harbor must judge this report; runtime was {report['runtime']}"
     assert report["task_count"] == 1
-    assert report["dataset_paths"] == ["dataset"]
+    assert [dataset["path"] for dataset in report["datasets"]] == ["dataset"]
     assert len(report["configs"]) == 1
 
     for name in ("schema", "resolution", "tasks", "coverage", "credentials", "agent"):
@@ -4440,6 +4623,9 @@ def test_discover_proves_a_valid_suite_runnable(suite: Path) -> None:
     assert code == 0
     assert report["runnable"] is True
     assert report["run_command"] == f"cd {suite} && harbor job start -c harbor-job.yaml"
+    # The fixture task has no solution/solve.sh, so Solve has nothing to run.
+    assert report["phases"] == {"probe": "valid", "explore": "valid", "judge": "valid", "solve": "skipped"}
+    assert report["datasets"][0]["solve"]["status"] == "skipped"
 
 
 @_needs_harbor
@@ -4506,9 +4692,48 @@ def test_discover_reports_a_task_harbor_silently_dropped(suite: Path) -> None:
     assert "task-two" in coverage["message"]
 
 
-def test_discover_marks_every_finding_unproven_without_harbor(suite: Path) -> None:
-    """The promise that keeps an inventory from reading as evidence."""
+@_needs_harbor
+def test_discover_fails_judge_when_gym_manifests_go_unchecked(suite: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Harbor alone cannot pass a repo whose Gym manifests nobody checked."""
+    if shutil.which("gym") or (Path(sys.executable).parent / "gym").is_file():
+        pytest.skip("a gym command is installed here, so the manifest would be checked")
+    manifest = suite / "environments" / "fixture_env" / "manifest.yaml"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(
+        "name: fixture_env\nkind: environment\ndatasets:\n  - jsonl_fpath: data/fixture.jsonl\n", encoding="utf-8"
+    )
+
+    code, report = _run_discover(suite)
+
+    assert code == 1
+    assert report["runnable"] is False
+    assert report["phases"]["judge"] == "invalid"
+    assert report["phases"]["solve"] == "skipped"
+    assert report["gym_manifests"][0]["judge"]["status"] == "blocked"
+    unavailable = _named(report, "gym-unavailable")
+    assert unavailable["status"] == "fail" and unavailable["severity"] == "required"
+    rendered = _import_discover_render_report(monkeypatch).render_report(report)
+    assert "Blocked: NeMo Gym is not installed." in rendered
+    assert "I could not check it: NeMo Gym is not installed." in rendered
+    assert "- [ ] **Judge** (invalid)" in rendered
+
+
+def test_discover_exits_early_without_harbor_or_gym(suite: Path) -> None:
+    """With neither runtime installed there is nothing to explore with."""
     code, report = _run_discover(suite, with_harbor=False)
+
+    assert code == 1
+    assert report["phases"] == {"probe": "invalid", "explore": "skipped", "judge": "skipped", "solve": "skipped"}
+    assert report["configs"] == [] and report["datasets"] == [] and report["task_count"] == 0
+    assert _named(report, "harbor")["hint"]
+    assert _named(report, "gym")["hint"], "a missing Gym must tell the user what to do"
+
+
+def test_discover_marks_every_finding_unproven_without_harbor(
+    suite: Path, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """The promise that keeps an inventory from reading as evidence."""
+    code, report = _run_discover(suite, with_harbor=False, gym_stub=tmp_path_factory.mktemp("gym"))
 
     assert code == 1, "no Harbor means no proof, so discovery cannot report success"
     assert report["proven"] is False
@@ -4521,16 +4746,17 @@ def test_discover_marks_every_finding_unproven_without_harbor(suite: Path) -> No
     assert harbor_check["severity"] == "required"
     assert harbor_check["hint"], "a missing Harbor must tell the user what to do"
 
-    observed = [check for check in report["checks"] if check["name"] != "harbor"]
+    assert report["phases"] == {"probe": "valid", "explore": "valid", "judge": "skipped", "solve": "skipped"}
+    observed = [check for check in report["checks"] if check["name"] not in {"harbor", "gym"}]
     assert observed, "an unproven inventory is still worth reporting"
     assert all(check["proven"] is False for check in observed), (
         f"these findings claim proof without Harbor: {[c['name'] for c in observed if c['proven']]}"
     )
 
 
-def test_discover_finds_configs_without_pyyaml(suite: Path) -> None:
+def test_discover_finds_configs_without_pyyaml(suite: Path, tmp_path_factory: pytest.TempPathFactory) -> None:
     """Without PyYAML the fallback still finds YAML configs, and says it cannot read them."""
-    _, report = _run_discover(suite, with_harbor=False)
+    _, report = _run_discover(suite, with_harbor=False, gym_stub=tmp_path_factory.mktemp("gym"))
 
     assert [config["path"] for config in report["configs"]] == ["harbor-job.yaml"]
     parse = _named(report, "config-parse")
@@ -4584,7 +4810,7 @@ def test_discover_reports_an_unreadable_ethos(suite: Path) -> None:
     ethos.write_text("# doctrine\n", encoding="utf-8")
     ethos.chmod(0o000)
     try:
-        _, report = _run_discover(suite, with_harbor=False)
+        _, report = _run_discover(suite)
     finally:
         ethos.chmod(0o644)
 
@@ -4597,13 +4823,13 @@ def test_discover_reports_an_unreadable_ethos(suite: Path) -> None:
 @_needs_unreadable_files
 def test_discover_keeps_an_unreadable_dataset_file_out_of_the_fingerprint(suite: Path) -> None:
     """One unreadable file must neither abort the fingerprint nor silently join it."""
-    _, baseline = _run_discover(suite, with_harbor=False)
+    _, baseline = _run_discover(suite)
 
     blocked = suite / "dataset" / "task-one" / "blocked.bin"
     blocked.write_bytes(b"payload")
     blocked.chmod(0o000)
     try:
-        _, report = _run_discover(suite, with_harbor=False)
+        _, report = _run_discover(suite)
     finally:
         blocked.chmod(0o644)
 
@@ -4616,3 +4842,213 @@ def test_discover_fails_with_a_hint_when_the_path_is_missing(tmp_path: Path) -> 
     assert code == 1
     assert "error" in report
     assert report["hint"]
+
+
+def _import_other_evals(monkeypatch: pytest.MonkeyPatch) -> Any:
+    """Import the other-evals scan as the discover scripts see it."""
+    monkeypatch.syspath_prepend(str(_DISCOVER_SCRIPTS_DIR))
+    sys.modules.pop("_other_evals", None)
+    return importlib.import_module("_other_evals")
+
+
+def _git_repo(root: Path) -> Path:
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    return root
+
+
+def test_other_evals_needs_an_opentelemetry_import(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A service that only mentions OpenTelemetry is not an eval lead; one that imports it is."""
+    other_evals = _import_other_evals(monkeypatch)
+    (tmp_path / "service").mkdir()
+    (tmp_path / "service" / "app.py").write_text("# Traces go to our opentelemetry collector.\n", encoding="utf-8")
+    (tmp_path / "agent").mkdir()
+    (tmp_path / "agent" / "run.py").write_text("from opentelemetry import trace\n", encoding="utf-8")
+    (tmp_path / "web").mkdir()
+    (tmp_path / "web" / "tracing.ts").write_text('import { trace } from "@opentelemetry/api";\n', encoding="utf-8")
+
+    candidates, scan = other_evals.find(tmp_path, [])
+
+    assert [c["path"] for c in candidates] == ["agent", "web"]
+    assert scan == {"files_scanned": 3, "complete": True}
+
+
+def test_other_evals_leaves_out_a_manifests_resources_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A Gym workload's server and verifier code belong to its manifest, not to another eval."""
+    other_evals = _import_other_evals(monkeypatch)
+    server = tmp_path / "resources_servers" / "fixture_env"
+    server.mkdir(parents=True)
+    (server / "evaluate.py").write_text("print('score')\n", encoding="utf-8")
+
+    assert [c["path"] for c in other_evals.find(tmp_path, [])[0]] == ["resources_servers/fixture_env"]
+    assert other_evals.find(tmp_path, [server])[0] == []
+
+
+def test_other_evals_skips_what_git_ignores(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """In a git repository, .gitignore keeps build output and data dumps out of the scan."""
+    other_evals = _import_other_evals(monkeypatch)
+    repo = _git_repo(tmp_path)
+    (repo / ".gitignore").write_text("build/\n", encoding="utf-8")
+    for folder in ("build", "evals"):
+        (repo / folder).mkdir()
+        (repo / folder / "run_eval.py").write_text("print('score')\n", encoding="utf-8")
+
+    candidates, scan = other_evals.find(repo, [])
+
+    assert [c["path"] for c in candidates] == ["evals"]
+    assert scan["complete"] is True
+
+
+def test_other_evals_says_when_it_stopped_early(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """On a large repository the scan stops at its file budget, and the report says there may be more."""
+    other_evals = _import_other_evals(monkeypatch)
+    monkeypatch.setattr(other_evals, "_MAX_FILES", 2)
+    for name in ("a", "b", "c"):
+        (tmp_path / name).mkdir()
+        (tmp_path / name / "eval.py").write_text("print('score')\n", encoding="utf-8")
+
+    candidates, scan = other_evals.find(tmp_path, [])
+
+    assert [c["path"] for c in candidates] == ["a", "b"]
+    assert scan == {"files_scanned": 2, "complete": False}
+    renderer = _import_discover_render_report(monkeypatch)
+    report = _discovery_report_fixture(proven=True, runnable=True, configs=[], run_command=None)
+    report.update({"other_eval_candidates": candidates, "other_eval_scan": scan})
+    assert "I stopped looking after 2 files, so there may be more." in renderer.render_report(report)
+
+
+def _import_discover(monkeypatch: pytest.MonkeyPatch) -> Any:
+    """Import discover.py and its providers as the skill's scripts see them."""
+    monkeypatch.syspath_prepend(str(_DISCOVER_SCRIPTS_DIR))
+    sys.modules.pop("discover", None)
+    return importlib.import_module("discover")
+
+
+def test_solve_samples_evenly_from_first_to_last(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Solve's picks span the list, include both ends, and are the same on every run."""
+    discover = _import_discover(monkeypatch)
+
+    assert discover._sample(list(range(10)), 4) == [0, 3, 6, 9]
+    assert discover._sample(list(range(10)), 4) == discover._sample(list(range(10)), 4)
+    assert discover._sample(["a", "b"], 4) == ["a", "b"]
+    assert discover._sample(list(range(10)), 1) == [0]
+
+
+def test_explore_groups_sibling_tasks_into_one_dataset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Sibling tasks form a dataset; a folder that also holds other files, or Gym's environments/, does not."""
+    _import_discover(monkeypatch)
+    explore = importlib.import_module("providers.harbor._explore")
+    gym_explore = importlib.import_module("providers.gym._explore")
+    for task in ("math/add", "math/sub", "mixed/task", "environments/one", "environments/two"):
+        _write_task(tmp_path / task)
+    (tmp_path / "mixed" / "notes").mkdir()
+    (tmp_path / "mixed" / "notes" / "README.md").write_text("Not a task.\n", encoding="utf-8")
+
+    scan = explore.scan_repository(tmp_path, never_group=gym_explore.is_environments_root)
+
+    assert sorted(d.path.relative_to(tmp_path).as_posix() for d in scan.datasets) == [
+        "environments/one",
+        "environments/two",
+        "math",
+        "mixed/task",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("output", "available", "reason"),
+    [
+        ("NeMo Gym v0.6.0", True, None),
+        ("NeMo Gym v0.4.0", False, "NeMo Gym 0.4.0 is older than 0.6.0."),
+        ("gym: a workout tracker", False, "NeMo Gym is not installed."),
+    ],
+)
+def test_gym_probe_trusts_only_a_new_enough_nemo_gym(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output: str, available: bool, reason: str | None
+) -> None:
+    """The probe asks `gym --version`, so an old Gym or an unrelated `gym` command is not mistaken for Gym."""
+    _import_discover(monkeypatch)
+    gym_probe = importlib.import_module("providers.gym._probe")
+    gym = tmp_path / "bin" / "gym"
+    gym.parent.mkdir()
+    gym.write_text(f'#!/bin/sh\necho "{output}"\n', encoding="utf-8")
+    gym.chmod(0o755)
+    monkeypatch.setattr(sys, "executable", str(tmp_path / "python" / "python3"))
+    monkeypatch.setenv("PATH", f"{gym.parent}{os.pathsep}{os.environ['PATH']}")
+
+    runtime = gym_probe.probe()
+
+    assert gym_probe.is_available(runtime) is available
+    if reason:
+        assert gym_probe.unavailable_reason(runtime) == reason
+
+
+def test_judge_line_counts_each_format_and_names_a_docker_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    renderer = _import_discover_render_report(monkeypatch)
+    report = {
+        "proven": True,
+        "configs": [{"runnable": True}],
+        "datasets": [{"checks": []}],
+        "gym_manifests": [{"judge": {"status": "passed"}}, {"judge": {"status": "blocked"}}],
+        "checks": [],
+    }
+    assert renderer._phase_line("judge", "invalid", report) == (
+        "- [ ] **Judge** (invalid) - validated 2 Harbor evals and 1 Gym eval, but 1 Gym eval could not be validated"
+    )
+    docker = {"name": "backend", "status": "fail", "severity": "required", "message": "Docker daemon is not running"}
+    report["checks"] = [docker]
+    assert renderer._phase_line("judge", "invalid", report).endswith(" - the Docker preflight check failed")
+
+
+_JUDGING_GYM = """#!/bin/sh
+case "$1" in
+  --version) echo "NeMo Gym v0.6.0" ;;
+  env)
+    if [ "$3" = "broken_env" ]; then echo "Error: broken_env has a bad config" >&2; exit 1; fi
+    echo '{"cases": [{"reward": 1.0}]}' ;;
+esac
+"""
+
+
+def test_solve_runs_what_passed_judge_even_when_something_failed(
+    tmp_path: Path, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """One manifest Gym rejects keeps Judge invalid, but does not stop Solve on the one that passed."""
+    if shutil.which("gym") or (Path(sys.executable).parent / "gym").is_file():
+        pytest.skip("a real gym command is installed here and would shadow the fake one")
+    for name in ("good_env", "broken_env"):
+        folder = tmp_path / "environments" / name
+        folder.mkdir(parents=True)
+        (folder / "manifest.yaml").write_text(
+            f"name: {name}\nkind: environment\ndatasets:\n  - jsonl_fpath: data/{name}.jsonl\n", encoding="utf-8"
+        )
+    (tmp_path / "data").mkdir()
+    for name in ("good_env", "broken_env"):
+        (tmp_path / "data" / f"{name}.jsonl").write_text('{"row": 1}\n', encoding="utf-8")
+
+    code, report = _run_discover(tmp_path, gym_stub=tmp_path_factory.mktemp("gym"), gym_script=_JUDGING_GYM)
+
+    by_name = {m["name"]: m for m in report["gym_manifests"]}
+    assert by_name["broken_env"]["judge"]["status"] == "failed"
+    assert by_name["good_env"]["judge"]["status"] == "passed"
+    assert report["phases"]["judge"] == "invalid"
+    assert by_name["good_env"]["solve"]["status"] == "passed"
+    assert by_name["broken_env"]["solve"]["status"] == "skipped"
+    assert report["phases"]["solve"] == "valid"
+    assert code == 1 and report["runnable"] is False
+
+
+@_needs_harbor
+def test_gym_extension_tasks_are_an_advisory_not_a_failure(suite: Path) -> None:
+    """Nothing runs Gym extension tasks yet, which the user cannot fix, so it must not fail discovery."""
+    task = suite / "extension" / "verifier-task"
+    _write_task(task)
+    (task / "tests" / "test.sh").unlink()
+    (task / "tests" / "verifier.py").write_text("def verify(*_):\n    return 1.0\n", encoding="utf-8")
+
+    _, report = _run_discover(suite)
+
+    extension = next(d for d in report["datasets"] if d["path"].startswith("extension"))
+    runner = next((c for c in extension["checks"] if c["name"] == "gym-runner"), None)
+    if runner is None:
+        pytest.skip(f"the extension dataset did not pass Judge here: {[c['name'] for c in extension['checks']]}")
+    assert runner["status"] == "warn" and runner["severity"] == "advisory"
+    assert extension.get("run_command") is None, "Harbor cannot run extension tasks as written"

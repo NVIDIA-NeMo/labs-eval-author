@@ -4,7 +4,7 @@
 """Detect whether Harbor can judge this repository.
 
 Standard library only, and safe to import when Harbor is absent. Everything that
-touches Harbor itself lives in ``_ladder.py``, which ``discover.py`` imports only
+touches Harbor itself lives in ``_judge.py``, which ``discover.py`` imports only
 after this module reports Harbor available.
 
 This is the provider gate. A second provider adds its own probe next to this one

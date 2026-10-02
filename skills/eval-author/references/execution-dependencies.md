@@ -3,6 +3,10 @@
 
 # Execution dependencies
 
+For execution failures, compatibility fixes, and reporting, also follow
+[Execution recovery](execution-recovery.md). External application access does
+not authorize bypassing the selected evaluation runner or replacing its verifier.
+
 Use this in first-eval when evidence points to software or state
 outside the agent process: desktop applications, licensed tools, hardware, or
 external services. A tool name alone does not establish where it executes.
@@ -34,6 +38,10 @@ headless operation, or container compatibility. Record known constraints instead
 of packaging proprietary software on those assumptions.
 
 ## Configure a supported execution path during environment preparation
+
+[`eval-author-environment`](../../eval-author-environment/SKILL.md) builds and
+proves this path, using the requirements recorded here as its input; the
+guidance below continues to apply to dependencies outside the container.
 
 Use the requirements learned at scope. Check the installed Harbor version and
 selected backend before configuring the

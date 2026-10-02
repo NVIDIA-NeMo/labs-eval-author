@@ -77,11 +77,13 @@ Replace `claude-code` with [your assistant's identifier](docs/getting-started.md
 See the setup guide for [manual installation without Node.js](docs/getting-started.md#manual-installation-without-nodejs)
 and [verification](docs/getting-started.md#verify-your-assistant-can-use-eval-author).
 
-Creating, validating, and running evaluation tasks requires
-[Harbor](https://docs.harborframework.com/), the evaluation framework used by
-Eval Author. Installing the skills does not install Harbor or Python dependencies;
-see the [workflow requirements](docs/getting-started.md#requirements).
-Repository inventory and case planning can start without Harbor.
+Creating, validating, and running evaluation tasks requires an evaluation
+runtime: [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/) or
+[Harbor](https://docs.harborframework.com/). Eval Author follows your choice,
+otherwise keeps the runtime your existing suite uses, and defaults to Harbor.
+Installing the skills does not install Gym, Harbor, or Python dependencies; see
+the [workflow requirements](docs/getting-started.md#requirements). Repository
+inventory and case planning can start without either runtime.
 
 Open your agent's repository in a new session of the selected coding assistant
 and ask:
@@ -99,13 +101,38 @@ file paths, trace IDs, or workspace names in your request:
 | --- | --- |
 | Find evaluations in an unfamiliar repository | [Discover existing evaluations](docs/getting-started.md#find-existing-evaluations) |
 | Build a suite when you have no evaluations | [Build your first evaluations](docs/first-evals.md) |
-| Check whether Harbor evaluations are ready to run | [Check readiness](docs/existing-evals.md#check-readiness) |
+| Check whether Gym or Harbor evaluations are ready to run | [Check readiness](docs/existing-evals.md#check-readiness) |
 | Compare intended behavior with evaluation and trace evidence | [Audit coverage](docs/existing-evals.md#audit-coverage) |
+| Create a Gym task from an audit gap | [Author and prove a Gym task](skills/eval-author-task-create/references/gym-tasks.md) |
 | Decide what to add after an audit | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
-| Understand a NeMo Platform Intake trace | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
+| Understand a NeMo Helix Intake trace | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
 | Turn a local trace into an evaluation task | **Experimental** · [Build a task from a trace](docs/traces.md#build-an-evaluation-task) |
 | Understand an evaluation report | [Read your results](docs/results.md) |
 | Review a task derived from a trace before sharing it | **Experimental** · [Review the task for publication](docs/traces.md#sharing-generated-tasks) |
+
+### Experimental trace-environment loop
+
+The [trace-environment workflow](docs/traces.md#build-an-evaluation-task) turns
+trace evidence into a private candidate task, validates it with Harbor's `nop`
+and `oracle` or Gym's native validation and repeated controls, and uses the findings
+to refine the task. Gym output uses a private native report; automated publication
+and readiness reporting remain Harbor-specific. It can start directly
+from a trace or be paired with [dataset proposals](docs/existing-evals.md#propose-new-evaluations):
+propose a useful scenario, construct it from supporting trace evidence, then
+validate and refine it.
+
+```text
+Use this audit report to propose an eval, then use eval-author-trace-environment
+to build a private candidate from the supporting trace. Validate it when the
+required runtime is available, and report any remaining blockers.
+```
+
+A proposal does not establish that a task can be built or that its environment
+works. The loop may produce no candidate or an unproven candidate; successful
+validation still does not measure your agent's performance. Proposal-only
+requests stop at recommendations. See the [trace guide](docs/traces.md#build-an-evaluation-task)
+for evidence requirements and validation, and the
+[publication review](docs/traces.md#sharing-generated-tasks) before sharing a task.
 
 [Development](DEVELOPMENT.md) · [Skill reference](DEVELOPMENT.md#skill-reference) · [Support](https://github.com/NVIDIA-NeMo/labs-eval-author/issues)
 
@@ -122,5 +149,6 @@ the machine-readable inventory.
 The bundled JSON examples and synthetic test fixtures are NVIDIA-authored and
 covered by the project license.
 
-Contributions are currently limited to the NVIDIA ASE team. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for the current policy and review requirements.
+This project is currently not accepting contributions. Internal maintenance is
+limited to the NVIDIA ASE team. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+current policy, sign-off, and review requirements.

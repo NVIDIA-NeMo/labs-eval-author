@@ -49,6 +49,9 @@ users copy the standalone skill trees and rely on their documented dependencies.
 
 ## Sign-off and contribution license
 
+NVIDIA contributors must follow the applicable [IP review process](https://nv/ip_review_process)
+for ongoing changes and contributions.
+
 Contributions are licensed under this project's [Apache License 2.0](LICENSE).
 Sign off every new commit to certify the [Developer Certificate of Origin 1.1](DCO),
 using your own name and email configured in Git:
@@ -65,9 +68,48 @@ The sign-off check runs locally through `make commit-check` and the installed
 commit-message hook. It requires no GitHub app or repository settings changes
 and does not enforce a merge gate on GitHub.
 
+### Developer Certificate of Origin
+
+```text
+Developer Certificate of Origin
+Version 1.1
+
+Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+```
+
 ## PR titles and commit subjects
 
-Follow nemo-platform's Conventional Commit-style PR titles:
+Follow nemo-helix's Conventional Commit-style PR titles:
 `type(optional-scope): description`, with a maximum of 100 characters.
 Examples: `fix(audit): reject missing evidence` and `docs: explain ASE access`.
 Use `!` before the colon for a breaking change. Supported types are `feat`,
@@ -82,20 +124,25 @@ sign-off trailers in the resulting commit.
 ## CI trust boundary
 
 The checked-in CI workflow tests same-repository pull requests targeting `main`
-and pushes to `main` on GitHub-hosted Ubuntu runners. It uses a read-only
+and pushes to `main`, manual dispatches, and daily runs on GitHub-hosted Ubuntu
+runners. It uses a read-only
 `GITHUB_TOKEN`, disables persisted checkout credentials and shared dependency
 caching, pins actions to commit SHAs and uv to a version, and bounds job runtimes.
-New runs cancel older runs for the same PR or branch. See
-[advisory evaluation CI](docs/skill-evaluation-ci.md) for model configuration,
-credentials, execution limits, and report details.
+New change-triggered runs cancel older runs for the same PR or branch; daily
+runs use a separate concurrency group and are not cancelled by pushes. See
+[advisory evaluation CI](docs/skill-evaluation-ci.md) for approval requirements
+and report details.
 
 Dependency installation and tests execute code from the proposed change.
 Repository writers must therefore be trusted to run code in CI. Review workflow,
 dependency, build, and test changes with that in mind. Unit-test dependencies,
 including the pinned public Trace Intel package, install without repository
 credentials; see [setup](DEVELOPMENT.md#public-trace-intel-dependency).
-Model-evaluation jobs use a dedicated CI inference credential.
-Same-repository PR authors must be trusted with that credential. Fork PRs are
+Model-evaluation jobs use a dedicated CI inference credential in the protected
+`skill-evaluator` environment. That environment permits only `main`, requires
+approval from `NVIDIA-NeMo/ase_team`, prevents self-approval, and disables
+administrator bypass. PR checks do not receive this credential. These controls
+must be configured in GitHub settings, not only in workflow YAML. Fork PRs are
 excluded. Keep unrelated secrets, cloud credentials, self-hosted runners, and
 internal application access out of these jobs. Do not use
 `pull_request_target` or a privileged `workflow_run` to execute PR code.

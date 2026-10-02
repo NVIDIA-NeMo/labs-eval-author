@@ -322,7 +322,7 @@ def test_input_mutation_invalidates_evidence_and_stops_further_calls(live, repo,
         live.collect(repo, tmp_path / "dirty", run=True)
 
 
-def test_live_workflow_runs_automatically_and_is_advisory():
+def test_live_workflow_limits_inference_to_main_and_is_advisory():
     workflow = yaml.safe_load((ROOT / ".github/workflows/skill-evaluation-live.yml").read_text())
     ci = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
     assert set(workflow[True]) == {"push", "pull_request", "workflow_dispatch"}
@@ -330,11 +330,14 @@ def test_live_workflow_runs_automatically_and_is_advisory():
         assert workflow[True][event] == ci[True][event]
     assert workflow[True]["workflow_dispatch"]["inputs"]["run_live"]["default"] is False
     assert workflow[True]["workflow_dispatch"]["inputs"]["tier"]["default"] == "both"
-    assert workflow["concurrency"] == ci["concurrency"]
+    assert workflow["concurrency"]["cancel-in-progress"] is True
+    assert workflow["concurrency"]["group"] == (
+        "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+    )
     for job in workflow["jobs"].values():
         assert job["continue-on-error"] is True
-        assert "github.event.pull_request.head.repo.full_name == github.repository" in job["if"]
     plan = workflow["jobs"]["plan"]
+    assert "github.event.pull_request.head.repo.full_name == github.repository" in plan["if"]
     assert "environment" not in plan and "secrets." not in json.dumps(plan)
     job = workflow["jobs"]["live"]
     assert all(
@@ -342,6 +345,8 @@ def test_live_workflow_runs_automatically_and_is_advisory():
         for guard in ("refs/heads/main", "SKILL_EVALUATION_LIVE_ENABLED", "inputs.run_live", "workflow_dispatch")
     )
     assert job["environment"] == "skill-evaluator" and job["continue-on-error"]
+    assert "pull_request" not in job["if"]
+    assert "github.ref == 'refs/heads/main' &&" in job["if"]
     assert not ci["jobs"]["test"].get("needs")
     upload = job["steps"][-1]
     assert upload["if"] == "always()" and upload["with"]["path"].endswith("live-skillevaluator-summary.*")
@@ -367,7 +372,13 @@ def test_live_workflow_runs_automatically_and_is_advisory():
 
 
 def test_seed_datasets_are_bounded_and_have_negative_cases(live):
-    for name in ("eval-author", "mlflow-to-atif"):
+    for name in (
+        "eval-author",
+        "eval-author-first-eval",
+        "mlflow-to-atif",
+        "eval-author-task-create",
+        "eval-author-environment",
+    ):
         skill = ROOT / "skills" / name
         assert live.dataset_cases(skill) == 4
         cases = json.loads((skill / "evals/evals.json").read_text())["evals"]

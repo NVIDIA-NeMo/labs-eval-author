@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Make Harbor judge a repository-owned config.
+"""The Judge phase: make Harbor judge each repository-owned config and dataset.
 
-Every rung asks Harbor's own validators for a verdict, so each recorded fact is
+The checks form a ladder of rungs, from schema to host variables. Every rung asks Harbor's own validators for a verdict, so each recorded fact is
 proved rather than observed. Nothing here reimplements a Harbor rule.
 
 This module imports Harbor at module scope. Import it only after ``_probe`` reports
@@ -32,13 +32,14 @@ from harbor.agents.factory import AgentFactory
 from harbor.environments.factory import EnvironmentFactory
 from harbor.job import Job
 from harbor.models.agent.name import AgentName
+from harbor.models.environment_type import EnvironmentType
 from harbor.models.job.config import JobConfig
 from harbor.models.task.config import TaskConfig
 from harbor.models.task.paths import TaskPaths
 from harbor.models.task.task import Task
 from harbor.utils.env import get_required_host_vars
 from harbor.utils.import_path import import_class
-from providers.harbor._inventory import ConfigCandidate
+from providers.harbor._explore import ConfigCandidate
 from pydantic import ValidationError
 
 _ROUND_TRIP_TIMEOUT_SEC = 120
@@ -65,7 +66,7 @@ def _check(name: str, status: str, message: str, **kwargs: object) -> CheckResul
     return check(name, "validation", status, message, **kwargs)  # ty: ignore[invalid-argument-type]
 
 
-async def run_ladder(candidate: ConfigCandidate, repo_root: Path) -> ValidationOutcome:
+async def judge_config(candidate: ConfigCandidate, repo_root: Path) -> ValidationOutcome:
     """Run the complete preflight without caching or skipping any check."""
     outcome = ValidationOutcome()
     if not candidate.parsed:
@@ -249,6 +250,48 @@ def _check_required_env_vars(config: JobConfig, task_dirs: list[Path], outcome: 
     )
 
 
+@dataclass(frozen=True)
+class TaskUnderJudgment:
+    """A task for Harbor to judge: ``path`` is what Harbor reads, ``source`` is where it lives in the repository."""
+
+    name: str
+    path: Path
+    source: Path
+
+
+def judge_tasks(label: str, tasks: list[TaskUnderJudgment]) -> ValidationOutcome:
+    """Ask Harbor whether each task in one dataset is valid, and which host variables it needs."""
+    outcome = ValidationOutcome()
+    invalid = [task.name for task in tasks if not Task.is_valid_dir(task.path)]
+    outcome.checks.append(
+        _check(
+            "dataset-tasks",
+            FAIL if invalid or not tasks else PASS,
+            "{} of {} tasks in {} are valid Harbor tasks{}".format(
+                len(tasks) - len(invalid),
+                len(tasks),
+                label,
+                ": invalid {}.".format(", ".join(invalid)) if invalid else ".",
+            ),
+            hint=(
+                "A Harbor task needs a parseable task.toml, an environment/ directory, and a tests/test.sh."
+                if invalid or not tasks
+                else None
+            ),
+        )
+    )
+    required: dict[str, RequiredEnvVar] = {}
+    for task in tasks:
+        task_config = _task_config(task.path)
+        if task_config is None:
+            continue
+        for env in (task_config.environment.env, task_config.verifier.env, task_config.solution.env):
+            for name, default in get_required_host_vars(env):
+                required.setdefault(name, RequiredEnvVar(name, default, task.source / "task.toml"))
+    outcome.required_env_vars = sorted(required.values(), key=lambda item: item.name)
+    return outcome
+
+
 def _task_config(task_dir: Path) -> TaskConfig | None:
     try:
         return TaskConfig.model_validate_toml(TaskPaths(task_dir).config_path.read_text(encoding="utf-8"))
@@ -290,19 +333,26 @@ def _check_agent(config: JobConfig, outcome: ValidationOutcome) -> None:
 
 
 def _check_backend(config: JobConfig, outcome: ValidationOutcome) -> None:
-    label = config.environment.import_path or (config.environment.type.value if config.environment.type else "docker")
+    outcome.checks.append(backend_check(config.environment.type, config.environment.import_path))
+
+
+def backend_check(environment_type: EnvironmentType | None = None, import_path: str | None = None) -> CheckResult:
+    """Preflight one environment backend; the defaults are the Docker backend `harbor run -p` uses.
+
+    Harbor's preflight silently passes when given no type, so an unset type is spelled out as Docker.
+    """
+    if environment_type is None and import_path is None:
+        environment_type = EnvironmentType.DOCKER
+    label = import_path or (environment_type.value if environment_type else "docker")
     try:
-        EnvironmentFactory.run_preflight(config.environment.type, config.environment.import_path)
+        EnvironmentFactory.run_preflight(environment_type, import_path)
     except (Exception, SystemExit) as exc:
-        outcome.checks.append(
-            _check(
-                "backend",
-                FAIL,
-                "Environment backend {} is not ready: {}: {}".format(label, type(exc).__name__, exc),
-            )
+        return _check(
+            "backend",
+            FAIL,
+            "Environment backend {} is not ready: {}: {}".format(label, type(exc).__name__, exc),
         )
-    else:
-        outcome.checks.append(_check("backend", PASS, "Environment backend {} passed preflight.".format(label)))
+    return _check("backend", PASS, "Environment backend {} passed preflight.".format(label))
 
 
 def check_config_file(config_path: Path, repo_root: Path) -> CheckResult:

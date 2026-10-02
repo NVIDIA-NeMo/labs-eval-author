@@ -3295,6 +3295,9 @@ def _write_publication(task_dir: Path, output_dir: Path) -> None:
         _reject_symlinks(task_dir / "reproducibility.json")
         _copy_publication_tree(task_dir / "task", output_dir / "task")
         _copy_publication_file(task_dir / "reproducibility.json", output_dir / "reproducibility.json")
+        readme = task_dir / "README.md"
+        if readme.exists() or readme.is_symlink():
+            _copy_publication_file(readme, output_dir / "README.md")
     reproducibility_summary = None
     if summary["status"] == "candidate":
         reproducibility = _validate_reproducibility(task_dir)

@@ -2,6 +2,26 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Reviewed overrides for licenses that OSV-Scanner reports as non-standard or
-# that fall outside NeMo Platform's default permissive-license allowlist.
+# that fall outside NeMo Helix's default permissive-license allowlist.
+# Identifiers verified against the locked distributions or pinned upstream texts
+# preserved in NOTICES.txt.
 overrides:
+  aiohappyeyeballs: PSF-2.0
+  certifi: MPL-2.0
+  cffi: MIT-0
+  colorama: BSD-3-Clause
+  databricks-sdk: Apache-2.0
+  fastuuid: BSD-3-Clause
+  gitdb: BSD-3-Clause
+  hyperframe: MIT
+  jinja2: BSD-3-Clause
+  mlflow-skinny: Apache-2.0
+  pathspec: MPL-2.0
+  pyasn1-modules: BSD-2-Clause
+  python-dateutil: Apache-2.0 OR BSD-3-Clause
+  shellingham: ISC
+  sqlparse: BSD-3-Clause
+  tiktoken: MIT
+  tokenizers: Apache-2.0
+  trace-ingest: Apache-2.0
   typing-extensions: PSF-2.0

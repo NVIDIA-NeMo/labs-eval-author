@@ -9,20 +9,22 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '5 7 * * *'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'schedule' && 'daily' || 'change' }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
   skill-evaluator:
     # Publish advisory evidence only; tool or upload failures must not fail CI.
     continue-on-error: true
     if: >-
-      github.event_name == 'push' ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -76,9 +78,9 @@ jobs:
     # Defense in depth only: PRs can edit this workflow. This condition does not
     # enforce repository access; see CONTRIBUTING.md.
     if: >-
-      github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ||
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       matrix:
@@ -116,3 +118,63 @@ jobs:
         run: uv run --locked ty check --python-version ${{ matrix.python-version }}
       - run: uv run --locked ruff format --check .
       - run: uv run --locked pytest -q -rs
+  gym-compatibility:
+    if: >-
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - route: audit
+            artifact: gym
+          - route: trace
+            artifact: gym-trace
+          - route: ng-trajectory
+            artifact: gym-ng-trajectory
+    env:
+      GYM_REVISION: 3045a793346a31291d7ea4ae6af3f94a35036ce5
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          version: "0.12.3"
+          python-version: "3.13"
+          enable-cache: false
+      - name: Install Eval Author test environment
+        run: uv sync --locked
+      - name: Install isolated Gym v0.6.0 runtime
+        run: |
+          git clone --no-checkout https://github.com/NVIDIA-NeMo/Gym.git "$RUNNER_TEMP/gym"
+          git -C "$RUNNER_TEMP/gym" checkout --detach "$GYM_REVISION"
+          uv sync --directory "$RUNNER_TEMP/gym" --locked --no-dev
+      - name: Exercise native Gym task scaffolding and execution controls
+        if: ${{ !cancelled() }}
+        run: |
+          python_bin=.venv/bin/python
+          if ! test -x "$python_bin"; then python_bin=python3; fi
+          "$python_bin" tools/collect_gym_evidence.py --output "$RUNNER_TEMP/gym-evidence" \
+            --gym-python "$RUNNER_TEMP/gym/.venv/bin/python" --gym-root "$RUNNER_TEMP/gym" \
+            --gym-revision "$GYM_REVISION" --route "${{ matrix.route }}"
+      - name: Publish Gym measurement summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.artifact }}-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/gym-evidence/gym-summary.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Retain native evidence and JUnit results
+        if: ${{ !cancelled() && github.event.repository.private == true }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.artifact }}-native-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/gym-evidence/
+          # The synthetic trace workspaces live under pytest/**/.eval-author/.
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30

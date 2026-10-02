@@ -3,8 +3,8 @@
 
 # Runtime prerequisites
 
-Read for readiness validation or the **Get Harbor ready** milestone. File-only
-inventory stays in the parent skill and does not run these probes.
+Read for readiness validation or the Harbor path of **Get the evaluation runtime ready**. A file-only
+Explore stays in the parent skill and does not run these probes.
 
 ## Contents
 
@@ -61,7 +61,7 @@ validation, not that inventory. Include the setup requirement in the full report
 even when the inventory finds no Harbor evals.
 
 Keep the verified `harbor_python` path for [Step 1](../SKILL.md#step-1-run-discovery), including across shell sessions.
-Check `harbor --help` using the corresponding installation. **Get Harbor ready**
+Check `harbor --help` using the corresponding installation. The Harbor setup path
 is complete when that command starts, the selected interpreter imports Harbor
 and reports a version consistent with repository requirements, and the invocation
 is recorded for reuse. Runtime setup does not prove task-specific backend
@@ -113,4 +113,3 @@ Their absence changes no readiness checks, `proven`, `runnable`, or exit code.
 The script cannot determine host skill availability. Return these observations
 with prerequisite-only findings; include them separately from evidence JSON in
 the later full discovery report as described in [Step 6](../SKILL.md#step-6-save-the-report).
-
