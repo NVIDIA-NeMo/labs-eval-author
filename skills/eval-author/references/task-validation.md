@@ -50,9 +50,13 @@ Declare a small set of controls appropriate to the task:
   contract permits one. Otherwise record a concrete non-applicability reason.
 - **Side effect:** check the requested state change and relevant preservation
   constraints through trusted observations, when applicable; otherwise explain
-  why the task has no side-effect requirement. Check preserved data by content,
-  for example with a digest or set comparison against the starting state: a row
-  count still matches after values are edited.
+  why the task has no side-effect requirement. Check preserved data by content:
+  for each table or file the case must leave unchanged, compare its full content
+  with the starting state, using a digest recorded when the task is built or a
+  two-way set difference against a verifier-only copy. Row counts, totals, and
+  spot checks still match after values are edited, so they are not preservation
+  checks. Prove the check with a tamper control: the reference solution followed
+  by an edit to one preserved value must fail.
 
 NOP can serve as the incorrect control only when doing nothing is incorrect and
 its failure exercises the intended assertion. Harbor's built-in control agents

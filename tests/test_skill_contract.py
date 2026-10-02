@@ -803,7 +803,9 @@ def test_task_validation_covers_instructions_preservation_and_names() -> None:
         "Do not state the root cause, the fix",
         "copy control",
         "Check preserved data by content",
-        "a row count still matches",
+        "two-way set difference",
+        "Row counts, totals, and spot checks still match after values are edited",
+        "tamper control",
         "rename it",
         "doing nothing must earn no completion credit",
     ):
