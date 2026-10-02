@@ -245,7 +245,12 @@ Select the provider from the user's request and existing suite.
 For **Gym**, follow [Author and prove a Gym evaluation](references/gym-tasks.md)
 for native scaffolding, verifier controls, and real-agent runs. Keep Steps 1–3's
 selected gap and instruction, then return to the shared coverage verification
-steps. Do not apply Harbor file layouts or Oracle CLI flags to Gym.
+steps. Do not apply Harbor file layouts or Oracle CLI flags to Gym. For either
+provider, build the task's environment with
+[`eval-author-environment`](../eval-author-environment/SKILL.md) and pass its
+smoke task before writing the verifier, reusing the agent's existing proven
+environment kit when one exists, and
+derive expected values with an independent reference query over the kit's data.
 
 For **Harbor**, use the following native scaffold:
 
@@ -265,7 +270,9 @@ rejects mismatched draft, task-name, or proposal filenames.
 
 Then complete Harbor's generated files:
 
-- `environment/Dockerfile`: task prerequisites, never the solution.
+- `environment/`: a copy of the agent's environment kit plus this task's own
+  records, buildable on its own rather than `FROM` a local kit image, and never
+  the solution.
 - `tests/test.sh`: deterministic reward writer using absolute paths.
 - `solution/solve.sh`: executable Oracle solution.
 - `task.toml`: nonempty keywords, metadata, realistic timeouts and resources.
@@ -284,6 +291,11 @@ Do not leave generated placeholders, `pass`, unconditional reward 1, or empty
 keywords.
 
 ## Step 5: prove task correctness with native controls
+
+Confirm the environment kit's proof passed first; a proof failure is an
+environment defect to fix, not a task result, and that proof stays in the kit's
+plan rather than among the task's receipts. The task's own controls never count
+as environment proof.
 
 Apply [Task validation and execution evidence](../eval-author/references/task-validation.md).
 Prepare the result contract and revision manifest before execution. Record each

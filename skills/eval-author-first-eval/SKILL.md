@@ -112,6 +112,12 @@ Harbor YAML or choose a framework.
 When agent or setup evidence points to software or state outside the agent
 process, use [Execution dependencies](../eval-author/references/execution-dependencies.md)
 to establish the selected cases' runtime and result-collection requirements.
+Record the agent's provider fit and dependency inventory using Steps 1 and 2 of
+[the environment sub-flow](../eval-author-environment/SKILL.md); files and
+embedded databases the agent works on count as dependencies. The kit is built
+and proven at stage 5, before any test. Raise a poor fit for the provider selected
+at stage 2 in the scope checkpoint; if the user changes provider, verify that
+runtime as stage 2 describes before preparing cases.
 
 Save `.eval-author/first-eval.md` with the Ethos path and requirement references,
 selected corpus (or no-trace choice), per-behavior scope and example counts,
@@ -158,6 +164,15 @@ Keep the shared scope, stage check-ins, explanations, suite README, and result
 reconciliation here. A combined setup uses the relevant parts of both references;
 reading a reference does not change the selected provider.
 
+Build and prove the kit before the tests. Before writing any case's verifier,
+complete Steps 3 to 7 of [`eval-author-environment`](../eval-author-environment/SKILL.md):
+choose how each dependency is provided, generate the kit's seeded starting data,
+make its end state readable, set its isolation, and run its smoke task, recording
+each job in `environment-plan.md`. Write each case's own records on top of that
+data, and derive its expected values with an independent reference query over
+the generated data rather than by hand. Hand-typed fixtures of a few rows are
+not starting data.
+
 Create the agreed examples and map their stable IDs to native tasks or dataset
 rows. Keep source provenance and expected-label rationale in the plan or
 verifier-only data, outside the agent's starting environment. Start with one
@@ -190,10 +205,15 @@ Include how to launch and open it; a link to the suite guide alone is insufficie
 
 ## 6. Prepare the execution environment
 
-Use the selected provider reference to prepare dependencies, fixtures, starting
-state, and reset behavior. For external dependencies, apply the runtime plan from
-[Execution dependencies](../eval-author/references/execution-dependencies.md).
-Keep solutions and verifier-only data outside the agent's initial environment.
+Hand off the kit proven at stage 5 with Step 8 of
+[`eval-author-environment`](../eval-author-environment/SKILL.md), and use the
+selected provider reference to confirm each task's environment builds on that
+kit; rerun the smoke task if the kit changed after it passed. Keep solutions and
+verifier-only data outside the agent's initial environment. This milestone is complete only
+when the kit's `environment-plan.md`, seeded data generator, and smoke results
+exist under `.eval-author/environments/<agent-slug>/`; the tasks' own controls
+never count as environment proof, and without the smoke task's own jobs the
+plan's status stays `unproven`.
 Verify the selected backend and required application access before declaring
 this milestone complete; identifying their requirements is only partial progress.
 Record unavailable access and which cases or checks it blocks, naming credential
@@ -222,6 +242,10 @@ alone does not prove that the connection works.
 
 Follow [Execution recovery](../eval-author/references/execution-recovery.md)
 for control and target-agent runs, compatibility repairs, and all result recaps.
+Confirm the current environment kit's proof (Harbor's smoke task or Gym's
+persistence and reset cases) passed first; a proof failure is an environment
+defect to fix, not a task or agent result. That proof is recorded in the kit's
+plan, not with the task evidence recorder below.
 
 Use the selected provider's native validation and controls, retaining fresh
 artifacts on reruns. Require checks to complete without exceptions and meet the

@@ -77,7 +77,7 @@ Replace `claude-code` with your assistant's identifier:
 See the [Skills CLI documentation](https://github.com/vercel-labs/skills#supported-agents)
 for other assistants.
 
-Installation adds ten skill directories with their instructions, scripts,
+Installation adds eleven skill directories with their instructions, scripts,
 schemas, templates, and references. Harbor and Python dependencies are separate
 [workflow requirements](docs/getting-started.md#requirements).
 

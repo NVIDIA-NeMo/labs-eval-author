@@ -67,7 +67,9 @@ scope and resumes from that stage without restarting onboarding.
 ## Check the cases and evaluate the agent
 
 Eval Author creates each case's instructions, environment, reference solution,
-and grader. For Gym, it validates the manifest and runs verifier fixtures with
+and grader. The environment reuses your repository's own services where it can,
+starts from realistic seeded data, and is proven to work before any case relies
+on it. For Gym, it validates the manifest and runs verifier fixtures with
 known-correct and negative/no-action controls through `gym env validate` and
 `gym env test`. For Harbor:
 

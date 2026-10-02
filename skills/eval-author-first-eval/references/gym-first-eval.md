@@ -21,9 +21,12 @@ first-eval has no coverage report or uncovered-tool selector.
 Follow [Complete the task without changing its intended capability](../../eval-author-task-create/references/gym-tasks.md#complete-the-task-without-changing-its-intended-capability)
 for the generated manifest, component configuration, resources server, dataset
 rows, and verifier fixtures. Replace template tools, rewards, and fixtures with
-the agreed cases. Map stable case IDs to selected dataset rows; keep expected
-answers and provenance outside model inputs. Start with one representative case
-before extending the pattern to the agreed breadth.
+the agreed cases. Seed the resources server from the environment kit's generated
+data and pass the kit's persistence and reset cases before writing verifier
+fixtures, then derive expected rewards and end states with an independent
+reference over that data. Map stable case IDs to selected
+dataset rows; keep expected answers and provenance outside model inputs. Start
+with one representative case before extending the pattern to the agreed breadth.
 
 Document each case's reward contract and expected positive and negative control
 results before testing. Include a known-correct response or interaction and a
@@ -34,7 +37,12 @@ Maintain each task README and the shared `.eval-author/README.md`.
 ## 6. Prepare the execution environment
 
 Prepare the generated resources, agent, and model components, dependency inputs,
-fixtures, and state reset. Apply the [Gym version and rerun plan](../../eval-author-task-create/references/gym-tasks.md#version-and-rerun-plan)
+fixtures, and state reset. Build the backends the resources server wraps, their
+seeded session state, and its reset from the environment kit that
+[`eval-author-environment`](../../eval-author-environment/SKILL.md) built and
+proved at stage 5, following its [Gym environments](../../eval-author-environment/references/gym.md)
+reference, and add each case's own records to its dataset row or session seed.
+Apply the [Gym version and rerun plan](../../eval-author-task-create/references/gym-tasks.md#version-and-rerun-plan)
 to the selected suite, recording it in `.eval-author/first-eval.md` and the drafts'
 `reproducibility.md`; no dataset recommendation or audit proposal is required.
 Use the component packaging checks linked there for the selected runtime.
@@ -55,6 +63,11 @@ agreed purpose requires repeats. Record the count and cost in the plan. A Harbor
 JobConfig or `.eval-author/first-eval.yaml` is not required for Gym.
 
 ## 8. Validate the evals
+
+Confirm the environment kit's proof passed first; a proof failure is an
+environment defect to fix, not a task or agent result. Its persistence and reset
+verifier cases run with the commands below and are recorded in the kit's plan,
+not declared as task controls.
 
 From each draft root, use the verified Gym CLI:
 

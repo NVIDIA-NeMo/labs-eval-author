@@ -65,6 +65,7 @@ _INSPECT_DIR = _SKILLS_DIR / "eval-author-inspect-trace"
 _MLFLOW_TO_ATIF_DIR = _SKILLS_DIR / "mlflow-to-atif"
 _GYM_TO_ATIF_DIR = _SKILLS_DIR / "gym-to-atif"
 _TRACE_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-trace-environment"
+_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-environment"
 _ETHOS_DIR = _SKILLS_DIR / "ethos"
 _SKILL_DIRS = (
     _ETHOS_DIR,
@@ -77,6 +78,7 @@ _SKILL_DIRS = (
     _MLFLOW_TO_ATIF_DIR,
     _GYM_TO_ATIF_DIR,
     _TRACE_ENVIRONMENT_DIR,
+    _ENVIRONMENT_DIR,
 )
 _SUB_FLOW_DIRS = (
     _DISCOVER_DIR,
@@ -85,6 +87,7 @@ _SUB_FLOW_DIRS = (
     _FIRST_EVAL_DIR,
     _INSPECT_DIR,
     _TRACE_ENVIRONMENT_DIR,
+    _ENVIRONMENT_DIR,
 )
 _DISCOVER_SCRIPTS_DIR = _DISCOVER_DIR / "scripts"
 _CORE_SCRIPTS_DIR = _CORE_DIR / "scripts"
@@ -712,6 +715,7 @@ def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
     task_create_tools = _allowed_tools(_frontmatter_and_body(_TASK_CREATE_DIR)[0])
     inspect_tools = _allowed_tools(_frontmatter_and_body(_INSPECT_DIR)[0])
     trace_environment_tools = _allowed_tools(_frontmatter_and_body(_TRACE_ENVIRONMENT_DIR)[0])
+    environment_tools = _allowed_tools(_frontmatter_and_body(_ENVIRONMENT_DIR)[0])
 
     assert "Write" in core_tools, "the core must be able to save Ethos before selecting an authoring flow"
     assert "Bash" not in core_tools, "the core delegates executable work to a sub-flow"
@@ -729,6 +733,9 @@ def test_the_core_can_save_ethos_and_the_sub_flow_executes() -> None:
     )
     assert {"Bash", "Write"} <= trace_environment_tools, (
         f"{_TRACE_ENVIRONMENT_DIR.name} prepares and verifies task artifacts; it has {sorted(trace_environment_tools)}"
+    )
+    assert {"Bash", "Write"} <= environment_tools, (
+        f"{_ENVIRONMENT_DIR.name} builds and proves environment kits; it has {sorted(environment_tools)}"
     )
 
 
@@ -794,6 +801,128 @@ def test_inspect_flow_resolves_the_cli_without_changing_the_environment() -> Non
     positions = [body.index(candidate) for candidate in candidates]
     assert positions == sorted(positions), "CLI candidates must appear in priority order"
     assert "Use the resolved invocation for every command" in body
+
+
+def test_environment_flow_is_reached_only_through_authoring_flows() -> None:
+    """The environment sub-flow serves authoring flows and must not compete with trace-environment.
+
+    Both skills talk about building environments. If the environment flow were
+    user-invocable or reused trace-environment's phrases, a request to turn a
+    trace into a task could start the wrong workflow.
+    """
+    frontmatter, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    trace_frontmatter, _ = _frontmatter_and_body(_TRACE_ENVIRONMENT_DIR)
+    core_frontmatter, _ = _frontmatter_and_body(_CORE_DIR)
+
+    assert frontmatter["user-invocable"] is False
+    assert "Reached through eval-author" in frontmatter["description"]
+    assert _TRACE_ENVIRONMENT_DIR.name in _not_for_names(frontmatter)
+    assert _ENVIRONMENT_DIR.name in _not_for_names(trace_frontmatter)
+    assert _ENVIRONMENT_DIR.name in _not_for_names(core_frontmatter)
+    for phrase in (*trace_frontmatter["triggers"], *core_frontmatter["triggers"]):
+        assert phrase not in frontmatter["triggers"]
+        assert phrase not in frontmatter["description"]
+    assert "never open `.env` files" in body
+
+
+def test_every_environment_path_the_skill_names_exists() -> None:
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    for relative in (
+        "references/dependencies.md",
+        "references/starting-data.md",
+        "references/harbor.md",
+        "references/gym.md",
+        "templates/environment-plan.md",
+    ):
+        assert relative in body, f"SKILL.md no longer documents {relative}"
+        assert (_ENVIRONMENT_DIR / relative).exists(), f"SKILL.md names {relative}, which is missing on disk"
+
+
+def test_environment_flow_relative_links_resolve() -> None:
+    """Every relative link in the environment skill reaches a file that ships with the skills."""
+    documents = [
+        _ENVIRONMENT_DIR / "SKILL.md",
+        *sorted((_ENVIRONMENT_DIR / "references").glob("*.md")),
+        *sorted((_ENVIRONMENT_DIR / "templates").glob("*.md")),
+    ]
+    for document in documents:
+        for target in re.findall(r"\]\(([^)\s]+)\)", document.read_text(encoding="utf-8")):
+            if target.startswith(("http://", "https://", "#")):
+                continue
+            path = (document.parent / target.split("#", 1)[0]).resolve()
+            assert path.is_file(), f"{document.relative_to(_SKILLS_DIR)} links to missing {target}"
+            assert path.is_relative_to(_SKILLS_DIR), f"{document.name} links outside the installed skills: {target}"
+
+
+def test_authoring_flows_hand_environment_work_to_the_environment_flow() -> None:
+    """First-eval, its provider references, and task-create delegate environment construction."""
+    link = "../eval-author-environment/SKILL.md"
+    for skill_dir in (_FIRST_EVAL_DIR, _TASK_CREATE_DIR):
+        _, body = _frontmatter_and_body(skill_dir)
+        assert link in body, f"{skill_dir.name} must hand environment work to {_ENVIRONMENT_DIR.name}"
+    for reference in ("harbor-first-eval.md", "gym-first-eval.md"):
+        text = (_FIRST_EVAL_DIR / "references" / reference).read_text(encoding="utf-8")
+        assert f"../{link}" in text, f"first-eval's {reference} must build environments from the environment kit"
+
+
+def test_environment_flow_states_its_required_outputs_first() -> None:
+    """Authors who read only the top of the skill must still learn what the kit has to contain.
+
+    Bench sessions read the skill once, sometimes only its first lines, and then
+    hand-typed a few fixture rows while treating task NOP and Oracle runs as
+    environment proof.
+    """
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    assert re.findall(r"^## (.+)$", body, re.MULTILINE)[0] == "Required outputs"
+    section = " ".join(body.split("## Required outputs", 1)[1].split("\n## ", 1)[0].split())
+    for required in ("environment-plan.md", "`data/`", "`smoke/`", "independent reference query", "never prove"):
+        assert required in section, f"Required outputs no longer states {required!r}"
+
+
+def test_environment_plan_claims_proven_only_with_smoke_jobs() -> None:
+    """A pilot session wrote the plan last and listed task NOP and Oracle runs as its smoke proof."""
+    template = (_ENVIRONMENT_DIR / "templates" / "environment-plan.md").read_text(encoding="utf-8")
+    status = next(line for line in template.splitlines() if line.startswith("- **Status:**"))
+    assert "`proven` only when" in status
+    proof = template.split("## Proof", 1)[1].split("\n## ", 1)[0]
+    assert "never fill these rows" in proof
+    assert "`unproven`" in proof
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    step7 = body.split("## Step 7: Prove the environment", 1)[1].split("\n## ", 1)[0]
+    assert "without them the outcome is `unproven`" in step7
+
+
+def test_environment_kit_records_digests_for_preservation_checks() -> None:
+    """Bench tasks checked preserved tables by row count, which still passes after values are edited."""
+    starting_data = (_ENVIRONMENT_DIR / "references" / "starting-data.md").read_text(encoding="utf-8")
+    section = starting_data.split("## Digests for preservation checks", 1)[1].split("\n## ", 1)[0]
+    for required in ("data/digests.json", "Row counts are no substitute", "verifier-only"):
+        assert required in section, f"Digest guidance no longer states {required!r}"
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    assert "per-table content digests" in body
+
+
+def test_first_eval_builds_and_proves_the_kit_before_tests() -> None:
+    """Bench sessions did the stage 5 work but skipped stage 6, so the smoke proof moved into stage 5."""
+    _, body = _frontmatter_and_body(_FIRST_EVAL_DIR)
+    stage5 = body.split("## 5. Prepare cases and grading", 1)[1].split("\n## ", 1)[0]
+    stage6 = body.split("## 6. Prepare the execution environment", 1)[1].split("\n## ", 1)[0]
+    assert "Build and prove the kit before the tests" in stage5
+    assert "smoke task" in stage5
+    assert "../eval-author-environment/SKILL.md" in stage5
+    assert "environment-plan.md" in stage6
+    assert "never count as environment proof" in stage6
+    harbor = (_FIRST_EVAL_DIR / "references" / "harbor-first-eval.md").read_text(encoding="utf-8")
+    assert "in the next milestone" not in harbor, "Harbor first-eval must not defer environment/ until after the tests"
+
+
+def test_harbor_tasks_build_without_the_session_kit_image() -> None:
+    """Bench tasks started FROM a kit tag that existed only in the authoring session's Docker engine."""
+    environment = " ".join((_ENVIRONMENT_DIR / "references" / "harbor.md").read_text(encoding="utf-8").split())
+    assert "Never start a task `FROM` a locally built kit tag" in environment
+    harbor = (_FIRST_EVAL_DIR / "references" / "harbor-first-eval.md").read_text(encoding="utf-8")
+    before_controls = harbor.split("## 8. Validate the evals", 1)[1].split("```", 1)[0]
+    assert "docker image rm" in before_controls, "remove the local kit image before the first control"
 
 
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)
