@@ -13,7 +13,7 @@ entry point. Multi-task suites need a suite guide in addition to individual task
 READMEs.
 
 Use the suite's existing root under `.eval-author/`: for first-eval this is
-`.eval-author/README.md`, beside `first-eval.yaml`; for a standalone task draft,
+`.eval-author/README.md`, beside `first-eval.md`; for a standalone task draft,
 extend `.eval-author/task-drafts/<task-slug>/README.md`. For trace-derived work,
 use `<task-dir>/README.md`, beside `task/`; a generated batch also needs a README
 at its collection root. Keep the trace task's required `task/README.md` intact.

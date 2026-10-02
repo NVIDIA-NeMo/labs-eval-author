@@ -79,9 +79,9 @@ From each draft root, use the verified Gym CLI:
 Apply [Task validation and execution evidence](../../eval-author/references/task-validation.md)
 to retain the task revision and native control results. Include the declared
 incorrect, valid-alternative, and side-effect cases, with explicit reasons for
-non-applicability. Use the shared recorder with the maintained
-[native Gym adapter](../../eval-author-task-create/references/gym-evidence.md)
-and `--purpose baseline`; this does not require an audit report or repeated agent baselines.
+non-applicability. Record the verifier controls with the shared recorder and the
+maintained [native Gym adapter](../../eval-author-task-create/references/gym-evidence.md);
+this does not require an audit report or agent baselines.
 Retain validation and verifier-control output under fresh run paths. Require the
 controls to complete without exceptions and meet their predeclared reward
 criteria, exercising real tools and reset behavior for stateful cases. Repair
@@ -93,8 +93,8 @@ does not establish actual agent performance or broad coverage.
 
 Follow the native service startup and execution instructions in
 [Validate, run, and retain evidence](../../eval-author-task-create/references/gym-tasks.md#validate-run-and-retain-evidence),
-using the actual agent, selected rows, and agreed attempts. Its two-repeat
-example and measured-gap-closure requirements belong to audit task creation;
+using the actual agent, selected rows, and agreed attempts. Its two recorded
+attempts and measured-gap-closure requirements belong to audit task creation;
 first-eval uses the agreed baseline count and does not require coverage measurement.
 Check installed help before using options. Preserve the distinction between
 explicit-file execution against running services (`--no-serve --input`) and

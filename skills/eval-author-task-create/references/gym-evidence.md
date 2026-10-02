@@ -65,9 +65,11 @@ Pass `--gym-source <descriptor.json>` to `task_evidence.py run`. For a fixture:
 ```
 
 The native command must produce the verifier report and capture the actual
-execution inputs at these fresh paths. A wrapper may retain CLI JSON and capture
-inputs; it must not manufacture results, suppress errors, or substitute a declared
-configuration for the configuration actually used. Fixture cases use a stable
+execution inputs at these fresh paths. The recorder runs argv without a shell and
+does not capture stdout, so record `gym env test --json` through a wrapper kept
+in the task tree that writes the report and captures the inputs. The wrapper must
+not manufacture results, suppress errors, or substitute a declared configuration
+for the configuration actually used. Fixture cases use a stable
 report-and-case identity; they do not need rollout IDs or ATIF. Retain every
 native case even when the descriptor selects only one for a control receipt.
 
@@ -88,10 +90,13 @@ The adapter matches the selected dataset fields, rollout ID, task/repeat indexes
 health record, summary counts, and execution-input digests. Keep all native rows;
 do not pre-filter rollouts without their matching health evidence. The command
 writes native files; the recorder itself writes `--result` as normalized evidence.
+Use a new directory outside the draft for each recorded run: Gym writes
+`rollout_verdicts.jsonl` and `quality_summary.json` beside the rollout output.
 
 ## Baseline and closure are different claims
 
-For first-eval use `--purpose baseline`; one agent attempt may omit `--trace` and
+Recording a first-eval agent baseline is optional; when recorded, use
+`--purpose baseline`, and one agent attempt may omit `--trace` and
 `conversion`. The receipt retains rewards, legitimate behavioral failures, and
 `health_status: unobserved` when model health was not observable. Successful native
 execution with unobserved model health must not be described as healthy.

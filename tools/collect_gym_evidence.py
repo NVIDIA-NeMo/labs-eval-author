@@ -104,7 +104,7 @@ def run(output, gym_python, gym_root, gym_revision, timeout, source_root=ROOT, r
     if route not in ROUTES:
         raise ValueError("unsupported source route")
     output.mkdir(parents=True, exist_ok=False)
-    files = ["tests/test_gym_native.py", "tools/collect_gym_evidence.py", "uv.lock"]
+    files = ["tests/test_gym_native.py", "tests/test_gym_task_evidence.py", "tools/collect_gym_evidence.py", "uv.lock"]
     files += [str(p.relative_to(ROOT)) for p in sorted((ROOT / "tests/fixtures/gym_ledger").glob("*")) if p.is_file()]
     inputs = {name: digest((ROOT / name).read_bytes()) for name in files}
     report = {
