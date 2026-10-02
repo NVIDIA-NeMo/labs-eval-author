@@ -40,10 +40,10 @@ The portable [`ethos` skill](skills/ethos/SKILL.md) lives in Eval Author and
 ships with its other skills. It combines exploration, intent questions, local
 `ETHOS.md` authoring, and review in one file, including the schema-v1 outline.
 
-## Public Trace Intel dependency
+## Public NeMo Compass dependency
 
 The development dependencies include `trace-ingest[mlflow]` pinned to an exact
-commit in the public [NVIDIA-NeMo/labs-trace-intel](https://github.com/NVIDIA-NeMo/labs-trace-intel)
+commit in the public [NVIDIA-NeMo/labs-nemo-compass](https://github.com/NVIDIA-NeMo/labs-nemo-compass)
 repository. Local development and GitHub Actions fetch it over HTTPS with
 `uv sync --locked`; no GitHub login, token, deploy key, or separate checkout is
 required. Keep the Git revision in `pyproject.toml` and `uv.lock` synchronized

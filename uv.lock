@@ -876,7 +876,7 @@ requires-dist = [
     { name = "pydantic", marker = "extra == 'audit'", specifier = ">=2" },
     { name = "pyyaml", marker = "extra == 'audit'", specifier = ">=6.0" },
     { name = "referencing", specifier = ">=0.28.4" },
-    { name = "trace-ingest", extras = ["mlflow"], marker = "extra == 'trace-loaders'", git = "https://github.com/NVIDIA-NeMo/labs-trace-intel.git?subdirectory=packages%2Ftrace-ingest&rev=692d1bf57b6a9372f628b7c2004852aec7a9a83e" },
+    { name = "trace-ingest", extras = ["mlflow"], marker = "extra == 'trace-loaders'", git = "https://github.com/NVIDIA-NeMo/labs-nemo-compass.git?subdirectory=packages%2Ftrace-ingest&rev=692d1bf57b6a9372f628b7c2004852aec7a9a83e" },
 ]
 provides-extras = ["audit", "mlflow", "trace-loaders"]
 
@@ -889,7 +889,7 @@ dev = [
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruff", specifier = ">=0.14" },
-    { name = "trace-ingest", extras = ["mlflow"], git = "https://github.com/NVIDIA-NeMo/labs-trace-intel.git?subdirectory=packages%2Ftrace-ingest&rev=692d1bf57b6a9372f628b7c2004852aec7a9a83e" },
+    { name = "trace-ingest", extras = ["mlflow"], git = "https://github.com/NVIDIA-NeMo/labs-nemo-compass.git?subdirectory=packages%2Ftrace-ingest&rev=692d1bf57b6a9372f628b7c2004852aec7a9a83e" },
     { name = "ty", specifier = ">=0.0.80" },
 ]
 
@@ -1945,7 +1945,7 @@ wheels = [
 [[package]]
 name = "trace-ingest"
 version = "0.1.0"
-source = { git = "https://github.com/NVIDIA-NeMo/labs-trace-intel.git?subdirectory=packages%2Ftrace-ingest&rev=692d1bf57b6a9372f628b7c2004852aec7a9a83e#692d1bf57b6a9372f628b7c2004852aec7a9a83e" }
+source = { git = "https://github.com/NVIDIA-NeMo/labs-nemo-compass.git?subdirectory=packages%2Ftrace-ingest&rev=692d1bf57b6a9372f628b7c2004852aec7a9a83e#692d1bf57b6a9372f628b7c2004852aec7a9a83e" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },

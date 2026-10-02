@@ -25,7 +25,7 @@ receipt privately under the task workspace; pass the derived ATIF to
 `prepare --source-kind gym`.
 
 For a rollout carrying `ng_trajectory`, ATIF conversion still uses the Responses
-envelope. The sibling Trace Intel loader retains attachment evidence separately;
+envelope. The sibling NeMo Compass loader retains attachment evidence separately;
 its normalized output is not ATIF. Attachment-only exports do not currently
 enter this workflow. See the [Gym output example](gym-output.md#start-from-a-rollout-with-ng_trajectory).
 

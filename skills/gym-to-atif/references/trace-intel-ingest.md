@@ -1,12 +1,12 @@
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Load Gym evidence with Trace Intel
+# Load Gym evidence with NeMo Compass
 
 Read this when normalized provider evidence is useful alongside ATIF, or when
 ATIF cannot represent the available capture. This path uses the shared
-[`trace-ingest` package](https://github.com/NVIDIA-NeMo/labs-trace-intel/tree/692d1bf57b6a9372f628b7c2004852aec7a9a83e/packages/trace-ingest)
-at revision `692d1bf57b6a9372f628b7c2004852aec7a9a83e`. It emits Trace Intel models,
+[`trace-ingest` package](https://github.com/NVIDIA-NeMo/labs-nemo-compass/tree/692d1bf57b6a9372f628b7c2004852aec7a9a83e/packages/trace-ingest)
+at revision `692d1bf57b6a9372f628b7c2004852aec7a9a83e`. It emits NeMo Compass models,
 **not ATIF**. Do not pass its JSON files to Harbor, audit measurement, or the
 experimental trace-environment `prepare` command as trajectories.
 
@@ -17,7 +17,7 @@ install the pinned package (the scripts never install dependencies themselves):
 
 ```bash
 uv pip install \
-  'trace-ingest @ git+https://github.com/NVIDIA-NeMo/labs-trace-intel.git@692d1bf57b6a9372f628b7c2004852aec7a9a83e#subdirectory=packages/trace-ingest'
+  'trace-ingest @ git+https://github.com/NVIDIA-NeMo/labs-nemo-compass.git@692d1bf57b6a9372f628b7c2004852aec7a9a83e#subdirectory=packages/trace-ingest'
 ```
 
 Run from this skill directory using that environment's Python:
