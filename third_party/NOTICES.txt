@@ -9940,7 +9940,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 trace-ingest==0.1.0
 ================================================================================
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/LICENSE
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/LICENSE
 SHA256: sha256:4f321b887d0350e672e06c8a8bc85cff17ee2d1f3c360617079041ceee324c81
 File: supplemental license
 
@@ -10150,7 +10150,7 @@ Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
    limitations under the License.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/NOTICE
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/NOTICE
 SHA256: sha256:21e258f87f7070df2df4098d246616a050406f00419fdb1affd9e40cfc3bd88f
 File: supplemental license
 
@@ -10178,7 +10178,7 @@ The complete Tau Bench license is provided in
 third_party/tau-bench-LICENSE.txt.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/THIRD_PARTY_LICENSES.md
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/THIRD_PARTY_LICENSES.md
 SHA256: sha256:ac8db5f8c19b6591651fcf00be2e026ba7c787cd2ed1985101df3e8039873787
 File: supplemental license
 
@@ -10327,7 +10327,7 @@ See DEVELOPMENT.md for collection scope and exception handling.
 | [`zstandard 0.25.0`](https://pypi.org/project/zstandard/0.25.0/) | `BSD-3-CLAUSE` | [NOTICES.txt](third_party/NOTICES.txt), [BSD-3-Clause.txt](third_party/license_texts/BSD-3-Clause.txt) |
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/licenses.jsonl
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/licenses.jsonl
 SHA256: sha256:5d2c42b59fe53a1a7c0715a6841ef80077e938f776cd83930d9b4f6d64d3b4dc
 File: supplemental license
 
@@ -10454,7 +10454,7 @@ File: supplemental license
 {"name": "zstandard", "version": "0.25.0", "license": "BSD-3-CLAUSE", "package_url": "https://pypi.org/project/zstandard/0.25.0/", "license_documents": ["third_party/NOTICES.txt", "third_party/license_texts/BSD-3-Clause.txt"]}
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/tau-bench-LICENSE.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/tau-bench-LICENSE.txt
 SHA256: sha256:243d23d45b80122b5ac575586ccef352fdc9c45e6d7d2605449aca8a17478b42
 File: supplemental license
 
@@ -10481,7 +10481,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/NOTICES.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/NOTICES.txt
 SHA256: sha256:c35891fabc3d9f4183af9125a129f9f4d1e46803c399190f8a657d0e809e48c9
 File: supplemental license
 
@@ -40349,7 +40349,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/0BSD.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/0BSD.txt
 SHA256: sha256:e3f18c71e10d673590eb9856c1d79dd3b4b0d65404efb5e8584dbede7edd608b
 File: supplemental license
 
@@ -40360,7 +40360,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/Apache-2.0.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/Apache-2.0.txt
 SHA256: sha256:074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff
 File: supplemental license
 
@@ -40439,7 +40439,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/BSD-2-Clause.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/BSD-2-Clause.txt
 SHA256: sha256:f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df
 File: supplemental license
 
@@ -40454,7 +40454,7 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/BSD-3-Clause.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/BSD-3-Clause.txt
 SHA256: sha256:5a93d5831e1297ab10fe643e1a631e83be392896da14ee2951285a79012df69d
 File: supplemental license
 
@@ -40471,7 +40471,7 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/BSL-1.0.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/BSL-1.0.txt
 SHA256: sha256:84c6ef3ea9e3254a54d0acf5d3e0c61ae011b8fef7dd6940591cf060e6380a8f
 File: supplemental license
 
@@ -40484,7 +40484,7 @@ The copyright notices in the Software and this entire statement, including the a
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/CC0-1.0.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/CC0-1.0.txt
 SHA256: sha256:a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499
 File: supplemental license
 
@@ -40611,7 +40611,7 @@ express Statement of Purpose.
     this CC0 or use of the Work.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/CNRI-Python.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/CNRI-Python.txt
 SHA256: sha256:69b5d7d41a6ece3b20c6a77774f567948766d8643f7646e3f65474692cce5c15
 File: supplemental license
 
@@ -40642,7 +40642,7 @@ Alternately, in lieu of CNRIs License Agreement, Licensee may substitute the fol
 ACCEPT
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/ISC.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/ISC.txt
 SHA256: sha256:521c6f0ed8e64736684f89843d16a4df6b4b7449acbcfc6ca6630a3037ca8c53
 File: supplemental license
 
@@ -40655,7 +40655,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/LLVM-exception.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/LLVM-exception.txt
 SHA256: sha256:e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e
 File: supplemental license
 
@@ -40676,7 +40676,7 @@ File: supplemental license
    Software.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/MIT-0.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/MIT-0.txt
 SHA256: sha256:59746d6285ffa44bfc7ecada352aa5d6a20dc8eab418a60ce091cc739012c135
 File: supplemental license
 
@@ -40698,7 +40698,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/MIT.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/MIT.txt
 SHA256: sha256:b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5
 File: supplemental license
 
@@ -40722,7 +40722,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTI
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/MPL-2.0.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/MPL-2.0.txt
 SHA256: sha256:66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172
 File: supplemental license
 
@@ -41101,7 +41101,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/PSF-2.0.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/PSF-2.0.txt
 SHA256: sha256:ab745c5061d1dea43a3885e5b4b6befc7e983954954775c5736debeefcdfd89b
 File: supplemental license
 
@@ -41154,7 +41154,7 @@ agrees to be bound by the terms and conditions of this License
 Agreement.
 
 
-Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-trace-intel/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/Zlib.txt
+Source: https://raw.githubusercontent.com/NVIDIA-NeMo/labs-nemo-compass/692d1bf57b6a9372f628b7c2004852aec7a9a83e/third_party/license_texts/Zlib.txt
 SHA256: sha256:bfb1112d49db5b1daecdfef24bd7e2f3ea0bafb33aa67aa0ab51e2bf8407c03d
 File: supplemental license
 

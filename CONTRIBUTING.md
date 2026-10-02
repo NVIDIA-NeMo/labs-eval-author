@@ -136,8 +136,8 @@ and report details.
 Dependency installation and tests execute code from the proposed change.
 Repository writers must therefore be trusted to run code in CI. Review workflow,
 dependency, build, and test changes with that in mind. Unit-test dependencies,
-including the pinned public Trace Intel package, install without repository
-credentials; see [setup](DEVELOPMENT.md#public-trace-intel-dependency).
+including the pinned public NeMo Compass package, install without repository
+credentials; see [setup](DEVELOPMENT.md#public-nemo-compass-dependency).
 Model-evaluation jobs use a dedicated CI inference credential in the protected
 `skill-evaluator` environment. That environment permits only `main`, requires
 approval from `NVIDIA-NeMo/ase_team`, prevents self-approval, and disables
