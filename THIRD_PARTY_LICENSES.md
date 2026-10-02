@@ -118,7 +118,7 @@ See DEVELOPMENT.md for collection scope and exception handling.
 | [`tokenizers 0.23.2`](https://pypi.org/project/tokenizers/0.23.2/) | `APACHE-2.0` | [NOTICES.txt](third_party/NOTICES.txt), [Apache-2.0.txt](third_party/license_texts/Apache-2.0.txt) |
 | [`toml 0.10.2`](https://pypi.org/project/toml/0.10.2/) | `MIT` | [NOTICES.txt](third_party/NOTICES.txt), [MIT.txt](third_party/license_texts/MIT.txt) |
 | [`tqdm 4.70.1`](https://pypi.org/project/tqdm/4.70.1/) | `MIT AND MPL-2.0` | [NOTICES.txt](third_party/NOTICES.txt), [MIT.txt](third_party/license_texts/MIT.txt), [MPL-2.0.txt](third_party/license_texts/MPL-2.0.txt) |
-| [`trace-ingest 0.1.0`](https://github.com/NVIDIA-NeMo/labs-trace-intel/tree/692d1bf57b6a9372f628b7c2004852aec7a9a83e/packages/trace-ingest) | `APACHE-2.0` | [NOTICES.txt](third_party/NOTICES.txt), [Apache-2.0.txt](third_party/license_texts/Apache-2.0.txt) |
+| [`trace-ingest 0.1.0`](https://github.com/NVIDIA-NeMo/labs-nemo-compass/tree/692d1bf57b6a9372f628b7c2004852aec7a9a83e/packages/trace-ingest) | `APACHE-2.0` | [NOTICES.txt](third_party/NOTICES.txt), [Apache-2.0.txt](third_party/license_texts/Apache-2.0.txt) |
 | [`typer 0.27.2`](https://pypi.org/project/typer/0.27.2/) | `MIT` | [NOTICES.txt](third_party/NOTICES.txt), [MIT.txt](third_party/license_texts/MIT.txt) |
 | [`typing-extensions 4.16.0`](https://pypi.org/project/typing-extensions/4.16.0/) | `PSF-2.0` | [NOTICES.txt](third_party/NOTICES.txt), [PSF-2.0.txt](third_party/license_texts/PSF-2.0.txt) |
 | [`typing-inspection 0.4.4`](https://pypi.org/project/typing-inspection/0.4.4/) | `MIT` | [NOTICES.txt](third_party/NOTICES.txt), [MIT.txt](third_party/license_texts/MIT.txt) |

@@ -61,7 +61,7 @@ OpenTelemetry inputs and their limits.
 
 ## Load shared normalized evidence
 
-The Gym and MLflow skills can also use Trace Intel's pinned `trace-ingest`
+The Gym and MLflow skills can also use NeMo Compass's pinned `trace-ingest`
 loaders to retain normalized provider evidence in a private directory. See the
 [Gym loader guide](../skills/gym-to-atif/references/trace-intel-ingest.md) for
 native `ng_trajectory` captures and the
@@ -69,7 +69,7 @@ native `ng_trajectory` captures and the
 for complete bounded exports. These optional commands need Python 3.12 or 3.13
 and the documented dependencies; loading makes no model calls or live queries.
 
-Their output is a Trace Intel model, not an ATIF trajectory. Keep using the
+Their output is a NeMo Compass model, not an ATIF trajectory. Keep using the
 ATIF converters for coverage measurement or experimental environment derivation.
 A capture that loads successfully can still lack sufficient interaction evidence
 for either workflow.

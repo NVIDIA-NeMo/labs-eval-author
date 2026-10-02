@@ -4,9 +4,9 @@ description: >-
   Convert one bounded Gym Responses rollout record, or a retained Harbor ATIF
   from a Gym run, into one canonical ATIF trajectory for Harbor or Eval Author's
   experimental environment derivation. Offline only: no Gym runtime, model invocation, or
-  image download. Also load native ng_trajectory evidence through Trace Intel without ATIF export.
+  image download. Also load native ng_trajectory evidence through NeMo Compass without ATIF export.
 triggers:
-  - load Gym ng_trajectory evidence with Trace Intel
+  - load Gym ng_trajectory evidence with NeMo Compass
   - convert a Gym rollout to ATIF
   - prepare a Gym Responses trace for an ATIF consumer
   - normalize one Gym JSONL rollout line into ATIF
@@ -16,7 +16,7 @@ not-for:
   - mlflow-to-atif (use only to normalize MLflow traces into ATIF)
 compatibility: >-
   Offline ATIF conversion uses Python 3.11+ and the standard library. The optional
-  Trace Intel loader requires Python 3.12 or 3.13 and the pinned trace-ingest package.
+  NeMo Compass loader requires Python 3.12 or 3.13 and the pinned trace-ingest package.
   Optional reference validation happens downstream in the experimental
   eval-author-trace-environment workflow with Harbor. Output keeps the ATIF
   version of an explicitly supplied original.
@@ -42,9 +42,9 @@ user's agent and harness; choose the best retained evidence for downstream
 processing. The bundled script writes owner-private files and prints only a
 content-free summary.
 
-For native `ng_trajectory` evidence, the optional shared Trace Intel loader is
+For native `ng_trajectory` evidence, the optional shared NeMo Compass loader is
 available alongside this ATIF adapter. Read
-[Trace Intel ingestion](references/trace-intel-ingest.md) before using
+[NeMo Compass ingestion](references/trace-intel-ingest.md) before using
 `scripts/load_gym_trace.py`. It retains normalized evidence without claiming
 that the attachment is ATIF or changing the ATIF conversion boundary.
 
@@ -216,7 +216,7 @@ installed location. Commands use the existing Python interpreter.
 
 | Script | Purpose | Arguments |
 |---|---|---|
-| `scripts/load_gym_trace.py` | Load native attachment evidence through pinned Trace Intel; no ATIF | `--input --output-dir`; `--row` for JSONL |
+| `scripts/load_gym_trace.py` | Load native attachment evidence through pinned NeMo Compass; no ATIF | `--input --output-dir`; `--row` for JSONL |
 | `scripts/gym_to_atif.py` | Convert one record and retain provenance and losses | `--input --output-dir`; `--row` for JSONL; `--source-atif` for a retained original |
 
 ## Troubleshooting
