@@ -61,7 +61,7 @@ workflow, what you expected, what happened, and a small anonymized example.
 Please avoid sending raw traces, prompts, credentials, or user data in an initial
 message. For code contributions, see the [current contribution policy](CONTRIBUTING.md).
 
-## Try Eval Author
+## Start here
 
 You need a coding assistant that can read and write project files and run shell
 commands, [Node.js 22.20+](https://nodejs.org/en/download) (including npm and
