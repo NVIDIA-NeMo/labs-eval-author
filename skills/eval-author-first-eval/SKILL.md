@@ -183,6 +183,11 @@ limitations. Introduce the provider's reference solution or known-correct fixtur
 when creating it. Keep this teaching part of building the starter cases, without
 a separate tutorial or exhaustive methodology exercise.
 
+Before the checkpoint question, introduce Harbor's case viewer in the reply and
+walk the user to one created case's input and grading files, following
+[Show the user how to review](../eval-author/references/suite-readme.md#show-the-user-how-to-review).
+Include how to launch and open it; a link to the suite guide alone is insufficient.
+
 ## 6. Prepare the execution environment
 
 Use the selected provider reference to prepare dependencies, fixtures, starting
@@ -261,6 +266,16 @@ available execution traces, keeping source evidence and missing traces distinct.
 Save any needed subset configs and verify their selected cases and retained
 agent settings. Label rerun commands as task sanity checks or actual agent evaluation.
 
+When an actual-agent attempt exists, explain in the results reply how to open
+Harbor's run viewer and find it, using the shared
+[review walkthrough](../eval-author/references/suite-readme.md#show-the-user-how-to-review).
+Give its launch command and browser URL or a verified live link, and identify
+the saved job and case. State what can be reviewed when the adapter emits no
+ATIF; captured actions and replies do not imply a native trajectory exists.
+If only controls ran or execution was blocked before any actual-agent run,
+say the actual agent has not run and offer case review plus any clearly labeled
+control evidence.
+
 Reconcile agreed versus delivered examples per behavior using
 [Expand and reconcile](../eval-author/references/coverage-planning.md#expand-and-reconcile).
 Separate generated, validated, and executed counts and name omissions, changed
@@ -292,8 +307,9 @@ distinguishing it from configuration or connection setup checks.
 Explain practical limitations, such as narrow fixtures, a wording assertion
 rejecting a correct paraphrase, or an assertion checking only part of an outcome.
 Link the eval cases, results, and established Ethos requirements; identify relevant
-intent left outside the starter set. Keep raw scores, interpreter details, and
-full commands in the saved report unless useful in the explanation.
+intent left outside the starter set. Keep detailed scores, interpreter details,
+and full rerun commands in the saved report unless useful in the explanation;
+include the viewer instructions in the reply as described above.
 
 Traces and improvement are optional follow-up work. Explain that traces reveal
 steps and tool calls that can expose failure patterns, missing coverage, and weak

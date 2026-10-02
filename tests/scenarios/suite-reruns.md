@@ -71,6 +71,41 @@ still exist and give the known setup and case mapping, but clearly identify
 which commands remain blocked or unverified. The case review information must
 remain usable before execution. It must not claim a completed run.
 
+## Viewer discoverability in the conversation
+
+Exercise the two handoffs in a fresh authoring session without asking for a
+viewer. At case creation, use two synthetic Harbor task directories and no
+runs. For the result handoff, supply retained synthetic control and actual-agent
+jobs with distinct names, including a failed attempt. Use an adapter fixture
+that records actions/replies in custom JSON but exports no ATIF. Record that
+the installed viewer's CLI options were checked but its web server has not
+been launched. No live evaluations are needed for this scenario.
+
+Ask for the ordinary case-preparation checkpoint and later the final results
+review. Inspect each user-facing reply separately from its linked README:
+
+- Before execution, the reply introduces the local viewer and gives a copyable
+  task-view command, working directory, browser URL, and a named case to select.
+  The user can find the input and grading files without a follow-up question.
+- After execution, the reply gives the run-view entry and identifies the actual
+  agent job, case, and attempt; it does not send the user to a control job.
+  It explains how to inspect the recorded reward and grading evidence.
+- Both replies distinguish a URL to open after launch from a verified running
+  service. CLI help alone does not become a claim that the viewer was opened.
+- The results reply explains that no native trajectory was captured and links
+  the actual custom JSON artifact. It neither promises a populated Trajectory
+  tab nor invokes the Gym/ATIF reader on this unsupported format.
+- The README retains the same review instructions. Passing file-link checks
+  alone does not pass this scenario: a reply containing only the general guide
+  link and an evaluation rerun command reproduces the discoverability failure.
+
+Follow the documented launch and navigation steps against those synthetic
+artifacts when a local browser is available. Also exercise a runtime without
+viewer support: the reply must name that limitation and link available evidence
+instead of silently omitting review or inventing a viewer command.
+For a blocked or control-only run, it must mark the actual agent as not run and
+offer case review without inventing an actual-agent job or attempt.
+
 ## Gym and trace-derived suites
 
 For Gym, supply an existing draft with a model composition, `reproducibility.md`,
