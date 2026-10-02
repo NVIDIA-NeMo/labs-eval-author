@@ -288,9 +288,11 @@ cases) in the plan's proof table; without them the outcome is `unproven`.
   [Suite review and rerun instructions](../eval-author/references/suite-readme.md),
   and list the fidelity-card gaps that affect each case among its known
   limitations in the case inventory.
-- Tell the calling flow how its tasks use the kit: a Harbor task builds on the
-  kit image pinned by digest, or on its copied build files, and adds its own
-  records; a Gym task reuses the backend and seeds its records per session.
+- Tell the calling flow how its tasks use the kit: a Harbor task copies the
+  kit's build files and data into its own `environment/` (or uses a pushed image
+  pinned by digest) and adds its own records, so it builds without the kit image
+  this session built; a Gym task reuses the backend and seeds its records per
+  session.
 - Return to the calling step. A proven environment shows the world works; it
   does not validate a task's grader or measure the agent.
 

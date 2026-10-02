@@ -914,6 +914,15 @@ def test_first_eval_builds_and_proves_the_kit_before_tests() -> None:
     assert "in the next milestone" not in harbor, "Harbor first-eval must not defer environment/ until after the tests"
 
 
+def test_harbor_tasks_build_without_the_session_kit_image() -> None:
+    """Bench tasks started FROM a kit tag that existed only in the authoring session's Docker engine."""
+    environment = " ".join((_ENVIRONMENT_DIR / "references" / "harbor.md").read_text(encoding="utf-8").split())
+    assert "Never start a task `FROM` a locally built kit tag" in environment
+    harbor = (_FIRST_EVAL_DIR / "references" / "harbor-first-eval.md").read_text(encoding="utf-8")
+    before_controls = harbor.split("## 8. Validate the evals", 1)[1].split("```", 1)[0]
+    assert "docker image rm" in before_controls, "remove the local kit image before the first control"
+
+
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)
 def test_each_sub_flow_defers_to_the_core(skill_dir: Path) -> None:
     """A sub-flow points at the core rather than restating the standard itself.

@@ -28,14 +28,16 @@ A task's `environment/` defines where the agent runs. Its `Dockerfile` builds th
 agent container, which Harbor names `main`; an `environment/docker-compose.yaml`
 adds sidecar services.
 
-Build the shared base once per agent in the kit's `build/` directory. Either
-prebuild and push an image and reference it with `[environment].docker_image`,
-pinned by digest, or copy `build/` into each task's `environment/`. Task
-evidence and Harbor's task checksum cover only the task directory, so never
-build on a local or mutable kit tag: a kit change would not change the task's
-revision. Put each task's own records in its `environment/` on top of the base,
-for example a `Dockerfile` that starts `FROM` the digest-pinned kit image and
-copies the task's seed files.
+Build the shared base once per agent in the kit's `build/` directory, then give
+every task its own copy: copy `build/` and the kit's data into the task's
+`environment/` and add the task's own records, so the task builds on its own.
+Reference a prebuilt image with `[environment].docker_image` only when it is
+pushed to a registry the runtime can pull and pinned by digest. Never start a
+task `FROM` a locally built kit tag: it exists only in the engine that built it,
+and task evidence and Harbor's task checksum cover only the task directory.
+Before running task controls, remove the local kit tag
+(`docker image rm <kit-tag>`) so any task that still depends on it fails there,
+not after handoff.
 Keep reference solutions, expected state, and verifier helpers out of
 `environment/`; anything there is visible to the agent.
 

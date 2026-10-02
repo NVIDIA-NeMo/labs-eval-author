@@ -270,8 +270,9 @@ rejects mismatched draft, task-name, or proposal filenames.
 
 Then complete Harbor's generated files:
 
-- `environment/`: built from the agent's environment kit plus this task's own
-  records, never the solution.
+- `environment/`: a copy of the agent's environment kit plus this task's own
+  records, buildable on its own rather than `FROM` a local kit image, and never
+  the solution.
 - `tests/test.sh`: deterministic reward writer using absolute paths.
 - `solution/solve.sh`: executable Oracle solution.
 - `task.toml`: nonempty keywords, metadata, realistic timeouts and resources.

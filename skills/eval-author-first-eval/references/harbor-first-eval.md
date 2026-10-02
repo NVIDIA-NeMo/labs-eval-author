@@ -21,8 +21,10 @@ harbor task init <org>/<slug> --tasks-dir .eval-author/task-drafts \
 ```
 
 Verify that the expected directory was created. Build its `environment/` first,
-on the environment kit proven at stage 5: its generated data, which passed the
-kit's smoke task, plus the case's own records. Then
+from the environment kit proven at stage 5: copy the kit's build files and its
+generated data, which passed the kit's smoke task, into the task and add the
+case's own records, so the task builds on its own rather than `FROM` a local
+kit image. Then
 complete the generated `instruction.md`, `task.toml`, `tests/test.sh`, and
 `solution/solve.sh` using the installed schema, deriving expected values with an
 independent reference query over that data. Set executable permissions,
@@ -69,7 +71,9 @@ agent connection.
 Use Harbor's installed validators to check task validity. Confirm the current
 environment kit's smoke proof passed first; a smoke failure is an environment
 defect to fix, not a task or agent result, and NOP and Oracle never stand in for
-that proof. Exercise the environment and grading with NOP and Oracle. Run each
+that proof. Before the first control, remove any locally built kit image
+(`docker image rm <kit-tag>`), so each task proves it builds from its own
+`environment/`. Exercise the environment and grading with NOP and Oracle. Run each
 control as a single trial so the parent skill's evidence recorder gets fixed
 result paths, retaining all trials under `.eval-author/jobs/` with fresh names
 on reruns:
