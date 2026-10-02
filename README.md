@@ -61,29 +61,73 @@ workflow, what you expected, what happened, and a small anonymized example.
 Please avoid sending raw traces, prompts, credentials, or user data in an initial
 message. For code contributions, see the [current contribution policy](CONTRIBUTING.md).
 
+## Prerequisites
+
+First-eval, audit-derived, and trace-derived task creation support [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/) and
+[Harbor](https://docs.harborframework.com/). They honor the user's choice, otherwise preserve the existing suite's
+provider, and default to Harbor when neither is specified. Gym is compatible
+with Harbor, and the user has the final say. Gym authoring needs
+Gym v0.6.0+ in its separate Python 3.13.14+ environment; Harbor authoring needs its
+CLI and supported Python environment. See the [first-eval guide](docs/first-evals.md)
+and [Harbor setup guide](skills/eval-author-discover/references/harbor-setup.md).
+Repository inventory and case planning can start without either runtime.
+
+First-evaluation design and coverage audits require a local **Ethos** describing
+your agent's purpose, boundaries, and success criteria.
+
+The discovery helper requires Python 3.11+. Audit generation, validation, and
+aggregation require Python 3.11+, PyYAML, and jsonschema. Measuring coverage from
+ATIF traces requires Python 3.12+ and the
+[audit dependencies](skills/eval-author-audit/requirements.txt), including Harbor.
+
+Task execution may need Docker, application access, and model credentials,
+depending on the task and agent. See the
+[full requirements](docs/getting-started.md#requirements)
+for each workflow, including local trace conversion and experimental
+environment preparation.
+
 ## Start here
 
 You need a coding assistant that can read and write project files and run shell
 commands, [Node.js 22.20+](https://nodejs.org/en/download) (including npm and
 `npx`), and [Git](https://git-scm.com/downloads). In a terminal, change to the
-root of the repository containing **your agent**, then install the skills:
+root of the repository containing **your agent**, then install for your assistant:
 
 ```bash
 cd /path/to/your-agent-repository
 npx skills add NVIDIA-NeMo/labs-eval-author --skill '*' --agent claude-code --yes
 ```
 
-Replace `claude-code` with [your assistant's identifier](docs/getting-started.md#install-eval-author-with-npx).
-See the setup guide for [manual installation without Node.js](docs/getting-started.md#manual-installation-without-nodejs)
-and [verification](docs/getting-started.md#verify-your-assistant-can-use-eval-author).
+Replace `claude-code` with your assistant's identifier:
 
-Creating, validating, and running evaluation tasks requires an evaluation
-runtime: [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/) or
-[Harbor](https://docs.harborframework.com/). Eval Author follows your choice,
-otherwise keeps the runtime your existing suite uses, and defaults to Harbor.
-Installing the skills does not install Gym, Harbor, or Python dependencies; see
-the [workflow requirements](docs/getting-started.md#requirements). Repository
-inventory and case planning can start without either runtime.
+| Coding assistant | `--agent` value |
+| --- | --- |
+| Claude Code | `claude-code` |
+| Codex | `codex` |
+| Cursor | `cursor` |
+| Pi | `pi` |
+
+See the [Skills CLI documentation](https://github.com/vercel-labs/skills#supported-agents)
+for other assistants.
+
+Installation adds eleven skill directories with their instructions, scripts,
+schemas, templates, and references. Harbor and Python dependencies are separate
+[workflow requirements](docs/getting-started.md#requirements).
+
+Verify the installation from the same directory, using the same assistant value:
+
+```bash
+npx skills list --agent claude-code
+```
+
+For a global installation, add `--global` to this check too. Look for `eval-author`
+and its supporting skills. The CLI may show other assistants that share a skills
+directory; it has not installed those assistants. See the
+[installation guide](docs/getting-started.md#install-eval-author-with-npx)
+for scope, file locations, and troubleshooting.
+
+To install without Node.js, follow the
+[manual installation steps](docs/getting-started.md#manual-installation-without-nodejs).
 
 Open your agent's repository in a new session of the selected coding assistant
 and ask:
@@ -94,21 +138,24 @@ Use eval-author to help me with the evals for my agent.
 
 With no starting point supplied, Eval Author inventories existing evaluations
 and saves `.eval-author/discovery.md` with what it found and documented run
-commands. For a specific starting point, choose a guide and include the relevant
-file paths, trace IDs, or workspace names in your request:
+commands. Inventory can start without Harbor. If the assistant cannot find
+`eval-author`, follow the [availability check](docs/getting-started.md#verify-your-assistant-can-use-eval-author).
+If you know more about your scenario, try one of these:
 
-| Your starting point | Guide |
+| Say to your coding assistant | Guide |
 | --- | --- |
-| Find evaluations in an unfamiliar repository | [Discover existing evaluations](docs/getting-started.md#find-existing-evaluations) |
-| Build a suite when you have no evaluations | [Build your first evaluations](docs/first-evals.md) |
-| Check whether Gym or Harbor evaluations are ready to run | [Check readiness](docs/existing-evals.md#check-readiness) |
-| Compare intended behavior with evaluation and trace evidence | [Audit coverage](docs/existing-evals.md#audit-coverage) |
-| Create a Gym task from an audit gap | [Author and prove a Gym task](skills/eval-author-task-create/references/gym-tasks.md) |
-| Decide what to add after an audit | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
-| Understand a NeMo Helix Intake trace | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
-| Turn a local trace into an evaluation task | **Experimental** · [Build a task from a trace](docs/traces.md#build-an-evaluation-task) |
-| Understand an evaluation report | [Read your results](docs/results.md) |
-| Review a task derived from a trace before sharing it | **Experimental** · [Review the task for publication](docs/traces.md#sharing-generated-tasks) |
+| "Find the evals in this repository and explain how to run them." | [Discover existing evaluations](docs/getting-started.md#find-existing-evaluations) |
+| "I don't have evals yet. Help me build my first ones." | [Build your first evaluations](docs/first-evals.md) |
+| "Check whether my Gym or Harbor evals are ready to run." | [Check readiness](docs/existing-evals.md#check-readiness) |
+| "Audit my evals against my agent's intended behavior using these traces." | [Audit coverage](docs/existing-evals.md#audit-coverage) |
+| "Create a Gym evaluation from this audit gap." | [Author and prove a Gym task](skills/eval-author-task-create/references/gym-tasks.md) |
+| "Use this audit report to propose the next evals to add." | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
+| "Explain Intake trace TRACE_ID in workspace WORKSPACE." | [Inspect a trace](docs/traces.md#inspect-an-intake-trace) |
+| "Turn this local trace into a Harbor eval task." | **Experimental** · [Build a task from a trace](docs/traces.md#build-an-evaluation-task) |
+| "Explain this eval report and what I should check next." | [Read your results](docs/results.md) |
+| "Review this task derived from a trace before I share it." | **Experimental** · [Review the task for publication](docs/traces.md#sharing-generated-tasks) |
+
+Include the relevant file paths, trace IDs, or workspace names in your request.
 
 ### Experimental trace-environment loop
 

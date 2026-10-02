@@ -239,7 +239,7 @@ Use eval-author to help me with the evals for my agent.
 
 With no starting point supplied, Eval Author inventories the repository and
 saves `.eval-author/discovery.md` as described below. If you already know your
-goal, choose the matching [workflow guide](../README.md#start-here).
+goal, use a [more specific starter prompt](../README.md#start-here).
 
 ## Find existing evaluations
 
