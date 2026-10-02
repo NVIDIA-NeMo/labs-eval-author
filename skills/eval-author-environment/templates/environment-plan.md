@@ -3,7 +3,7 @@
 
 # Environment plan: <agent name>
 
-- **Status:** <draft | proven | unproven | blocked | failed>
+- **Status:** <draft | proven | unproven | blocked | failed> (`proven` only when the Proof table names the smoke task's own jobs)
 - **Provider:** <Harbor or Gym> <installed version>
 - **Kit:** `.eval-author/environments/<agent-slug>/`
 - **Calling flow and cases:** <first-eval or task-create>, <case IDs>
@@ -49,6 +49,11 @@
 - **Reset of external services:** <command, or not applicable>
 
 ## Proof
+
+Harbor rows name jobs of the smoke task in `smoke/`; for Gym, list the
+persistence and reset verifier cases instead. A task's own NOP, Oracle, or
+verifier controls never fill these rows. Leave a row's result as `not run` and
+the status `unproven` until its job exists.
 
 | Check | Command or job | Result | Evidence path |
 | --- | --- | --- | --- |

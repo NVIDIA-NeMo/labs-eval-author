@@ -206,7 +206,8 @@ each task's environment builds on that kit. Keep solutions and verifier-only
 data outside the agent's initial environment. This milestone is complete only
 when the kit's `environment-plan.md`, seeded data generator, and smoke results
 exist under `.eval-author/environments/<agent-slug>/`; the tasks' own controls
-never count as environment proof.
+never count as environment proof, and without the smoke task's own jobs the
+plan's status stays `unproven`.
 Verify the selected backend and required application access before declaring
 this milestone complete; identifying their requirements is only partial progress.
 Record unavailable access and which cases or checks it blocks, naming credential

@@ -241,7 +241,8 @@ Expect NOP to export the untouched seed with the write checks failing, and both
 reference-solution runs to pass. A failing reference solution means the
 environment or the smoke script is broken; fix the environment rather than
 loosening the checks. Record each job path and result in the plan; these runs
-are environment proof, not task evidence receipts.
+are environment proof, not task evidence receipts. The plan's status is `proven`
+only when it names these three jobs.
 
 ## Version notes
 

@@ -46,7 +46,11 @@ under `.eval-author/environments/<agent-slug>/` holds:
   integrity check. Size it like the data the agent meets in practice, large
   enough that the agent must search and choose, with the variety real data has:
   mixed statuses, similar records, and edge values;
-- the smoke proof in `smoke/` and its retained results.
+- the smoke task in `smoke/` with its NOP run and two reference-solution runs.
+  The plan may say `proven` only when it names those three jobs.
+
+Start the plan from its template at Step 1 and keep it current; it is a working
+record, not a summary written at the end.
 
 Build the data before the tests: generate the starting data first, then derive
 every expected value with an independent reference query over that data. A few
@@ -266,7 +270,9 @@ with at most three repairs before reporting the environment as failed. That
 budget is separate from any task's revision chain, and diagnostic probes never
 complete the proof. Do not weaken a smoke check to make it pass. Record the
 outcome as `proven`, `unproven` (prerequisites missing or checks not run),
-`blocked` (a required dependency cannot be provided), or `failed`.
+`blocked` (a required dependency cannot be provided), or `failed`. `proven`
+requires the smoke task's own three jobs (for Gym, the persistence and reset
+cases) in the plan's proof table; without them the outcome is `unproven`.
 
 ## Step 8: Hand off the kit
 

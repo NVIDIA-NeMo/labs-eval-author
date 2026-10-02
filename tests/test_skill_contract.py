@@ -877,6 +877,19 @@ def test_environment_flow_states_its_required_outputs_first() -> None:
         assert required in section, f"Required outputs no longer states {required!r}"
 
 
+def test_environment_plan_claims_proven_only_with_smoke_jobs() -> None:
+    """A pilot session wrote the plan last and listed task NOP and Oracle runs as its smoke proof."""
+    template = (_ENVIRONMENT_DIR / "templates" / "environment-plan.md").read_text(encoding="utf-8")
+    status = next(line for line in template.splitlines() if line.startswith("- **Status:**"))
+    assert "`proven` only when" in status
+    proof = template.split("## Proof", 1)[1].split("\n## ", 1)[0]
+    assert "never fill these rows" in proof
+    assert "`unproven`" in proof
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    step7 = body.split("## Step 7: Prove the environment", 1)[1].split("\n## ", 1)[0]
+    assert "without them the outcome is `unproven`" in step7
+
+
 def test_first_eval_builds_environment_data_before_tests() -> None:
     """Expected values come from the kit's data, so the data exists before any verifier."""
     _, body = _frontmatter_and_body(_FIRST_EVAL_DIR)
