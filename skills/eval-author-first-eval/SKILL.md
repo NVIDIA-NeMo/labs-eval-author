@@ -247,6 +247,7 @@ and spend authorization using the selected reference.
 
 Inspect results for every selected case; retain outputs, actions, rewards, and
 exceptions as fresh run evidence. A completed evaluation can have low scores.
+Recording this baseline with the evidence recorder is optional.
 
 ## 10. Review results and explain reruns
 

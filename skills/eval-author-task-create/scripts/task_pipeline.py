@@ -287,8 +287,8 @@ def _verify(
     runs = []
     all_covered = True
     run_ids: list[str] = []
-    for path in after_paths:
-        report = _read_json(path)
+    reports = [_read_json(path) for path in after_paths]
+    for path, report in zip(after_paths, reports):
         report_run_ids = _run_ids_from_report(report, report_path=path, task_id=task_id)
         if len(set(report_run_ids)) != 1:
             raise PipelineError("each after report must describe exactly one agent run")
@@ -317,8 +317,7 @@ def _verify(
         agents = verify_receipts(evidence_paths or [], task_id)
         if set(agents) != set(run_ids):
             raise EvidenceError("coverage report run IDs must match all supplied agent receipts")
-        for path in after_paths:
-            report = _read_json(path)
+        for report in reports:
             for entry in report["input_reports"]:
                 subject = entry["subject"]
                 trace = subject.get("trace")

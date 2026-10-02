@@ -79,7 +79,8 @@ tool-gap task creation still requires the aggregate JSON report.
 
 ## Available Scripts
 
-Run `uv run <skill_dir>/scripts/task_pipeline.py <command>`:
+Run `uv run <skill_dir>/scripts/task_pipeline.py <command>`. Run `task_evidence.py`
+with the selected runtime's Python; Harbor preparation imports Harbor.
 
 | Script | Purpose | Arguments |
 |---|---|---|
@@ -285,34 +286,63 @@ keywords.
 ## Step 5: prove task correctness with native controls
 
 Apply [Task validation and execution evidence](../eval-author/references/task-validation.md).
-Prepare the result contract and revision manifest before execution. Wrap each
-native control and agent invocation with `scripts/task_evidence.py run`, retaining
-fresh native results and receipts outside the task tree. Harbor requires a
-reference and a realistic incorrect control; include applicable valid-alternative
-and side-effect cases. A failing command or missing evidence is not a passing
-negative control. Use the same Harbor Python runtime for preparation and runs.
+Prepare the result contract and revision manifest before execution. Record each
+native control and each agent attempt as its own `scripts/task_evidence.py run`
+invocation, with fresh native results and receipts outside the task tree. Harbor
+requires a reference and a realistic incorrect control; include applicable
+valid-alternative and side-effect cases. A failing command or missing evidence is
+not a passing negative control. Use the same Harbor Python runtime for
+preparation and runs.
 
 Follow [Execution recovery](../eval-author/references/execution-recovery.md)
 for native controls, real-agent trials, and reporting. Compatibility repairs
 must preserve the selected provider and original grading semantics.
 
 For Gym, use the positive and negative controls and native execution in the
-[Gym guide](references/gym-tasks.md). For Harbor, run the reference command
-through the evidence recorder before spending model credentials:
+[Gym guide](references/gym-tasks.md). For Harbor, record the Oracle reference
+before spending model credentials. `harbor trial start` writes `result.json` and
+`agent/trajectory.json` under its `--trials-dir` and `--trial-name`, giving the
+recorder fixed paths; a Harbor job names its trials randomly:
 
 ```bash
-harbor run -p .eval-author/task-drafts/<task-slug> -a oracle
+TRIALS="$PWD/.eval-author/jobs/<task-slug>"
+<harbor_python> <skill_dir>/scripts/task_evidence.py run \
+  --manifest .eval-author/task-measurements/<task-slug>/revision-1.json \
+  --case reference --run-id reference-1 \
+  --result "$TRIALS/reference-1/result.json" \
+  --out .eval-author/task-measurements/<task-slug>/reference-1.json \
+  -- harbor trial start -p .eval-author/task-drafts/<task-slug> -a oracle \
+  --trial-name reference-1 --trials-dir "$TRIALS"
 ```
 
-Continue only when Harbor reports no exception and reward 1.0. Fix the task,
-solution, or verifier when Oracle fails; do not weaken the verifier merely to
-make it pass.
+Continue only when the receipt reports `passed`, with no exception and reward
+1.0. Record the incorrect control the same way, choosing its agent as described
+in [Review the verifier before running](../eval-author/references/task-validation.md#review-the-verifier-before-running).
+Fix the task, solution, or verifier when Oracle fails; do not weaken the verifier
+merely to make it pass.
 
 ## Step 6: run the real agent twice
 
 Running a model spends credentials. Do it only when the user asked for the run
-or approved it. Use the repository's proven agent configuration, point it at the
-draft, and use Gym `--num-repeats 2` or Harbor `n_attempts: 2`. Keep the resulting job under `.eval-author/`.
+or approved it. Use the repository's proven agent configuration and point it at
+the draft. Record each attempt as its own invocation with fresh native output:
+one Gym repeat per recorded run, or one Harbor trial per run with a distinct
+trial name. One job with two attempts cannot back two receipts. Keep all outputs
+under `.eval-author/`:
+
+```bash
+<harbor_python> <skill_dir>/scripts/task_evidence.py run \
+  --manifest .eval-author/task-measurements/<task-slug>/revision-1.json \
+  --case agent --run-id repeat-1 \
+  --result "$TRIALS/repeat-1/result.json" \
+  --trace "$TRIALS/repeat-1/agent/trajectory.json" \
+  --out .eval-author/task-measurements/<task-slug>/agent-1.json \
+  -- harbor trial start -p .eval-author/task-drafts/<task-slug> \
+  -a <agent> -m <model> --trial-name repeat-1 --trials-dir "$TRIALS"
+```
+
+Repeat with `repeat-2` and `agent-2.json`. Carry a proven Harbor job's agent
+settings into the equivalent trial options or a trial `--config`.
 
 Require both trials to:
 
@@ -329,13 +359,16 @@ coverage result.
 ## Step 7: measure and aggregate each trial
 
 Run `eval-author-audit`'s `measure.py` and `report.py` separately for each
-trial. Keep repeat outputs separate so one successful run cannot hide another:
+recorded attempt. Measure the recorded trace with the recorder's `--run-id` and
+the selected `<task-slug>`; `verify` rejects any other trace. For Harbor, pass the
+recorded trial directory; for Gym, pass the converted ATIF with `--trace`. Keep
+repeat outputs separate so one successful run cannot hide another:
 
 ```bash
 uv run --with-requirements <audit_skill_dir>/requirements.txt \
   <audit_skill_dir>/scripts/audit_spec/measure.py \
   --audit .eval-author/audit.md \
-  --trial-dir <job-dir>/<trial-1> \
+  --trial-dir "$TRIALS/repeat-1" \
   --task-id <task-slug> \
   --run-id repeat-1 \
   --out-dir .eval-author/task-measurements/<task-slug>/repeat-1
@@ -347,7 +380,7 @@ uv run --with-requirements <audit_skill_dir>/requirements.txt \
   --out .eval-author/task-measurements/<task-slug>/repeat-1-report.json
 ```
 
-Repeat for trial 2.
+Repeat for `repeat-2`.
 
 These newly generated trials are evidence for the selected draft. Retain their
 relationship to the agreed examples separately from the original selected
@@ -418,5 +451,7 @@ Proposal-only requests end before scaffolding or execution.
   outcome, then rerun; preserve the assertion being tested.
 - Invalid ATIF or repeated run identities: fix the adapter or obtain two distinct
   recorded trials before measurement; a reward cannot replace trajectory evidence.
+- `verify` reports a trace or run-ID mismatch: measure the recorder's exact trace
+  with its `--run-id` and `--task-id <task-slug>`.
 - `accepted: false`: inspect both reports, revise the draft if needed, and rerun
   both attempts within the authorized scope before claiming closure.

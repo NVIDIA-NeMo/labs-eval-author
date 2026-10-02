@@ -27,7 +27,7 @@ class EvidenceError(ValueError):
     """Evidence is missing, stale, or inconsistent."""
 
 
-def read(path: Path) -> dict[str, Any]:
+def loads(data: str | bytes) -> Any:
     def constant(value: str) -> Any:
         raise EvidenceError(f"nonfinite JSON value: {value}")
 
@@ -39,8 +39,12 @@ def read(path: Path) -> dict[str, Any]:
             result[key] = value
         return result
 
+    return json.loads(data, object_pairs_hook=pairs, parse_constant=constant)
+
+
+def read(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(path.read_text(), object_pairs_hook=pairs, parse_constant=constant)
+        value = loads(path.read_text())
     except (OSError, ValueError) as exc:
         raise EvidenceError(f"cannot read evidence {path}: {exc}") from exc
     if not isinstance(value, dict):
@@ -181,7 +185,10 @@ def prepare(
         "repairs": repairs,
     }
     if contract["provider"] == "harbor":
-        from harbor.models.task.task import Task
+        try:
+            from harbor.models.task.task import Task
+        except ImportError as exc:
+            raise EvidenceError("Harbor preparation needs the Harbor Python runtime used for execution") from exc
 
         manifest["harbor_task_checksum"] = Task(task.resolve()).checksum
     if contract["provider"] == "gym":

@@ -11,7 +11,7 @@ or measured gap closure is required.
 ## 5. Prepare cases and grading
 
 Use the verified Harbor CLI and Python environment. Read `harbor task init --help`
-and `harbor run --help` before using options. Use an unused descriptive slug for
+and `harbor trial start --help` before using options. Use an unused descriptive slug for
 each planned task under `.eval-author/task-drafts/`. One task may contain several
 examples; preserve the agreed mapping of stable example IDs to tasks.
 
@@ -63,15 +63,18 @@ agent connection.
 ## 8. Validate the evals
 
 Use Harbor's installed validators to check task validity. Exercise the environment
-and grading with NOP and Oracle, retaining all jobs under `.eval-author/jobs/`
-with fresh names on reruns:
+and grading with NOP and Oracle. Run each control as a single trial so the
+parent skill's evidence recorder gets fixed result paths, retaining all trials
+under `.eval-author/jobs/` with fresh names on reruns:
 
 ```bash
-harbor run -p .eval-author/task-drafts/<slug> -a nop \
-  --jobs-dir .eval-author/jobs --job-name <slug>-nop-1
-harbor run -p .eval-author/task-drafts/<slug> -a oracle \
-  --jobs-dir .eval-author/jobs --job-name <slug>-oracle-1
+harbor trial start -p .eval-author/task-drafts/<slug> -a nop \
+  --trials-dir "$PWD/.eval-author/jobs/<slug>-controls" --trial-name nop-1
+harbor trial start -p .eval-author/task-drafts/<slug> -a oracle \
+  --trials-dir "$PWD/.eval-author/jobs/<slug>-controls" --trial-name oracle-1
 ```
+
+Record each as its own run, with `--result` set to that trial's `result.json`.
 
 For each task, inspect trial results and recorded rewards. Both runs must
 complete without exceptions and meet the predeclared criteria, including reward
@@ -99,4 +102,4 @@ Retain outputs, actions, rewards, exceptions, and exact commands for every
 selected task under fresh job paths. Low agent scores do not invalidate a working
 suite. Return to stage 10 to reconcile delivered cases and explain full-suite and
 single-case reruns. Label NOP/Oracle commands as task validation and the actual
-agent command as evaluation; use new job names so reruns preserve prior evidence.
+agent command as evaluation; use new trial and job names so reruns preserve prior evidence.

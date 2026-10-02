@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -12,9 +14,36 @@ from types import SimpleNamespace
 import pytest
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "skills/eval-author-task-create/scripts"
+AUDIT_SKILL = SCRIPTS.parents[1] / "eval-author-audit"
 sys.path.insert(0, str(SCRIPTS))
 evidence = importlib.import_module("task_evidence")
 pipeline = importlib.import_module("task_pipeline")
+
+FAKE_HARBOR = """
+import json, sys, uuid
+from pathlib import Path
+
+args = sys.argv[1:]
+assert args[:2] == ["trial", "start"], args
+options = dict(zip(args[2::2], args[3::2]))
+trial = Path(options["--trials-dir"]) / options["--trial-name"]
+agent = options["-a"]
+trial.mkdir(parents=True, exist_ok=True)
+if agent not in ("nop", "oracle"):
+    call = {"tool_call_id": "call-1", "function_name": "customer.lookup", "arguments": {}}
+    steps = [
+        {"step_id": 1, "source": "user", "message": "Look up the customer."},
+        {"step_id": 2, "source": "agent", "message": "Looking up.", "tool_calls": [call]},
+    ]
+    atif = {"schema_version": "ATIF-v1.7", "session_id": trial.name, "trajectory_id": trial.name,
+            "agent": {"name": "example-agent", "version": "1.0.0"}, "steps": steps}
+    (trial / "agent").mkdir(exist_ok=True)
+    (trial / "agent" / "trajectory.json").write_text(json.dumps(atif))
+result = {"id": str(uuid.uuid4()), "task_name": Path(options["-p"]).name, "trial_name": trial.name,
+          "task_checksum": "synthetic", "exception_info": None,
+          "verifier_result": {"rewards": {"reward": 0 if agent == "nop" else 1}}}
+(trial / "result.json").write_text(json.dumps(result))
+"""
 
 
 def write(path, value):
@@ -266,8 +295,99 @@ def test_diagnostic_cannot_replace_reference_control(tmp_path, prepared):
         evidence.verify_receipts([receipt], "cover-read")
 
 
+def test_harbor_preparation_without_harbor_is_an_evidence_error(tmp_path, prepared, monkeypatch):
+    task, contract_path, _ = prepared
+    monkeypatch.setitem(sys.modules, "harbor.models.task.task", None)
+    with pytest.raises(evidence.EvidenceError, match="Harbor Python runtime"):
+        evidence.prepare(task, contract_path, tmp_path / "without-harbor.json")
+
+
 def test_numeric_bands_and_missing_health_are_distinct():
     assert evidence.assertions({"score": 0.8}, [{"pointer": "/score", "min": 0.7, "max": 1}])
     assert not evidence.assertions({"score": True}, [{"pointer": "/score", "min": 0, "max": 1}])
     with pytest.raises(evidence.EvidenceError, match="missing result field"):
         evidence.assertions({}, [{"pointer": "/error", "equals": None}])
+
+
+def test_documented_harbor_trial_flow_is_accepted(tmp_path, monkeypatch):
+    """Recorded `harbor trial start` runs, measured as documented, satisfy verify end to end."""
+    import harbor.models.task.task
+
+    monkeypatch.setattr(harbor.models.task.task, "Task", lambda path: SimpleNamespace(checksum="synthetic"))
+    ethos = tmp_path / "ETHOS.md"
+    ethos.write_text("# Ethos\n\n## Tools\n\n- customer.lookup\n")
+    audit = tmp_path / ".eval-author/audit.md"
+    audit.parent.mkdir()
+    audit.write_text(
+        (AUDIT_SKILL / "templates/audit.md")
+        .read_text()
+        .replace(
+            'sha256: "sha256:<replace-with-64-hex-digest>"',
+            f"sha256: sha256:{hashlib.sha256(ethos.read_bytes()).hexdigest()}",
+        )
+    )
+    gap = {"name": "customer.lookup", "kind": "tool", "reason": "not_covered_by_any_input_report"}
+    before = write(tmp_path / "before.json", {"uncovered_items": [gap]})
+    task_id = pipeline._task_slug_for_target(evidence.read(before), "customer.lookup")
+    task = tmp_path / ".eval-author/task-drafts" / task_id
+    task.mkdir(parents=True)
+    (task / "instruction.md").write_text("Look up the customer.")
+    measurements = tmp_path / ".eval-author/task-measurements" / task_id
+    contract = {
+        "task_id": task_id,
+        "provider": "harbor",
+        "native_run_id": "/id",
+        "alternative_not_applicable": "The lookup has one correct result.",
+        "side_effect_not_applicable": "The task only reads customer data.",
+        "cases": {
+            kind: {
+                "kind": kind,
+                "requirement": "Look up the requested customer.",
+                "health": [{"pointer": "/exception_info", "equals": None}],
+                "checks": [{"pointer": "/verifier_result/rewards/reward", "min": reward, "max": reward}],
+            }
+            for kind, reward in (("reference", 1), ("incorrect", 0), ("agent", 1))
+        },
+    }
+    manifest = measurements / "revision-1.json"
+    evidence.prepare(task, write(tmp_path / "contract.json", contract), manifest)
+    fake_harbor = tmp_path / "fake_harbor.py"
+    fake_harbor.write_text(FAKE_HARBOR)
+    trials = tmp_path / ".eval-author/jobs" / task_id
+    receipts = []
+    for case, run_id, agent in [
+        ("reference", "reference-1", "oracle"),
+        ("incorrect", "incorrect-1", "nop"),
+        ("agent", "repeat-1", "example-agent"),
+        ("agent", "repeat-2", "example-agent"),
+    ]:
+        command = [sys.executable, str(fake_harbor), "trial", "start", "-p", str(task), "-a", agent]
+        command += ["--trial-name", run_id, "--trials-dir", str(trials)]
+        trace = trials / run_id / "agent/trajectory.json" if case == "agent" else None
+        receipt = measurements / f"{run_id}.json"
+        recorded = evidence.run(manifest, case, run_id, receipt, trials / run_id / "result.json", trace, command)
+        assert recorded["status"] == "passed", recorded
+        receipts.append(receipt)
+
+    after = []
+    for run_id in ("repeat-1", "repeat-2"):
+        out = measurements / run_id
+        report = measurements / f"{run_id}-report.json"
+        for script, args in [
+            (
+                "measure.py",
+                ["--trial-dir", trials / run_id, "--task-id", task_id, "--run-id", run_id, "--out-dir", out],
+            ),
+            ("report.py", ["--coverage-dir", out, "--out", report]),
+        ]:
+            command = [sys.executable, AUDIT_SKILL / "scripts/audit_spec" / script, "--audit", audit, *args]
+            completed = subprocess.run([str(part) for part in command], capture_output=True, text=True)
+            assert completed.returncode == 0, completed.stdout + completed.stderr
+        after.append(report)
+
+    command = [sys.executable, str(SCRIPTS / "task_pipeline.py"), "verify", "--before", str(before)]
+    command += ["--target", "customer.lookup", *(f"--after={path}" for path in after)]
+    command += [f"--evidence={path}" for path in receipts]
+    completed = subprocess.run(command, capture_output=True, text=True)
+    verdict = json.loads(completed.stdout)
+    assert completed.returncode == 0 and verdict["accepted"] and verdict["coverage_closed"], completed.stdout

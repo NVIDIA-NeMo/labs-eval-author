@@ -139,7 +139,9 @@ service readiness or actual agent performance.
 Select the repository's actual agent and its required model configuration. Start
 and run it through Gym, retaining the complete composition and input identities.
 For the native simple-agent composition and an explicit example JSONL file,
-start services in one terminal, then collect in another from the same draft root:
+start services in one terminal, then collect in another from the same draft root.
+Write outputs outside the draft, in a fresh directory per recorded run; `REPO` is
+the absolute repository root:
 
 ```bash
 /path/to/Gym/.venv/bin/gym env start \
@@ -148,8 +150,8 @@ start services in one terminal, then collect in another from the same draft root
 
 /path/to/Gym/.venv/bin/gym eval run --no-serve --agent <configured-agent-instance> \
   --input environments/<name>/data/example.jsonl \
-  --output .eval-author/runs/<run-id>/rollouts.jsonl \
-  --num-repeats 2 --concurrency 1
+  --output "$REPO/.eval-author/runs/<task-slug>/<run-id>/rollouts.jsonl" \
+  --num-repeats 1 --concurrency 1
 ```
 
 Use the head-server address from the running composition when it differs from
@@ -157,6 +159,8 @@ Gym's default. In v0.6.0, end-to-end `gym eval run` without `--no-serve` uses
 prepared `train`, `validation`, or `benchmark` splits; it rejects `--input` and
 `--split example`. For that mode, declare repeats in the dataset configuration.
 The example above uses an explicit file and `--num-repeats` against running servers.
+Each recorded attempt is its own invocation with a new `<run-id>`; task creation
+records two.
 
 For each authorized attempt, restore the planned fixture state and use the same
 locked inputs and run settings. Retain a copy of the resolved version/rerun plan

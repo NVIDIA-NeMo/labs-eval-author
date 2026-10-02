@@ -33,10 +33,6 @@ allowed-tools: Bash Read Write Grep Glob
 
 # Eval Author: trace to environment
 
-For proof execution failures and result recaps, follow
-[Execution recovery](../eval-author/references/execution-recovery.md) alongside
-this workflow's integrity protocol. Diagnostic probes never complete proof.
-
 **Experimental.** All workflows and outputs from this skill are experimental,
 including source normalization, task and fixture generation, validation, and
 publication review/export. Identify them as experimental when presenting them
@@ -253,6 +249,10 @@ For Gym output, read and follow
 [references/gym-output.md](references/gym-output.md) for construction, native
 validation, and handoff. It replaces the Harbor-specific instructions below,
 Step 7's candidate finalization, and Harbor batch/publication reporting.
+
+For proof execution failures and result recaps, follow
+[Execution recovery](../eval-author/references/execution-recovery.md) alongside
+this workflow's integrity protocol. Diagnostic probes never complete proof.
 
 For Harbor output, under `<task-dir>/task/`, create the smallest
 Harbor task that reproduces the initial state and objectively verifies the
