@@ -890,6 +890,16 @@ def test_environment_plan_claims_proven_only_with_smoke_jobs() -> None:
     assert "without them the outcome is `unproven`" in step7
 
 
+def test_environment_kit_records_digests_for_preservation_checks() -> None:
+    """Bench tasks checked preserved tables by row count, which still passes after values are edited."""
+    starting_data = (_ENVIRONMENT_DIR / "references" / "starting-data.md").read_text(encoding="utf-8")
+    section = starting_data.split("## Digests for preservation checks", 1)[1].split("\n## ", 1)[0]
+    for required in ("data/digests.json", "Row counts are no substitute", "verifier-only"):
+        assert required in section, f"Digest guidance no longer states {required!r}"
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    assert "per-table content digests" in body
+
+
 def test_first_eval_builds_environment_data_before_tests() -> None:
     """Expected values come from the kit's data, so the data exists before any verifier."""
     _, body = _frontmatter_and_body(_FIRST_EVAL_DIR)

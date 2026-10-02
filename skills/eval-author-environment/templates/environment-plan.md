@@ -29,7 +29,7 @@
 
 ## Starting data
 
-- **Generator, seed, and digest:** <path, seed, digest>
+- **Generator, seed, and digests:** <path, seed, `data/digests.json` (verifier-only, per table)>
 - **Base population:** <entities and counts, and where the sizing came from>
 - **Per-task records:** <where each task's records live>
 - **Decoys:** <the condition each serves; where the verifier-only labels live>

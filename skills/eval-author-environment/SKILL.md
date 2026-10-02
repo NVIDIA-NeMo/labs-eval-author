@@ -43,7 +43,8 @@ under `.eval-author/environments/<agent-slug>/` holds:
 - `environment-plan.md`, started from [the template](templates/environment-plan.md),
   with fit, inventory, dependency choices, fidelity card, and proof status;
 - a seeded generator in `data/` that produces the starting data, with its
-  integrity check. Size it like the data the agent meets in practice, large
+  integrity check and per-table content digests that verifiers use to check
+  preserved tables. Size it like the data the agent meets in practice, large
   enough that the agent must search and choose, with the variety real data has:
   mixed statuses, similar records, and edge values;
 - the smoke task in `smoke/` with its NOP run and two reference-solution runs.
@@ -202,6 +203,8 @@ Read [Starting data](references/starting-data.md) before generating records.
 - Check integrity before any task relies on the data: references resolve,
   statuses permit the expected actions, totals recompute, and identifiers the
   system assigns at runtime are not pre-created.
+- Record verifier-only, per-table content digests of the starting data, so each
+  task checks what it must preserve by content rather than by row counts.
 - Derive each case's expected end state from its Ethos-backed outcome applied to
   this data, with an independent reference query over the generated records
   rather than arithmetic over a few rows, before the verifier is written. When

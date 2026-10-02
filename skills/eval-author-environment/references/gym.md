@@ -38,7 +38,8 @@ Do not apply Harbor layouts, `task.toml` fields, or NOP and Oracle flags to Gym.
   records when the session starts. Never share mutable state across sessions.
 - The verifier runs in the resources server and can read session state
   directly. Grade the end state the case expects; a tool call alone does not
-  establish a side effect.
+  establish a side effect. Compare state the case must leave unchanged with the
+  kit's per-table digests from [Starting data](starting-data.md#digests-for-preservation-checks).
 - Keep expected state and decoy labels in verifier-only row fields or
   server-side data. Check what the selected agent actually receives, including
   tool outputs; a separate JSONL key alone does not prove isolation.

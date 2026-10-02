@@ -11,8 +11,9 @@ a task needs lets the agent succeed without searching, choosing, or checking.
 
 - Generate structured data in code from the repository's schema, using
   migrations or ORM models as the source of truth, with a fixed seed. Write the
-  generated data into `data/` and record the generator, seed, and a digest, so
-  every build and every trial starts from identical records.
+  generated data into `data/` and record the generator, seed, and per-table
+  digests ([Digests for preservation checks](#digests-for-preservation-checks)),
+  so every build and every trial starts from identical records.
 - Size and shape the population like the data the agent meets in practice:
   entity counts, status distributions, typical field values, and history. Use
   the selected traces when they exist; otherwise choose plausible volumes and
@@ -69,6 +70,22 @@ Before any task relies on the data, check and record:
 
 A script or query that asserts these properties is more reliable than
 inspection; keep it in `data/` and rerun it whenever the generator changes.
+
+## Digests for preservation checks
+
+Each time the generator runs, record a content digest for every table or file in
+the starting data in `data/digests.json`. Compute each digest independently of
+row order and storage format: serialize every row canonically, sort the
+serialized rows, and hash them with SHA-256. Row counts are no substitute, since
+a count still matches after values are edited. When a task layers its own
+records onto a table, record that table's digest for the task's starting state.
+
+The digests are verifier-only: copy the entries a task needs into its verifier
+files, never into the agent's environment. The verifier recomputes the digest of
+each table the case must leave unchanged from the exported end state and fails
+the case on a mismatch. Tables the case is meant to change get field-level
+assertions instead, and a table missing from the export is an infrastructure
+error.
 
 ## Expected end state
 

@@ -191,6 +191,11 @@ that installs grading dependencies and runs `COPY . /tests/`, so grading never
 installs anything or reaches the network. Sidecar artifacts and collect hooks
 need a Compose-capable sandbox.
 
+For tables the case must leave unchanged, the verifier recomputes their content
+digests from the export and compares them with the entries copied into the
+task's verifier files, as [Starting data](starting-data.md#digests-for-preservation-checks)
+describes.
+
 Harbor records a failed collection in the trial's artifact manifest without
 failing the trial. Write the verifier so a missing or unparseable export is an
 explicit infrastructure error, never a pass and never an agent failure. When the
