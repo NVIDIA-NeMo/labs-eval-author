@@ -794,6 +794,21 @@ def test_inspect_flow_resolves_the_cli_without_changing_the_environment() -> Non
     assert "Use the resolved invocation for every command" in body
 
 
+def test_task_validation_covers_instructions_preservation_and_names() -> None:
+    """Generated tasks leaked causes and answers, checked kept tables by row count, and kept stale names."""
+    text = (_CORE_DIR / "references" / "task-validation.md").read_text(encoding="utf-8")
+    section = text.split("## Review the verifier before running", 1)[1].split("\n## ", 1)[0]
+    review = " ".join(section.split())
+    for required in (
+        "Do not state the root cause, the fix",
+        "copy control",
+        "Check preserved data by content",
+        "a row count still matches",
+        "rename it",
+    ):
+        assert required in review, f"Task validation no longer states {required!r}"
+
+
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)
 def test_each_sub_flow_defers_to_the_core(skill_dir: Path) -> None:
     """A sub-flow points at the core rather than restating the standard itself.

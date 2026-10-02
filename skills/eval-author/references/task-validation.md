@@ -18,6 +18,20 @@ results in the specification, reviewed fixtures, or independently validated
 reference execution, never the submission being graded. A source agent's answer
 is evidence to investigate, not ground truth by itself.
 
+Write the public instruction the way the requester would: the goal, the
+constraints, and the symptoms they can observe. Do not state the root cause, the
+fix, or results that only doing the work produces, such as corrected totals,
+unless following that specification is the behavior the case tests. If the
+instruction must name a value the grader checks, add a copy control: a
+submission that reproduces the instruction's values without doing the work must
+fail.
+
+Name and describe each task by the behavior it actually tests. When a case
+changes while it is built, for example because the planned failure does not
+occur in the data, rename it and record the change in the plan and case
+inventory as a scope change. Task-create's slug is fixed by its selected gap, so
+there the draft must keep exercising that gap.
+
 For each outcome, identify a plausible incomplete implementation that the grader
 must reject. Exercise the supported interface and observe the actual result or
 side effect; a tool name, success message, or agent-written log is insufficient.
@@ -32,8 +46,10 @@ Declare a small set of controls appropriate to the task:
 - **Alternative:** a materially different valid solution passes where the public
   contract permits one. Otherwise record a concrete non-applicability reason.
 - **Side effect:** check the requested state change and relevant preservation
-  constraints through trusted observations, when applicable. Otherwise explain
-  why the task has no side-effect requirement.
+  constraints through trusted observations, when applicable; otherwise explain
+  why the task has no side-effect requirement. Check preserved data by content,
+  for example with a digest or set comparison against the starting state: a row
+  count still matches after values are edited.
 
 NOP can serve as the incorrect control only when doing nothing is incorrect and
 its failure exercises the intended assertion. Harbor's built-in control agents
