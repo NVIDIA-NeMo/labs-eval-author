@@ -3,33 +3,68 @@
 
 # NeMo Eval Author
 
-NeMo Eval Author helps your coding agent create useful evaluations and find
-gaps in behavior coverage, grounded in your agent's intended behavior and
-execution traces.
+![Status: Research Preview](https://img.shields.io/badge/Status-Research%20Preview-orange)
 
-Bring your agent's repository and use the skills with your own coding agent.
-Build a first evaluation suite, check an existing suite, or audit its coverage.
+Turning your agent's intended behavior into representative evaluation cases is
+hard. Each case needs checks that distinguish success from failure, and passing
+cases can still leave important behavior untested.
 
-First evaluations and readiness checks use [Harbor](https://docs.harborframework.com/).
-Task creation from an existing audit gap also supports [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/)
-through the [Gym task-authoring guide](skills/eval-author-task-create/references/gym-tasks.md).
-Gym proposals include a version-locking and rerun plan for comparable evaluations.
-The experimental [trace-to-Gym extension](skills/eval-author-trace-environment/references/gym-output.md)
-also produces native Gym tasks directly from trace evidence, without an audit gap.
+NeMo Eval Author explores how a coding assistant can help you create evaluations
+and investigate gaps in behavior coverage. It provides skills that work with
+your agent's repository, its intended behavior, and available execution traces
+(records of the steps your agent took). You can start without traces: build a
+first evaluation suite, inspect existing evaluations, or plan cases with your
+coding assistant.
+
+> [!WARNING]
+> **Research preview**
+>
+> This is early research for experimentation and collaboration with developers.
+> Workflows and interfaces may change. Review generated cases, graders (the
+> checks that score an agent's work), and coverage findings before relying on
+> their results.
 
 For example, an audit might report:
 
 > **Recovery from rejected tool arguments lacks trace evidence.** The agent is
 > expected to correct an invalid argument, but the measured traces do not cover
-> that behavior. Review the existing cases to decide whether to add a recovery
-> test or collect more evidence.
+> that behavior. This does not establish that a recovery test is missing. Review
+> the existing cases to decide whether to add a test or collect more evidence.
 
-This project is in alpha. Workflows and interfaces may change.
+## Questions we are exploring
+
+- How can intended behavior become representative cases with meaningful success
+  checks?
+- How can generated tasks challenge an agent in realistic ways and distinguish
+  stronger behavior from weaker behavior?
+- How can evaluations and traces reveal gaps without overstating coverage?
+- How can developers decide which evaluations to add or improve next?
+
+## Help shape the research
+
+Try Eval Author with your agent and tell us where the approach needs work:
+
+- Where do proposed cases miss behavior that matters to you?
+- Where do graders judge outcomes incorrectly?
+- Which coverage findings leave you unsure what to test or investigate next?
+
+Generated tasks can be too easy. Where do your agents pass without exercising
+the behavior you wanted to test? An anonymized example of the task, how the agent
+passed, and what would make it meaningfully challenging would help us improve
+task generation.
+
+If an NVIDIA contact shared this preview with you, send your feedback through
+that contact and ask them to route it to the Eval Author research team.
+Otherwise, use the [NVIDIA Developer contact form](https://developer.nvidia.com/contact)
+with **Eval Author research preview feedback** in the subject. Include your
+workflow, what you expected, what happened, and a small anonymized example.
+Please avoid sending raw traces, prompts, credentials, or user data in an initial
+message. For code contributions, see the [current contribution policy](CONTRIBUTING.md).
 
 ## Prerequisites
 
-First-eval, audit-derived, and trace-derived task creation support NeMo Gym and
-Harbor. They honor the user's choice, otherwise preserve the existing suite's
+First-eval, audit-derived, and trace-derived task creation support [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/) and
+[Harbor](https://docs.harborframework.com/). They honor the user's choice, otherwise preserve the existing suite's
 provider, and default to Harbor when neither is specified. Gym is compatible
 with Harbor, and the user has the final say. Gym authoring needs
 Gym v0.6.0+ in its separate Python 3.13.14+ environment; Harbor authoring needs its
@@ -52,8 +87,6 @@ for each workflow, including local trace conversion and experimental
 environment preparation.
 
 ## Start here
-
-### Install with npx
 
 You need a coding assistant that can read and write project files and run shell
 commands, [Node.js 22.20+](https://nodejs.org/en/download) (including npm and
@@ -93,16 +126,8 @@ directory; it has not installed those assistants. See the
 [installation guide](docs/getting-started.md#install-eval-author-with-npx)
 for scope, file locations, and troubleshooting.
 
-### Install without npx
-
-With Git and a POSIX shell (macOS, Linux, or WSL), you can clone this repository
-and copy its complete active skill directories into your assistant's project
-skills folder. This path requires no Node.js or npm. Follow the
-[manual installation steps](docs/getting-started.md#manual-installation-without-nodejs)
-for the destination, copy commands, and verification. You can also
-[load the checkout by file path](docs/getting-started.md#manual-checkout).
-
-### Start your first interaction
+To install without Node.js, follow the
+[manual installation steps](docs/getting-started.md#manual-installation-without-nodejs).
 
 Open your agent's repository in a new session of the selected coding assistant
 and ask:
@@ -121,7 +146,7 @@ If you know more about your scenario, try one of these:
 | --- | --- |
 | "Find the evals in this repository and explain how to run them." | [Discover existing evaluations](docs/getting-started.md#find-existing-evaluations) |
 | "I don't have evals yet. Help me build my first ones." | [Build your first evaluations](docs/first-evals.md) |
-| "Check whether my Harbor evals are ready to run." | [Check readiness](docs/existing-evals.md#check-readiness) |
+| "Check whether my Gym or Harbor evals are ready to run." | [Check readiness](docs/existing-evals.md#check-readiness) |
 | "Audit my evals against my agent's intended behavior using these traces." | [Audit coverage](docs/existing-evals.md#audit-coverage) |
 | "Create a Gym evaluation from this audit gap." | [Author and prove a Gym task](skills/eval-author-task-create/references/gym-tasks.md) |
 | "Use this audit report to propose the next evals to add." | [Plan new or improved evaluations](docs/existing-evals.md#propose-new-evaluations) |
