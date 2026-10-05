@@ -33,3 +33,14 @@ commit-check: ## Check HEAD's message (override COMMIT_MSG for a prepared messag
 		git log -1 --format=%B HEAD > "$$message_file"; \
 	fi; \
 	uv run --locked pre-commit run --hook-stage commit-msg --commit-msg-filename "$$message_file"
+
+SEMANTIC_SUITE ?= evals/semantic/pilot.json
+SEMANTIC_RUNTIME ?=
+SEMANTIC_OUTPUT ?=
+
+.PHONY: semantic-calibrate semantic-check
+semantic-calibrate semantic-check: ## Run live semantic calibration or comparison with the existing Hub credential
+	@test -n "$(SEMANTIC_RUNTIME)" -a -n "$(SEMANTIC_OUTPUT)" || { echo 'Set SEMANTIC_RUNTIME and a fresh SEMANTIC_OUTPUT directory.'; exit 2; }
+	INFERENCE_HUB_API_KEY="$${INFERENCE_HUB_API_KEY:-$${NVIDIA_INFERENCE_HUB_API_KEY:-}}" \
+	uv run --locked python tools/semantic_regression.py --mode $(patsubst semantic-%,%,$@) \
+	  --suite "$(SEMANTIC_SUITE)" --runtime "$(SEMANTIC_RUNTIME)" --output "$(SEMANTIC_OUTPUT)"
