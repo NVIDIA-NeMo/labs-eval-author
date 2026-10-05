@@ -4,7 +4,7 @@
 [project]
 name = "labs-eval-author"
 version = "0.1.0"
-description = "Eval Author skills for Harbor suite discovery, audit validation, trace-derived environments, and Intake trace understanding."
+description = "Skills that help coding assistants build agent evaluations, check existing suites, and audit behavior coverage with NeMo Gym or Harbor."
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md", "third_party/licenses.jsonl", "third_party/NOTICES.txt", "third_party/license_texts/*.txt"]
 requires-python = ">=3.12,<3.14"
