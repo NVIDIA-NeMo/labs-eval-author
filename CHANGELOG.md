@@ -6,7 +6,7 @@
 Notable changes to NeMo Eval Author are recorded here. Eval Author is a research
 preview: workflows, skills, and saved artifacts may change between releases.
 
-## 0.1.0 (unreleased)
+## 0.1.0
 
 Initial research-preview release, tested with Harbor 0.20.0 and NeMo Gym v0.6.0.
 To install exactly this version, clone the `v0.1.0` tag and follow the
