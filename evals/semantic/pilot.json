@@ -12,14 +12,14 @@
       "skill_files": [
         "skills/eval-author-audit/SKILL.md"
       ],
-      "query": "Frozen synthetic audit evidence: the agent is intended to read CSV and Excel files. The fixed tool denominator is read_csv and read_excel. Three successful ATIF traces contain read_csv calls only; validated tool coverage is 1/2. Write exactly two short sentences, at most 60 words total: one finding about what the observed calls establish for CSV reading, and one about what the absence of read_excel calls establishes for Excel support. Interpret the evidence without repeating the numeric counts or coverage fraction. Do not recommend next actions or discuss other audit dimensions."
+      "query": "Frozen synthetic audit evidence: the agent is intended to read CSV and Excel files. The fixed tool denominator is read_csv and read_excel. Three successful ATIF traces contain read_csv calls only; validated tool coverage is 1/2. Answer these two questions in exactly two short sentences, at most 60 words total: Do these traces establish CSV-reading support? Do these traces establish Excel-reading support? Scope each conclusion to these traces, not universal capability. State the capability evidence conclusions directly rather than restating tool-call presence, absence, numeric counts, or coverage. Do not recommend next actions or discuss other audit dimensions."
     },
     {
       "id": "trace-proof-limitations",
       "skill_files": [
         "skills/eval-author-trace-environment/SKILL.md"
       ],
-      "query": "Frozen synthetic task evidence: a source trace requested CAD assembly interference analysis. The reconstructed task instead uses frozen JSON tool responses. Two fresh NOP runs scored 0, two oracle runs scored 1, and a wrong-answer control scored 0. Native CAD execution and geometry fidelity were not tested. Write exactly two short sentences, at most 60 words total: one finding about what the execution controls establish for this reconstructed task, and one about what remains unproven for native CAD. Interpret the evidence without repeating the numeric counts or scores. Do not recommend next actions or discuss publication."
+      "query": "Frozen synthetic task evidence: a source trace requested CAD assembly interference analysis. The reconstructed task instead uses frozen JSON tool responses. Two fresh NOP runs scored 0, two oracle runs scored 1, and a wrong-answer control scored 0. Native CAD execution and geometry fidelity were not tested. Answer these two questions in exactly two short sentences, at most 60 words total: Do these control results establish that the reconstructed task's verifier distinguishes the oracle from both no-op and wrong-answer behavior? Do these results establish native CAD execution and geometry fidelity? Scope each conclusion to these controls, not universal capability. State the evidence conclusions directly rather than restating numeric counts, scores, or which tests ran. Do not recommend next actions or discuss publication."
     }
   ]
 }

@@ -21,6 +21,20 @@ mapping must be reviewed before it becomes the reference for later checks.
 Recurring checks compare against that fixed reference. They do not automatically
 replace it after a regression.
 
+Before configuring a replacement baseline for recurring checks, review the claim
+mapping and run independent comparison batches against the same candidate. Keep
+all results, including failures; a calibration self-test proves sensitivity to
+synthetic damage, not that fresh unchanged reports pass. Also check paraphrased
+findings and deliberately omitted or reversed findings through extraction and
+matching. Do not weaken thresholds or select a better retention run to obtain a
+pass.
+
+The audit pilot asks directly whether the traces establish each capability.
+Merely noting that a tool was not called does not answer whether its capability
+is evidenced. Clustering and retention matching use the same frozen case context
+to resolve references, while preserving that distinction and the difference
+between missing evidence and disproven capability.
+
 A deliberate change to the evidence or measurement method requires recalibration.
 Results from different baselines or measurement methods are separate comparisons.
 Provider changes can also affect results and should be investigated before
