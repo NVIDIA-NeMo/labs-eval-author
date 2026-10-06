@@ -214,14 +214,9 @@ before each trial, and keep those trials serial until isolation is proven.
 
 ## Smoke task
 
-Create the smoke task under the kit with Harbor's scaffolder, so it never joins
-the suite's task set:
-
-```bash
-harbor task init <org>/<agent-slug>-environment-smoke \
-  --tasks-dir .eval-author/environments/<agent-slug>/smoke \
-  --description "Environment smoke check" --author "<actual author>"
-```
+Start from the [smoke-task template](../templates/smoke-task/README.md): copy it
+under the kit, so it never joins the suite's task set, and fill in its marked
+lines. Its files already follow these rules; keep them while filling it in:
 
 - `instruction.md`: state that this task checks the environment and is not an
   agent evaluation.
@@ -233,17 +228,8 @@ harbor task init <org>/<agent-slug>-environment-smoke \
   export itself was readable. A write that appears twice means state survived
   from an earlier trial.
 
-Run the controls from the repository root with fresh job names:
-
-```bash
-harbor run -p .eval-author/environments/<agent-slug>/smoke/<agent-slug>-environment-smoke -a nop \
-  --jobs-dir .eval-author/jobs --job-name <agent-slug>-env-smoke-nop-1
-harbor run -p .eval-author/environments/<agent-slug>/smoke/<agent-slug>-environment-smoke -a oracle \
-  --jobs-dir .eval-author/jobs --job-name <agent-slug>-env-smoke-oracle-1
-harbor run -p .eval-author/environments/<agent-slug>/smoke/<agent-slug>-environment-smoke -a oracle \
-  --jobs-dir .eval-author/jobs --job-name <agent-slug>-env-smoke-oracle-2
-```
-
+Run NOP once and the reference solution twice from the repository root, as
+single trials with fresh names, using the commands in the template's README.
 Expect NOP to export the untouched seed with the write checks failing, and both
 reference-solution runs to pass. A failing reference solution means the
 environment or the smoke script is broken; fix the environment rather than

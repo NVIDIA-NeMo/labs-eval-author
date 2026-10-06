@@ -47,8 +47,10 @@ under `.eval-author/environments/<agent-slug>/` holds:
   preserved tables. Size it like the data the agent meets in practice, large
   enough that the agent must search and choose, with the variety real data has:
   mixed statuses, similar records, and edge values;
-- the smoke task in `smoke/` with its NOP run and two reference-solution runs.
-  The plan may say `proven` only when it names those three jobs.
+- the smoke task in `smoke/`, started from
+  [`templates/smoke-task/`](templates/smoke-task/README.md), with its NOP run
+  and two reference-solution runs. The plan may say `proven` only when it names
+  those three jobs.
 
 Start the plan from its template at Step 1 and keep it current; it is a working
 record, not a summary written at the end.
@@ -250,11 +252,13 @@ reads this export as its trusted observation.
 Prove the environment once, right after building it and before any task's tests
 are written:
 
-- **Harbor:** run the smoke task in `smoke/`. Its reference solution performs
-  one read and one write per dependency through the agent's own client code,
-  and its verifier checks that the exported state shows exactly those changes.
-  Run NOP once and the reference solution twice; the second run passing shows
-  each trial starts clean. See [Harbor environments](references/harbor.md#smoke-task).
+- **Harbor:** run the smoke task in `smoke/`, started from
+  [`templates/smoke-task/`](templates/smoke-task/README.md). Its reference
+  solution performs one read and one write per dependency through the agent's
+  own client code, and its verifier checks that the exported state shows
+  exactly those changes. Run NOP once and the reference solution twice; the
+  second run passing shows each trial starts clean. See
+  [Harbor environments](references/harbor.md#smoke-task).
 - **Gym:** add verifier cases for state that persists within a session and
   resets between sessions, then run the native validation in
   [Gym environments](references/gym.md#prove-the-environment).

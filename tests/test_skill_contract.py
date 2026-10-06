@@ -45,6 +45,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tomllib
 import types
 from collections.abc import Callable
 from importlib.util import find_spec, module_from_spec, spec_from_file_location
@@ -132,6 +133,7 @@ _AUDIT_CAPABILITIES_DETAILS_EXAMPLE = _AUDIT_DIR / "examples" / "schemas" / "cap
 _AUDIT_FAILURE_CASES_DETAILS_EXAMPLE = _AUDIT_DIR / "examples" / "schemas" / "failure_cases.details.json"
 _MLFLOW_TO_ATIF = _MLFLOW_TO_ATIF_SCRIPTS_DIR / "convert_mlflow_to_atif.py"
 _TRACE_ENVIRONMENT = _TRACE_ENVIRONMENT_SCRIPTS_DIR / "trace_environment.py"
+_ENVIRONMENT_SMOKE_TEMPLATE = _ENVIRONMENT_DIR / "templates" / "smoke-task"
 
 _REQUIRED_FRONTMATTER = (
     "name",
@@ -833,6 +835,7 @@ def test_every_environment_path_the_skill_names_exists() -> None:
         "references/harbor.md",
         "references/gym.md",
         "templates/environment-plan.md",
+        "templates/smoke-task/README.md",
     ):
         assert relative in body, f"SKILL.md no longer documents {relative}"
         assert (_ENVIRONMENT_DIR / relative).exists(), f"SKILL.md names {relative}, which is missing on disk"
@@ -843,7 +846,7 @@ def test_environment_flow_relative_links_resolve() -> None:
     documents = [
         _ENVIRONMENT_DIR / "SKILL.md",
         *sorted((_ENVIRONMENT_DIR / "references").glob("*.md")),
-        *sorted((_ENVIRONMENT_DIR / "templates").glob("*.md")),
+        *sorted((_ENVIRONMENT_DIR / "templates").rglob("*.md")),
     ]
     for document in documents:
         for target in re.findall(r"\]\(([^)\s]+)\)", document.read_text(encoding="utf-8")):
@@ -923,6 +926,93 @@ def test_harbor_tasks_build_without_the_session_kit_image() -> None:
     harbor = (_FIRST_EVAL_DIR / "references" / "harbor-first-eval.md").read_text(encoding="utf-8")
     before_controls = harbor.split("## 8. Validate the evals", 1)[1].split("```", 1)[0]
     assert "docker image rm" in before_controls, "remove the local kit image before the first control"
+
+
+def test_environment_flow_starts_the_smoke_task_from_the_template() -> None:
+    """Only about one Author Bench session in three built the smoke task; designing one from scratch cost too much."""
+    _, body = _frontmatter_and_body(_ENVIRONMENT_DIR)
+    for heading in ("## Required outputs", "## Step 7: Prove the environment"):
+        section = " ".join(body.split(heading, 1)[1].split("\n## ", 1)[0].split())
+        assert "[`templates/smoke-task/`](templates/smoke-task/README.md)" in section, (
+            f"SKILL.md {heading.removeprefix('## ')} must start the smoke task from the template"
+        )
+    harbor = (_ENVIRONMENT_DIR / "references" / "harbor.md").read_text(encoding="utf-8")
+    smoke = " ".join(harbor.split("## Smoke task", 1)[1].split("\n## ", 1)[0].split())
+    assert "[smoke-task template](../templates/smoke-task/README.md)" in smoke
+    assert "harbor task init" not in smoke, "the smoke task starts from the template, not a blank scaffold"
+
+
+def test_environment_smoke_template_is_a_complete_harbor_task() -> None:
+    """The template is a whole task to fill in, graded offline from the end state that collect hooks export."""
+    files = {
+        path.relative_to(_ENVIRONMENT_SMOKE_TEMPLATE).as_posix()
+        for path in _ENVIRONMENT_SMOKE_TEMPLATE.rglob("*")
+        if path.is_file()
+    }
+    expected = {
+        "README.md",
+        "instruction.md",
+        "task.toml",
+        "environment/Dockerfile",
+        "solution/solve.sh",
+        "tests/Dockerfile",
+        "tests/test.sh",
+    }
+    assert expected <= files, f"the smoke-task template is missing {sorted(expected - files)}"
+    config = tomllib.loads((_ENVIRONMENT_SMOKE_TEMPLATE / "task.toml").read_text(encoding="utf-8"))
+    assert config["verifier"]["environment_mode"] == "separate"
+    assert config["verifier"]["network_mode"] == config["verifier"]["environment"]["network_mode"] == "no-network"
+    assert config["artifacts"], "the exported end state must reach the verifier as an artifact"
+    assert config["verifier"]["collect"], "collect hooks export the end state after every trial, NOP included"
+    for relative in ("task.toml", "environment/Dockerfile", "solution/solve.sh", "tests/test.sh"):
+        assert "FILL:" in (_ENVIRONMENT_SMOKE_TEMPLATE / relative).read_text(encoding="utf-8"), (
+            f"{relative} must mark what the author fills in with FILL:"
+        )
+    readme = " ".join((_ENVIRONMENT_SMOKE_TEMPLATE / "README.md").read_text(encoding="utf-8").split())
+    for required in (
+        "Never start it `FROM` a locally built kit tag",
+        "harbor trial start -p",
+        "--trial-name env-smoke-nop-1",
+        "--trial-name env-smoke-oracle-1",
+        "--trial-name env-smoke-oracle-2",
+        "environment proof, not task evidence",
+        "Proof table",
+    ):
+        assert required in readme, f"the smoke-task template README no longer states {required!r}"
+
+
+def test_environment_smoke_template_scripts_are_valid_bash() -> None:
+    scripts = sorted(_ENVIRONMENT_SMOKE_TEMPLATE.rglob("*.sh"))
+    assert [script.relative_to(_ENVIRONMENT_SMOKE_TEMPLATE).as_posix() for script in scripts] == [
+        "solution/solve.sh",
+        "tests/test.sh",
+    ]
+    for script in scripts:
+        subprocess.run(["bash", "-n", str(script)], check=True)
+        assert os.access(script, os.X_OK), f"{script.name} must be executable"
+        assert "set -euo pipefail" in script.read_text(encoding="utf-8")
+    for path in _ENVIRONMENT_SMOKE_TEMPLATE.rglob("*"):
+        if path.is_file():
+            assert "TODO" not in path.read_text(encoding="utf-8"), f"{path.name} must mark fill-in lines with FILL:"
+
+
+@_needs_harbor
+def test_environment_smoke_template_loads_as_a_harbor_task() -> None:
+    """Even unfilled, the template parses under the pinned Harbor as a task with a separate verifier."""
+    probe = (
+        "import sys\n"
+        "from harbor.models.task.task import Task\n"
+        "assert Task.is_valid_dir(sys.argv[1])\n"
+        "print(Task(sys.argv[1]).config.verifier.environment_mode.value)\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", probe, str(_ENVIRONMENT_SMOKE_TEMPLATE)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "separate"
 
 
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)
