@@ -5,75 +5,47 @@
 
 ![Status: Research Preview](https://img.shields.io/badge/Status-Research%20Preview-orange)
 
-Turning your agent's intended behavior into representative evaluation cases is
+Turning your agent's intended behavior into representative custom evaluation cases is
 hard. Each case needs checks that distinguish success from failure, and passing
 cases can still leave important behavior untested.
 
-NeMo Eval Author explores how a coding assistant can help you create evaluations
-and investigate gaps in behavior coverage. It provides skills that work with
-your agent's repository, its intended behavior, and available execution traces
+NeMo Eval Author is a set of tools that guides your coding assistant to help you create evaluations
+and investigate gaps in behavior coverage for your custom evals. It provides skills that work with
+your agent's repository, its intended behavior, and any available execution traces
 (records of the steps your agent took). You can start without traces: build a
-first evaluation suite, inspect existing evaluations, or plan cases with your
+first evaluation suite, audit existing evaluations, or plan new eval cases with your
 coding assistant.
 
-> [!WARNING]
-> **Research preview**
->
-> This is early research for experimentation and collaboration with developers.
-> Workflows and interfaces may change. Review generated cases, graders (the
-> checks that score an agent's work), and coverage findings before relying on
-> their results.
-
-For example, an audit might report:
+For example, the results of an audit might report:
 
 > **Recovery from rejected tool arguments lacks trace evidence.** The agent is
 > expected to correct an invalid argument, but the measured traces do not cover
 > that behavior. This does not establish that a recovery test is missing. Review
 > the existing cases to decide whether to add a test or collect more evidence.
 
-## Questions we are exploring
 
-- How can intended behavior become representative cases with meaningful success
-  checks?
-- How can generated tasks challenge an agent in realistic ways and distinguish
-  stronger behavior from weaker behavior?
-- How can evaluations and traces reveal gaps without overstating coverage?
-- How can developers decide which evaluations to add or improve next?
+> [!IMPORTANT]
+> **Research preview**
+>
+> NeMo Eval AUthor is an early-stage applied research project. 
+> Workflows and interfaces may change. Review generated cases, graders (the
+> checks that score an agent's work), and coverage findings before relying on
+> their results.
 
-## Help shape the research
-
-Try Eval Author with your agent and tell us where the approach needs work:
-
-- Where do proposed cases miss behavior that matters to you?
-- Where do graders judge outcomes incorrectly?
-- Which coverage findings leave you unsure what to test or investigate next?
-
-Generated tasks can be too easy. Where do your agents pass without exercising
-the behavior you wanted to test? An anonymized example of the task, how the agent
-passed, and what would make it meaningfully challenging would help us improve
-task generation.
-
-If an NVIDIA contact shared this preview with you, send your feedback through
-that contact and ask them to route it to the Eval Author research team.
-Otherwise, use the [NVIDIA Developer contact form](https://developer.nvidia.com/contact)
-with **Eval Author research preview feedback** in the subject. Include your
-workflow, what you expected, what happened, and a small anonymized example.
-Please avoid sending raw traces, prompts, credentials, or user data in an initial
-message. For code contributions, see the [current contribution policy](CONTRIBUTING.md).
-
+# Set up
 ## Prerequisites
 
-First-eval, audit-derived, and trace-derived task creation support [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/) and
-[Harbor](https://docs.harborframework.com/). They honor the user's choice, otherwise preserve the existing suite's
-provider, and default to Harbor when neither is specified. Gym is compatible
-with Harbor, and the user has the final say. Gym authoring needs
-Gym v0.6.0+ in its separate Python 3.13.14+ environment; Harbor authoring needs its
+NeMo Eval Author has tested support for [NeMo Gym](https://docs.nvidia.com/nemo/gym/latest/) and
+[Harbor](https://docs.harborframework.com/) eval formats. Workflows default to Harbor when neither is specified. 
+Gym is compatible with Harbor, and the user has the final say. 
+
+Gym authoring needs Gym v0.6.0+ in its separate Python 3.13.14+ environment; Harbor authoring needs its
 CLI and supported Python environment. See the [first-eval guide](docs/first-evals.md)
 and [Harbor setup guide](skills/eval-author-discover/references/harbor-setup.md).
 Repository inventory and case planning can start without either runtime.
 
-First-evaluation design and coverage audits require a local **Ethos** describing
-your agent's purpose, boundaries, and success criteria.
+First-evaluation design and coverage audits require a local **ethos.md file** describing
+your agent's purpose, boundaries, and success criteria. Use the [provided skill](https://github.com/NVIDIA-NeMo/labs-eval-author/blob/main/skills/ethos/SKILL.md) to create one.
 
 The discovery helper requires Python 3.11+. Audit generation, validation, and
 aggregation require Python 3.11+, PyYAML, and jsonschema. Measuring coverage from
@@ -88,7 +60,7 @@ environment preparation.
 
 ## Start here
 
-You need a coding assistant that can read and write project files and run shell
+To use NeMo Eval Author, you need a coding assistant that can read and write project files and run shell
 commands, [Node.js 22.20+](https://nodejs.org/en/download) (including npm and
 `npx`), and [Git](https://git-scm.com/downloads). In a terminal, change to the
 root of the repository containing **your agent**, then install for your assistant:
@@ -136,9 +108,11 @@ and ask:
 Use eval-author to help me with the evals for my agent.
 ```
 
-With no starting point supplied, Eval Author inventories existing evaluations
-and saves `.eval-author/discovery.md` with what it found and documented run
-commands. Inventory can start without Harbor. If the assistant cannot find
+With no goal supplied, Eval Author welcomes you and asks whether you want to
+build first evals, improve an existing suite, or find out what's already here.
+Your answer starts guided authoring, a guided coverage audit, or discovery.
+It reuses a known goal or prior progress without repeating that question.
+If the assistant cannot find
 `eval-author`, follow the [availability check](docs/getting-started.md#verify-your-assistant-can-use-eval-author).
 If you know more about your scenario, try one of these:
 
@@ -146,6 +120,7 @@ If you know more about your scenario, try one of these:
 | --- | --- |
 | "Find the evals in this repository and explain how to run them." | [Discover existing evaluations](docs/getting-started.md#find-existing-evaluations) |
 | "I don't have evals yet. Help me build my first ones." | [Build your first evaluations](docs/first-evals.md) |
+| "Help me onboard to expand my evals." | [Start a guided coverage audit](docs/existing-evals.md#audit-coverage), then propose additions from its findings |
 | "Check whether my Gym or Harbor evals are ready to run." | [Check readiness](docs/existing-evals.md#check-readiness) |
 | "Audit my evals against my agent's intended behavior using these traces." | [Audit coverage](docs/existing-evals.md#audit-coverage) |
 | "Create a Gym evaluation from this audit gap." | [Author and prove a Gym task](skills/eval-author-task-create/references/gym-tasks.md) |
@@ -182,6 +157,37 @@ for evidence requirements and validation, and the
 [publication review](docs/traces.md#sharing-generated-tasks) before sharing a task.
 
 [Development](DEVELOPMENT.md) · [Skill reference](DEVELOPMENT.md#skill-reference) · [Support](https://github.com/NVIDIA-NeMo/labs-eval-author/issues)
+
+# Research Topics
+## Questions we are exploring
+
+- How can intended behavior become representative cases with meaningful success
+  checks and execution environments?
+- How can generated tasks challenge an agent in realistic ways and distinguish
+  stronger behavior from weaker behavior?
+- How can evaluations and traces reveal gaps without overstating coverage?
+- How can developers decide which evaluations to add or improve next?
+
+## Help shape the research
+
+Try Eval Author with your agent and tell us where the approach needs work:
+
+- Where do proposed cases miss behavior that matters to you?
+- Where do graders judge outcomes incorrectly?
+- Which coverage findings leave you unsure what to test or investigate next?
+
+Generated tasks can be too easy. Where do your agents pass without exercising
+the behavior you wanted to test? An anonymized example of the task, how the agent
+passed, and what would make it meaningfully challenging would help us improve
+task generation.
+
+If an NVIDIA contact shared this preview with you, send your feedback through
+that contact and ask them to route it to the Eval Author research team.
+Otherwise, use the [NVIDIA Developer contact form](https://developer.nvidia.com/contact)
+with **Eval Author research preview feedback** in the subject. Include your
+workflow, what you expected, what happened, and a small anonymized example.
+Please avoid sending raw traces, prompts, credentials, or user data in an initial
+message. For code contributions, see the [current contribution policy](CONTRIBUTING.md).
 
 ## License
 
