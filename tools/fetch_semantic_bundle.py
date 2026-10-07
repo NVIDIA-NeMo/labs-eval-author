@@ -4,6 +4,7 @@
 """Fetch an explicitly pinned private runtime/suite ZIP without disclosing its URL."""
 
 import argparse
+import base64
 import hashlib
 import io
 import os
@@ -14,6 +15,26 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 LIMIT = 20_000_000
+PART_SIZE = 40_000
+PART_COUNT = 4
+
+
+def fetch():
+    """Prefer the private bundle configured by configure_semantic_ci.py."""
+    parts = [os.environ.get(f"SEMANTIC_BUNDLE_PART_{i}", "") for i in range(1, PART_COUNT + 1)]
+    if any(parts):
+        if any(len(part) > PART_SIZE for part in parts) or any(
+            parts[i] and not parts[i - 1] for i in range(1, len(parts))
+        ):
+            raise ValueError("invalid bundle parts")
+        return base64.b64decode("".join(parts), validate=True)
+    url = os.environ["SEMANTIC_BUNDLE_URL"]
+    if not url.startswith("https://"):
+        raise ValueError("HTTPS required")
+    with urllib.request.urlopen(url, timeout=60) as response:
+        if not response.url.startswith("https://"):
+            raise ValueError("HTTPS required")
+        return response.read(LIMIT + 1)
 
 
 def unpack(data, expected, destination):
@@ -56,14 +77,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
-        url = os.environ["SEMANTIC_BUNDLE_URL"]
-        if not url.startswith("https://"):
-            raise ValueError("HTTPS required")
-        with urllib.request.urlopen(url, timeout=60) as response:
-            if not response.url.startswith("https://"):
-                raise ValueError("HTTPS required")
-            data = response.read(LIMIT + 1)
-        unpack(data, os.environ["SEMANTIC_BUNDLE_SHA256"], args.output)
+        unpack(fetch(), os.environ["SEMANTIC_BUNDLE_SHA256"], args.output)
     except Exception:
         # Signed URLs, credentials, private paths and provider errors must not reach CI logs.
         raise SystemExit("Could not provision the pinned semantic regression bundle") from None

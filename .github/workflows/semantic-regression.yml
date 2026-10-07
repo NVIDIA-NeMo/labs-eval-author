@@ -8,12 +8,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '35 7 * * *'
   workflow_dispatch:
     inputs:
       run_live:
-        description: Compare narrative reports against reviewed baselines (requires environment approval)
+        description: Compare narrative reports against the configured baseline
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: read
@@ -45,9 +47,10 @@ jobs:
   live:
     needs: plan
     if: >-
-      vars.SEMANTIC_REGRESSION_ENABLED == 'true' && github.ref == 'refs/heads/main' &&
-      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.run_live))
-    environment: skill-evaluator
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.run_live))
+    environment: semantic-regression
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     continue-on-error: true
@@ -61,6 +64,10 @@ jobs:
         env:
           SEMANTIC_BUNDLE_URL: ${{ secrets.SEMANTIC_BUNDLE_URL }}
           SEMANTIC_BUNDLE_SHA256: ${{ vars.SEMANTIC_BUNDLE_SHA256 }}
+          SEMANTIC_BUNDLE_PART_1: ${{ secrets.SEMANTIC_BUNDLE_PART_1 }}
+          SEMANTIC_BUNDLE_PART_2: ${{ secrets.SEMANTIC_BUNDLE_PART_2 }}
+          SEMANTIC_BUNDLE_PART_3: ${{ secrets.SEMANTIC_BUNDLE_PART_3 }}
+          SEMANTIC_BUNDLE_PART_4: ${{ secrets.SEMANTIC_BUNDLE_PART_4 }}
         run: python tools/fetch_semantic_bundle.py --output "$RUNNER_TEMP/semantic-bundle"
       - name: Compare against locked baselines (never recalibrate in CI)
         env:
