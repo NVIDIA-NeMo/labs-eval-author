@@ -237,9 +237,14 @@ Then start your first interaction:
 Use eval-author to help me with the evals for my agent.
 ```
 
-With no starting point supplied, Eval Author inventories the repository and
-saves `.eval-author/discovery.md` as described below. If you already know your
-goal, use a [more specific starter prompt](../README.md#start-here).
+With no goal supplied, Eval Author opens with a short welcome and asks whether
+you want to build your first evals, improve an existing suite, or find out what's
+already here. It waits for your answer before inspecting the repository, then
+shows the guided authoring or audit checklist, or starts discovery if you are
+unsure what exists. Discovery saves `.eval-author/discovery.md` as described
+below and uses its findings to guide the next choice. A known goal or prior
+progress is reused without restarting onboarding. You can also use a
+[more specific starter prompt](../README.md#start-here).
 
 ## Find existing evaluations
 
