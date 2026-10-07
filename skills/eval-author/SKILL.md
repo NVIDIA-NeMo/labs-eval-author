@@ -1,11 +1,12 @@
 ---
 name: eval-author
 description: >-
-  Build first evals from a required Ethos, work on existing
-  evaluation suites in a user's repository, derive an environment from trace
+  Guide broad eval-help requests into onboarding to build or expand evals.
+  Build first evals from a required Ethos, work on existing evaluation suites
+  in a user's repository, derive an environment from trace
   evidence (experimental), or understand an agent run from NeMo Intake. Owns the evidence
   standard that every Eval Author sub-flow
-  follows. Use when the user asks "help me with my evals",
+  follows. Use when the user asks "help me with my evals", "help me onboard to expand my evals",
   "what's the state of the eval suite here?", "what happened in this trace?", or
   when you need to pick between bootstrapping evals, auditing existing evals,
   finding out whether evals exist, or proposing improvements from an audit.
@@ -19,6 +20,11 @@ triggers:
   - I am not sure whether this repo has evals
   - suggest new evals based on this audit
   - help me with the evals in this repo
+  - help me with evals
+  - get me started with eval author
+  - how do I use eval author
+  - help me onboard to expand my evals
+  - walk me through improving my existing evals
   - what is the state of the eval suite here
   - I inherited a repo with Harbor tasks in it
   - work on my evaluation suite
@@ -69,11 +75,46 @@ routes, not set stages that everyone must complete:
 
 | Starting situation and request | Route | First action and deliverable |
 |---|---|---|
+| The user asks broadly for eval help without an established goal or flow | Guided welcome below | Ask whether they want to build first evals, improve an existing suite, or find out what exists. End the turn before repository inspection; use the answer to select the guided flow. |
 | The user has no evals and wants to bootstrap them | [First eval](../eval-author-first-eval/SKILL.md) | Use the authoring welcome below, then build a suite at the agreed scope through the shared milestones. The user's statement settles the eval starting point; no discovery pass is required to prove absence. |
+| The user wants guided onboarding to expand or improve existing evals, without a selected addition or existing audit findings | [Audit](../eval-author-audit/SKILL.md), then [dataset proposals](../eval-author-task-create/SKILL.md#step-1-propose-dataset-improvements) | Explain that reviewing coverage will guide which evals to add. Show the guided audit opening immediately, before repository inspection, and preserve the expansion goal through report review and the proposal handoff. |
 | The user wants a coverage audit, with existing evals or a specification to guide future evals | [Audit](../eval-author-audit/SKILL.md) | Show the audit's five-step checklist, including generating and reviewing `audit-coverage-report.md`, and ask whether to begin; wait before Ethos work or repository inspection. Reuse an answered opening and prior progress on return. Explain what the evidence can establish; do not substitute a readiness report for the requested audit. |
-| The user is unsure whether or where evals exist | [Discovery inventory](../eval-author-discover/SKILL.md#inventory-an-uncertain-starting-point) | Report what evals exist, what they test, and their documented run instructions before Ethos or runtime setup. Finish discovery, then ask whether the user wants an audit; do not infer that next step from a general request for help. |
+| The user is unsure whether or where evals exist | [Discovery inventory](../eval-author-discover/SKILL.md#explore-an-uncertain-starting-point) | Report what evals exist, what they test, and their documented run instructions before Ethos or runtime setup. Finish discovery, then ask whether the user wants an audit; do not infer that next step from a general request for help. |
 | The user wants new eval recommendations based on an audit | [Dataset proposals](../eval-author-task-create/SKILL.md#step-1-propose-dataset-improvements) | Reuse the audit and its evidence for ranked proposals. A proposal-only request stops before scaffolding or execution. |
 | The user wants a task derived from a recorded interaction | [Trace environment](../eval-author-trace-environment/SKILL.md) | Prepare private trace evidence and assess candidacy, then construct the selected Harbor or native Gym output. No audit gap or Harbor setup is required to start this route. |
+
+Broad requests such as "help me with evals", "help me with my evals", "how do I
+use Eval Author?", or "get me started" in an evaluation context begin with a
+guided welcome. The user does not need to say "onboard". Briefly explain that
+you can help build or improve evals, then ask one focused question, for example:
+"Are you looking to build your first evals, improve an existing suite, or figure
+out what's already here?" End the turn and wait before repository inspection,
+runtime probes, or delegation. Do not replace this opening with an inventory,
+documentation links alone, or a list of internal skill names.
+
+Use the answer to enter the selected flow: building first evals shows the
+authoring checklist; improving existing evals shows the audit checklist and
+preserves the goal of proposing additions; uncertainty about whether or where
+evals exist selects discovery inventory. After discovery, present the findings
+and guide the next choice using the handoff below. Do not repeat the starting
+question once answered or infer permission to author or run evals from inventory.
+
+Requests to onboard, get started, or be walked through expanding existing evals
+already establish the goal, even when they do not name a skill or say "audit".
+For example, "help me onboard to expand my evals" selects the audit opening:
+explain that we will review existing coverage, then propose additions from the
+findings. Do not substitute generic advice, a workflow menu, or an inventory
+report for that opening. Existing evals are the starting point; their path and
+trace evidence can be confirmed within the audit's input milestone.
+
+Apply this route after honoring a more specific request or established progress:
+reuse supplied audit findings for proposals, resume a starter-suite expansion as
+described below, and preserve an explicitly selected addition or narrow operation.
+Returning users resume the current flow or pending question even when they say
+only "help me with evals"; do not restart the welcome. Reuse a known goal to
+select its route directly. If only the existing material is known but the desired
+outcome is unclear, ask about that outcome rather than whether evals exist.
+An explanation-only request keeps that scope without starting onboarding.
 
 For a fresh audit, the next deliverable is its opening checklist with descriptions
 and a question that ends the turn. Load the audit skill and return that opening
@@ -92,9 +133,8 @@ missing: locate the missing source or follow the selected sub-flow's prerequisit
 guidance, then resume that request. For an audit, confirm the trace source and
 location with the user before searching for or reading traces; reuse an explicit
 selection already supplied. A missing report does not mean the user has no
-evals. A generic request such as “help me with my evals” with no established
-starting point uses discovery inventory first. If the material is known but the
-desired outcome is unclear, ask one focused question about that outcome.
+evals. Broad help starts with the guided welcome above; discovery inventory is
+selected when the user requests it or is unsure whether or where evals exist.
 
 Discovery inventory ends with its findings and run guidance before offering
 another flow. When evals exist, ask whether the user wants them audited and wait;
