@@ -925,6 +925,24 @@ def test_harbor_tasks_build_without_the_session_kit_image() -> None:
     assert "docker image rm" in before_controls, "remove the local kit image before the first control"
 
 
+def test_task_validation_covers_instructions_preservation_and_names() -> None:
+    """Generated tasks leaked causes and answers, checked kept tables by row count, and kept stale names."""
+    text = (_CORE_DIR / "references" / "task-validation.md").read_text(encoding="utf-8")
+    section = text.split("## Review the verifier before running", 1)[1].split("\n## ", 1)[0]
+    review = " ".join(section.split())
+    for required in (
+        "Do not state the root cause, the fix",
+        "copy control",
+        "Check preserved data by content",
+        "two-way set difference",
+        "Row counts, totals, and spot checks still match after values are edited",
+        "tamper control",
+        "rename it",
+        "doing nothing must earn no completion credit",
+    ):
+        assert required in review, f"Task validation no longer states {required!r}"
+
+
 @pytest.mark.parametrize("skill_dir", _SUB_FLOW_DIRS, ids=lambda path: path.name)
 def test_each_sub_flow_defers_to_the_core(skill_dir: Path) -> None:
     """A sub-flow points at the core rather than restating the standard itself.

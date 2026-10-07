@@ -18,11 +18,28 @@ results in the specification, reviewed fixtures, or independently validated
 reference execution, never the submission being graded. A source agent's answer
 is evidence to investigate, not ground truth by itself.
 
+Write the public instruction the way the requester would: the goal, the
+constraints, and the symptoms they can observe. Do not state the root cause, the
+fix, or results that only doing the work produces, such as corrected totals,
+unless following that specification is the behavior the case tests. If the
+instruction must name a value the grader checks, add a copy control: a
+submission that reproduces the instruction's values without doing the work must
+fail.
+
+Name and describe each task by the behavior it actually tests. When a case
+changes while it is built, for example because the planned failure does not
+occur in the data, rename it and record the change in the plan and case
+inventory as a scope change. Task-create's slug is fixed by its selected gap, so
+there the draft must keep exercising that gap.
+
 For each outcome, identify a plausible incomplete implementation that the grader
 must reject. Exercise the supported interface and observe the actual result or
 side effect; a tool name, success message, or agent-written log is insufficient.
 Keep graded metrics and correct inaction when the task calls for them. Do not
 require every no-action check to fail or force all rewards into binary form.
+When a case requires an action, though, doing nothing must earn no completion
+credit: if the reward combines several checks, gate it on the requested outcome
+so checks the starting state already passes cannot add up to partial credit.
 
 Declare a small set of controls appropriate to the task:
 
@@ -32,8 +49,14 @@ Declare a small set of controls appropriate to the task:
 - **Alternative:** a materially different valid solution passes where the public
   contract permits one. Otherwise record a concrete non-applicability reason.
 - **Side effect:** check the requested state change and relevant preservation
-  constraints through trusted observations, when applicable. Otherwise explain
-  why the task has no side-effect requirement.
+  constraints through trusted observations, when applicable; otherwise explain
+  why the task has no side-effect requirement. Check preserved data by content:
+  for each table or file the case must leave unchanged, compare its full content
+  with the starting state, using a digest recorded when the task is built or a
+  two-way set difference against a verifier-only copy. Row counts, totals, and
+  spot checks still match after values are edited, so they are not preservation
+  checks. Prove the check with a tamper control: the reference solution followed
+  by an edit to one preserved value must fail.
 
 NOP can serve as the incorrect control only when doing nothing is incorrect and
 its failure exercises the intended assertion. Harbor's built-in control agents
