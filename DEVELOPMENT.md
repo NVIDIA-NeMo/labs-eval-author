@@ -40,10 +40,10 @@ The portable [`ethos` skill](skills/ethos/SKILL.md) lives in Eval Author and
 ships with its other skills. It combines exploration, intent questions, local
 `ETHOS.md` authoring, and review in one file, including the schema-v1 outline.
 
-## Public Trace Intel dependency
+## Public NeMo Compass dependency
 
 The development dependencies include `trace-ingest[mlflow]` pinned to an exact
-commit in the public [NVIDIA-NeMo/labs-trace-intel](https://github.com/NVIDIA-NeMo/labs-trace-intel)
+commit in the public [NVIDIA-NeMo/labs-nemo-compass](https://github.com/NVIDIA-NeMo/labs-nemo-compass)
 repository. Local development and GitHub Actions fetch it over HTTPS with
 `uv sync --locked`; no GitHub login, token, deploy key, or separate checkout is
 required. Keep the Git revision in `pyproject.toml` and `uv.lock` synchronized
@@ -65,12 +65,17 @@ instructions. The individual skill files document each workflow in detail.
 | [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Inventory evaluations and check Harbor readiness. |
 | [`eval-author-audit`](skills/eval-author-audit/SKILL.md) | Define intended behavior and measure coverage against trace evidence. |
 | [`eval-author-task-create`](skills/eval-author-task-create/SKILL.md) | Propose improvements from an audit and create a supported task when requested. |
+| [`eval-author-environment`](skills/eval-author-environment/SKILL.md) | Build and prove the environment a Harbor or Gym task runs in; reached from first-eval and task-create. |
 | [`eval-author-inspect-trace`](skills/eval-author-inspect-trace/SKILL.md) | Explain an Intake trace selected through the entry skill. |
 | [`eval-author-trace-environment`](skills/eval-author-trace-environment/SKILL.md) | **Experimental.** Derive and validate a private Harbor or native Gym task from trace evidence. |
 | [`mlflow-to-atif`](skills/mlflow-to-atif/SKILL.md) | Convert MLflow traces to ATIF. |
 | [`gym-to-atif`](skills/gym-to-atif/SKILL.md) | Convert one Gym Responses record or retain original Harbor ATIF from a Gym run. |
 
 ## Validation
+
+See the [generated case review capability assessment](docs/generated-case-review-assessment.md)
+for the pinned Harbor and Gym review tools, observed limits, and remaining
+rendering scope.
 
 Run `uv sync --locked` and `make hooks` to install the DCO commit-message hook.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for sign-off and PR-title conventions.

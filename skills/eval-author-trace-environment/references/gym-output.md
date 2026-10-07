@@ -34,7 +34,7 @@ python <skill_dir>/scripts/trace_environment.py prepare \
 
 The ATIF converter uses the Responses envelope, not the attachment. To inspect
 native attachment evidence as well, use the sibling
-[Trace Intel loader](../../gym-to-atif/references/trace-intel-ingest.md) on the
+[NeMo Compass loader](../../gym-to-atif/references/trace-intel-ingest.md) on the
 same row and retain its output under `private/ng-evidence/`. Those normalized
 files are not ATIF. An attachment-only export can be loaded for inspection but
 cannot currently enter `prepare`; it needs a complete supported Responses

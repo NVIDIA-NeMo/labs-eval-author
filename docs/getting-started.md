@@ -11,7 +11,7 @@ scripts that your agent reads to carry out the work.
 
 Use a coding agent that can read local instructions, read and write project
 files, and run shell commands. Choose either the Skills CLI or a manual copy;
-both install the same ten active skill directories. Keep the complete set
+both install the same eleven active skill directories. Keep the complete set
 together: skills load sibling skills and their bundled scripts, schemas,
 templates, and references. The set includes the **experimental**
 trace-to-environment workflow.
@@ -94,13 +94,14 @@ npx skills list --agent claude-code
 
 For a global installation, use `npx skills list --agent claude-code --global`.
 Use the same assistant identifier you installed for, and confirm the listed
-paths match your chosen project or global destination. Expect these ten skills:
+paths match your chosen project or global destination. Expect these eleven skills:
 
 ```text
 ethos
 eval-author
 eval-author-audit
 eval-author-discover
+eval-author-environment
 eval-author-first-eval
 eval-author-inspect-trace
 eval-author-task-create
@@ -165,7 +166,7 @@ Skills CLI. You need Git, access to this GitHub repository, a POSIX shell with
    workflows out. Manual copies are independent of the checkout; updating the
    checkout does not update installed copies.
 
-4. Verify all ten installed skill directories match the checkout:
+4. Verify all eleven installed skill directories match the checkout:
 
    ```bash
    (
@@ -238,7 +239,7 @@ Use eval-author to help me with the evals for my agent.
 
 With no starting point supplied, Eval Author inventories the repository and
 saves `.eval-author/discovery.md` as described below. If you already know your
-goal, use a [more specific starter prompt](../README.md#start-your-first-interaction).
+goal, use a [more specific starter prompt](../README.md#start-here).
 
 ## Find existing evaluations
 
@@ -279,6 +280,7 @@ you need to create, validate, or run Harbor tasks.
 | Build first evals with native Gym | Gym v0.6.0+ in its separate Python 3.13.14+ environment; no audit report required. See [first evals](first-evals.md). Execution needs the actual agent integration and configured model access. |
 | Create a Gym task from an audit gap | An existing actionable coverage report and an installed Gym v0.6.0+ runtime in Python 3.13.14+. See the [Gym task-authoring guide](../skills/eval-author-task-create/references/gym-tasks.md). Execution needs the task components and actual agent/model configuration. |
 | Create, validate, and run Harbor tasks | Harbor and its supported Python environment. Execution also needs the selected backend and any application access, agent integration, and provider credentials required by the task. |
+| Build and prove a task environment | Repository access for the fit check and inventory. Harbor environments need Harbor and Docker with Compose for sidecar services; Gym environments need the Gym runtime above. Vendor sandboxes need your authorization and credentials, supplied by variable name. |
 | Generate or validate an audit specification; aggregate measured coverage | Python 3.11+, PyYAML, and jsonschema. These operations read local evidence and do not call NeMo services. |
 | Measure coverage from ATIF traces | Python 3.12+ and the [audit dependencies](../skills/eval-author-audit/requirements.txt), including Harbor. Measurement does not start evaluation jobs. |
 | Convert exported MLflow traces | Python 3.11+ and the standard library. Live MLflow queries additionally need an existing MLflow environment and access to the store. |

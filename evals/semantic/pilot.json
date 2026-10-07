@@ -1,0 +1,21 @@
+{
+  "schema": "nemo.semantic_suite.v1",
+  "runs": 10,
+  "models": {
+    "author": "configure-immutable-author-model",
+    "extractor": "configure-immutable-extractor-model",
+    "judge": "configure-immutable-judge-model"
+  },
+  "cases": [
+    {
+      "id": "audit-evidence-boundaries",
+      "skill_files": ["skills/eval-author-audit/SKILL.md"],
+      "query": "Write an audit interpretation and recommend the next evidence to collect. Frozen synthetic evidence: the agent's intended behavior is to read local CSV and Excel files, recover from rejected tool arguments, and explain unsupported requests. The fixed tool denominator contains read_csv and read_excel. Three successful ATIF traces contain read_csv calls only. Tool coverage is 1/2. There are no labeled recovery or refusal trials. These counts have already been validated; do not recalculate or invent executions. Explain what the evidence establishes and what remains unknown."
+    },
+    {
+      "id": "trace-proof-limitations",
+      "skill_files": ["skills/eval-author-trace-environment/SKILL.md"],
+      "query": "Write a narrative review of this frozen synthetic task reconstruction. The source trace requested an assembly interference analysis using a CAD tool. The candidate task uses frozen JSON tool responses and supports identifying interference findings in those responses. Native CAD execution and geometry fidelity were not tested. Two fresh NOP runs scored 0, two oracle runs scored 1, and a wrong-answer negative control scored 0. Independent fidelity and publication reviews have not happened. Explain what is proven, what remains unproven, and the next review actions. Do not execute or claim to execute tools."
+    }
+  ]
+}

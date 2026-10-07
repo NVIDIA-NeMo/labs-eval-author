@@ -39,6 +39,10 @@ of packaging proprietary software on those assumptions.
 
 ## Configure a supported execution path during environment preparation
 
+[`eval-author-environment`](../../eval-author-environment/SKILL.md) builds and
+proves this path, using the requirements recorded here as its input; the
+guidance below continues to apply to dependencies outside the container.
+
 Use the requirements learned at scope. Check the installed Harbor version and
 selected backend before configuring the
 [task environment](https://www.harborframework.com/docs/task-format). Permitted

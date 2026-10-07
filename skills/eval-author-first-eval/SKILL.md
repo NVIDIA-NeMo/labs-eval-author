@@ -112,6 +112,12 @@ Harbor YAML or choose a framework.
 When agent or setup evidence points to software or state outside the agent
 process, use [Execution dependencies](../eval-author/references/execution-dependencies.md)
 to establish the selected cases' runtime and result-collection requirements.
+Record the agent's provider fit and dependency inventory using Steps 1 and 2 of
+[the environment sub-flow](../eval-author-environment/SKILL.md); files and
+embedded databases the agent works on count as dependencies. The kit is built
+and proven at stage 5, before any test. Raise a poor fit for the provider selected
+at stage 2 in the scope checkpoint; if the user changes provider, verify that
+runtime as stage 2 describes before preparing cases.
 
 Save `.eval-author/first-eval.md` with the Ethos path and requirement references,
 selected corpus (or no-trace choice), per-behavior scope and example counts,
@@ -158,6 +164,15 @@ Keep the shared scope, stage check-ins, explanations, suite README, and result
 reconciliation here. A combined setup uses the relevant parts of both references;
 reading a reference does not change the selected provider.
 
+Build and prove the kit before the tests. Before writing any case's verifier,
+complete Steps 3 to 7 of [`eval-author-environment`](../eval-author-environment/SKILL.md):
+choose how each dependency is provided, generate the kit's seeded starting data,
+make its end state readable, set its isolation, and run its smoke task, recording
+each job in `environment-plan.md`. Write each case's own records on top of that
+data, and derive its expected values with an independent reference query over
+the generated data rather than by hand. Hand-typed fixtures of a few rows are
+not starting data.
+
 Create the agreed examples and map their stable IDs to native tasks or dataset
 rows. Keep source provenance and expected-label rationale in the plan or
 verifier-only data, outside the agent's starting environment. Start with one
@@ -183,12 +198,22 @@ limitations. Introduce the provider's reference solution or known-correct fixtur
 when creating it. Keep this teaching part of building the starter cases, without
 a separate tutorial or exhaustive methodology exercise.
 
+Before the checkpoint question, introduce Harbor's case viewer in the reply and
+walk the user to one created case's input and grading files, following
+[Show the user how to review](../eval-author/references/suite-readme.md#show-the-user-how-to-review).
+Include how to launch and open it; a link to the suite guide alone is insufficient.
+
 ## 6. Prepare the execution environment
 
-Use the selected provider reference to prepare dependencies, fixtures, starting
-state, and reset behavior. For external dependencies, apply the runtime plan from
-[Execution dependencies](../eval-author/references/execution-dependencies.md).
-Keep solutions and verifier-only data outside the agent's initial environment.
+Hand off the kit proven at stage 5 with Step 8 of
+[`eval-author-environment`](../eval-author-environment/SKILL.md), and use the
+selected provider reference to confirm each task's environment builds on that
+kit; rerun the smoke task if the kit changed after it passed. Keep solutions and
+verifier-only data outside the agent's initial environment. This milestone is complete only
+when the kit's `environment-plan.md`, seeded data generator, and smoke results
+exist under `.eval-author/environments/<agent-slug>/`; the tasks' own controls
+never count as environment proof, and without the smoke task's own jobs the
+plan's status stays `unproven`.
 Verify the selected backend and required application access before declaring
 this milestone complete; identifying their requirements is only partial progress.
 Record unavailable access and which cases or checks it blocks, naming credential
@@ -217,6 +242,10 @@ alone does not prove that the connection works.
 
 Follow [Execution recovery](../eval-author/references/execution-recovery.md)
 for control and target-agent runs, compatibility repairs, and all result recaps.
+Confirm the current environment kit's proof (Harbor's smoke task or Gym's
+persistence and reset cases) passed first; a proof failure is an environment
+defect to fix, not a task or agent result. That proof is recorded in the kit's
+plan, not with the task evidence recorder below.
 
 Use the selected provider's native validation and controls, retaining fresh
 artifacts on reruns. Require checks to complete without exceptions and meet the
@@ -261,6 +290,16 @@ available execution traces, keeping source evidence and missing traces distinct.
 Save any needed subset configs and verify their selected cases and retained
 agent settings. Label rerun commands as task sanity checks or actual agent evaluation.
 
+When an actual-agent attempt exists, explain in the results reply how to open
+Harbor's run viewer and find it, using the shared
+[review walkthrough](../eval-author/references/suite-readme.md#show-the-user-how-to-review).
+Give its launch command and browser URL or a verified live link, and identify
+the saved job and case. State what can be reviewed when the adapter emits no
+ATIF; captured actions and replies do not imply a native trajectory exists.
+If only controls ran or execution was blocked before any actual-agent run,
+say the actual agent has not run and offer case review plus any clearly labeled
+control evidence.
+
 Reconcile agreed versus delivered examples per behavior using
 [Expand and reconcile](../eval-author/references/coverage-planning.md#expand-and-reconcile).
 Separate generated, validated, and executed counts and name omissions, changed
@@ -292,8 +331,9 @@ distinguishing it from configuration or connection setup checks.
 Explain practical limitations, such as narrow fixtures, a wording assertion
 rejecting a correct paraphrase, or an assertion checking only part of an outcome.
 Link the eval cases, results, and established Ethos requirements; identify relevant
-intent left outside the starter set. Keep raw scores, interpreter details, and
-full commands in the saved report unless useful in the explanation.
+intent left outside the starter set. Keep detailed scores, interpreter details,
+and full rerun commands in the saved report unless useful in the explanation;
+include the viewer instructions in the reply as described above.
 
 Traces and improvement are optional follow-up work. Explain that traces reveal
 steps and tool calls that can expose failure patterns, missing coverage, and weak
