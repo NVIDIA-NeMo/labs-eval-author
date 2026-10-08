@@ -14,9 +14,9 @@ owner: <accountable human or team for the approvals named below; omit if unowned
 
 > This file is the agent's ethos.md — the durable contract that describes the
 > intended behavior, capabilities, validation setup, and change boundaries for
-> this agent. Downstream NeMo Platform optimization agents read this file as
-> their primary context. Keep it accurate; stale entries here directly degrade
-> the quality of generated Insights and PRs.
+> this agent. People and agents read it before they build, evaluate, review, or
+> change this agent. Keep it accurate; stale entries here lead them to the
+> wrong conclusions.
 >
 > The layout below is lightly parseable by `ethos`: front matter and the
 > required `##` section headers are machine-checked, while section bodies stay
@@ -47,7 +47,7 @@ owner: <accountable human or team for the approvals named below; omit if unowned
 >   `- Label: value` lines only. No prose, no blank-line-separated paragraphs.
 >   For list-valued labels inside `Scope`, separate items with semicolons, or
 >   write `_(none)_`. For `Change Scope`, name levers that exist on this agent
->   and do not copy a platform catalog. Each lever value is `yes`, `no`, or
+>   and do not copy a generic catalog. Each lever value is `yes`, `no`, or
 >   `with-approval`.
 > - **Free-form sections** (`Role`, `Purpose & Outcomes`, `Tools`, `Harness`,
 >   `Behavior`, `Principles`, `Success Criteria`, `Trade-offs`, `Constraints`,
@@ -107,7 +107,7 @@ bad agent behavior or a normal tool/source limitation.>
 
 <how this agent actually runs. Describe the loop, how it calls tools, and where
 it executes. Write what is true of this agent. Do not pick a name from a
-platform catalog, and do not treat a framework import as a requirement.
+harness catalog, and do not treat a framework import as a requirement.
 
 Useful things to cover when they apply:
 
@@ -193,7 +193,7 @@ Cover whichever apply:
 
 - **Approved providers and models:** which vendors, endpoints, regions, and
   model families are permitted, and which are forbidden even if they benchmark
-  better. Name the deployment mode where it is fixed, such as local NIM only.
+  better. Name the deployment mode where it is fixed, such as self-hosted only.
   State the permitted set rather than the model in use today, which the agent
   config already carries and which changes without touching this file.
 - **Data handling:** residency, retention, redaction, and what may not leave a

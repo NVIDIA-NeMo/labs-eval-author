@@ -112,29 +112,27 @@ Use ethos-explore to capture what my agent should do, then write its ethos.md.
 
 `ethos-explore` scans the codebase first and asks at least three intent
 questions, covering purpose and outcomes, principles, and vision. `ethos`
-writes the file, validates it, and asks you to review it. You can also write
-the file by hand from the [template](skills/ethos/references/templates/ethos.md).
+writes `ethos.md` at the repository root, or at a path you name, validates it,
+and asks you to review it. Commit it with the agent's code. You can also write
+the file by hand from the [template](skills/ethos/references/templates/ethos.md)
+and check it with the bundled validator:
+
+```bash
+python3 ethos/skills/ethos/scripts/validate_ethos.py path/to/ethos.md
+```
 
 To revise an existing ethos.md, ask for the edit directly; `ethos` updates the
 relevant sections in place and sets `updated_timestamp`. Both skills also find
 an existing file named `ETHOS.md`, the earlier uppercase name; `ethos` renames
 it to `ethos.md` when it writes.
 
-## Current limitations
-
-These skills come from NeMo Platform and still assume it:
-
-- They expect the `nemo` CLI, a completed NeMo setup, and a workspace.
-- `ethos` writes `agents/<agent-name>-ethos/ethos.md` and uploads it to a NeMo
-  Filesets fileset, which it treats as the canonical copy.
-- They refer to NeMo Platform skills that this repository does not ship:
-  `nemo-build-agent`, `nemo-model-selection`, and `nemo-skill-selection`.
+## Relationship to Eval Author
 
 Eval Author's own installation uses the single-file
 [`skills/ethos`](../skills/ethos/SKILL.md) skill, which writes a local
-`ETHOS.md` without NeMo Platform. Both are named `ethos`; install one or the
-other in a given assistant. `npx skills add NVIDIA-NeMo/labs-eval-author --skill '*'`
-does not install the skills in this directory.
+`ETHOS.md`. Both are named `ethos`; install one or the other in a given
+assistant. `npx skills add NVIDIA-NeMo/labs-eval-author --skill '*'` does not
+install the skills in this directory.
 
 ## Origin
 
@@ -142,6 +140,7 @@ The skills, template, and each skill's `tests.json` test cases come from
 [NVIDIA-NeMo/nemo-helix](https://github.com/NVIDIA-NeMo/nemo-helix) at commit
 `08128e6d0e1248928d4d4152a39bc06360ca74b1`, the last revision before upstream
 removed them in `0fd8da64c`. They were renamed from `nemo-explore` and
-`nemo-ethos`, and the file they write from `ETHOS.md` to `ethos.md`. This README
-adapts the NeMo Helix ethos.md documentation page (`docs/agents/ethos.mdx`) from
-the same commit.
+`nemo-ethos`, the file they write from `ETHOS.md` to `ethos.md`, and their NeMo
+Platform onboarding, model selection, and Filesets storage were removed. This
+README adapts the NeMo Helix ethos.md documentation page
+(`docs/agents/ethos.mdx`) from the same commit.
