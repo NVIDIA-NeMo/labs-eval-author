@@ -18,7 +18,7 @@ owner: <accountable human or team for the approvals named below; omit if unowned
 > their primary context. Keep it accurate; stale entries here directly degrade
 > the quality of generated Insights and PRs.
 >
-> The layout below is lightly parseable by `nemo-ethos`: front matter and the
+> The layout below is lightly parseable by `ethos`: front matter and the
 > required `##` section headers are machine-checked, while section bodies stay
 > markdown for humans and agents to read directly.
 >

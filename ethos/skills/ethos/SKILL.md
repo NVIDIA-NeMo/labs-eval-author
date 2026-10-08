@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-name: nemo-ethos
+name: ethos
 description: Captures a NeMo Platform agent Ethos as a durable artifact at agents/<name>-ethos/ETHOS.md. Validates the front matter and required markdown sections, writes the file, and uploads it to a NeMo Filesets fileset (the canonical copy). The Ethos location is fully derivable from the agent's workspace and name — this skill does not return or persist a ref. Use over generic planning skills for any NeMo Platform agent Ethos.
 triggers:
   - write the ethos
@@ -12,7 +12,7 @@ triggers:
   - nemo ethos
   - write agent ethos
 not-for:
-  - nemo-explore (use to gather the design before writing the Ethos)
+  - ethos-explore (use to gather the design before writing the Ethos)
   - nemo-build-agent (use to scaffold and deploy once the Ethos is signed off)
   - nemo-skill-selection (use for dispatch when intent is unclear)
 preconditions:
@@ -30,7 +30,7 @@ metadata:
 
 # NeMo Platform agent Ethos
 
-Turn the answers from `nemo-explore` into a durable artifact. The Ethos is
+Turn the answers from `ethos-explore` into a durable artifact. The Ethos is
 the contract `nemo-build-agent` reads before producing the Platform-managed
 `agent.yaml` or preserving an existing NAT compatibility workflow, and
 the `ETHOS.md` that downstream optimization agents read as
@@ -93,9 +93,9 @@ an overrun — and leave the run limit itself to the optimizer's own config.
 
 ## Hard preconditions
 
-Before writing anything, the answers carried over from `nemo-explore` must
+Before writing anything, the answers carried over from `ethos-explore` must
 satisfy one non-negotiable. If it is missing or ambiguous, **stop and route back
-to `nemo-explore` for that field only** — do not invent a default.
+to `ethos-explore` for that field only** — do not invent a default.
 
 1. **Role** — one concrete sentence describing the role this agent plays. Vague
    answers ("help with stuff", "answer questions") make the artifact useless
@@ -140,7 +140,7 @@ and then helps nobody.
 
    - `Purpose & Outcomes` and `Success Criteria` must explain mission, user
      value, the measurable result, and the success bar. If they only summarize the
-     current code, route back to `nemo-explore` to ask whether the user has
+     current code, route back to `ethos-explore` to ask whether the user has
      outside context that is not in the codebase. If no such context exists,
      say the section is inferred from implementation.
    - `Trade-offs` must be decidable. "Balance quality and cost" is not usable;
@@ -163,7 +163,7 @@ and then helps nobody.
 
 5. **Render the Ethos.** Use the template at
    `references/templates/ethos.md` as the starting point. Substitute
-   every section from the `nemo-explore` answers. Set front matter as:
+   every section from the `ethos-explore` answers. Set front matter as:
    `schema_version` = `1`, `name` = the canonical agent name,
    `created_timestamp` = current UTC timestamp in ISO 8601 form, and `author` =
    the human or coding agent creating the file. Add `owner` when a human or
@@ -277,7 +277,7 @@ contents.
 | `fileset_missing` after upload | Files service down or auth missing | Check `nemo workspaces list`; if that fails, the platform is unreachable — re-upload after `nemo-status` clears |
 | User says "this is wrong" | Ethos captured the wrong answers | Edit the relevant section in place; re-validate; re-upload |
 | Name validation keeps failing | User keeps proposing names with underscores or capitals | Pin the regex `[a-z][a-z0-9-]*` and show one example that passes |
-| `nemo-explore` was skipped | User invoked `nemo-ethos` cold | Route back to `nemo-explore` and return here when the conversation is done |
+| `ethos-explore` was skipped | User invoked `ethos` cold | Route back to `ethos-explore` and return here when the conversation is done |
 
 ## What this skill is not
 
@@ -313,7 +313,7 @@ optimizer's job, not this file's.
 - **Names with underscores or capitals break tools.** Validate against
   `[a-z][a-z0-9-]*`.
 - **Role is a hard requirement.** Do not write the Ethos without a concrete
-  one. Route back to `nemo-explore` for that field only.
+  one. Route back to `ethos-explore` for that field only.
 - **Honest empty answers belong in the section.** Write `_(none)_` for
   `Constraints` or `Trade-offs` when the user has no answer. Do not invent a
   bound. Record the gap in `Open Questions` as well.

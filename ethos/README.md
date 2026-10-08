@@ -7,8 +7,8 @@ The original two-skill Ethos workflow, restored as a baseline for evaluation:
 
 | Skill | Role |
 | --- | --- |
-| [`nemo-explore`](skills/nemo-explore/SKILL.md) | Explore the agent's code and docs, then interview the user for intended behavior. Hands off to `nemo-ethos`. |
-| [`nemo-ethos`](skills/nemo-ethos/SKILL.md) | Write, validate, and review `ETHOS.md` from the explore answers, using the bundled [schema-v1 template](skills/nemo-ethos/references/templates/ethos.md). |
+| [`ethos-explore`](skills/ethos-explore/SKILL.md) | Explore the agent's code and docs, then interview the user for intended behavior. Hands off to `ethos`. |
+| [`ethos`](skills/ethos/SKILL.md) | Write, validate, and review `ETHOS.md` from the explore answers, using the bundled [schema-v1 template](skills/ethos/references/templates/ethos.md). |
 
 Each skill's `tests.json` holds its original test cases.
 
@@ -22,8 +22,12 @@ revision before upstream removed both skills in `0fd8da64c` (#2281). Files keep
 their upstream SPDX headers; `tools/check_copyright_headers.py` accepts that form
 under `ethos/skills/` only.
 
-Keep that baseline reviewable: make each later change in its own commit and
-evaluate its behavioral impact against the restored originals.
+Changes since the copy, each in its own commit:
+
+- Renamed `nemo-explore` to `ethos-explore` and `nemo-ethos` to `ethos`, in
+  directory names, front matter, cross-references, and `tests.json`.
+
+Evaluate each later change's behavioral impact against the restored originals.
 
 ## Status
 
@@ -38,9 +42,9 @@ To try both skills together from a checkout, run
 As restored, the skills still target NeMo Platform:
 
 - Preconditions `nemo_cli_available`, `nemo_setup_complete`, and `workspace_exists`.
-- `nemo-ethos` treats a NeMo Filesets fileset as the canonical copy and
+- `ethos` treats a NeMo Filesets fileset as the canonical copy and
   `agents/<name>-ethos/ETHOS.md` as a local cache.
 - Handoffs and `not-for` entries name `nemo-build-agent`, `nemo-model-selection`,
   and `nemo-skill-selection`, which this repository does not ship.
-- NeMo Platform's earlier `nemo-explore`, which hands off to `nemo-spec`, uses the
-  same skill name.
+- The consolidated `skills/ethos` uses the same skill name, `ethos`. Install one
+  or the other in a given assistant.

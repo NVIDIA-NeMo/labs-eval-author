@@ -40,8 +40,8 @@ The portable [`ethos` skill](skills/ethos/SKILL.md) lives in Eval Author and
 ships with its other skills. It combines exploration, intent questions, local
 `ETHOS.md` authoring, and review in one file, including the schema-v1 outline.
 
-[`ethos/`](ethos/README.md) holds the original two-skill workflow, `nemo-explore`
-and `nemo-ethos`, restored unchanged from NeMo Helix for evaluation against the
+[`ethos/`](ethos/README.md) holds the original two-skill workflow, renamed
+`ethos-explore` and `ethos`, restored from NeMo Helix for evaluation against the
 consolidated skill. It is not installed with the Eval Author skills.
 
 ## Public NeMo Compass dependency

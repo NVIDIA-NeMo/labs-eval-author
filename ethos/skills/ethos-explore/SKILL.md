@@ -2,8 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-name: nemo-explore
-description: Captures what a NeMo Platform agent should do before any code or YAML. Explores the user's codebase and docs first, then asks one intent question at a time for what source cannot supply. Output feeds nemo-ethos. Use over generic brainstorming for any NeMo Platform agent design conversation.
+name: ethos-explore
+description: Captures what a NeMo Platform agent should do before any code or YAML. Explores the user's codebase and docs first, then asks one intent question at a time for what source cannot supply. Output feeds ethos. Use over generic brainstorming for any NeMo Platform agent design conversation.
 triggers:
   - design my agent
   - what should my agent do
@@ -16,13 +16,13 @@ triggers:
   - onboard my existing agent
 not-for:
   - nemo-skill-selection (use to dispatch when intent is unclear)
-  - nemo-ethos (use to write the Ethos file once explore is done)
+  - ethos (use to write the Ethos file once explore is done)
   - nemo-build-agent (use after the Ethos exists)
   - nemo-model-selection (use for the model question in step 5; explore delegates to it)
   - superpowers:brainstorming (use for design work unrelated to NeMo Platform)
 preconditions:
   - nemo_cli_available
-compatibility: nemo-platform >= 0.1.0; dialogue-driven with read-only pre-flight (`ls`, `find`, `Read`); one intent question per message after the codebase scan; at least three questions covering Purpose & Outcomes, Principles, and Vision; safe under any sandbox; works offline; output is a structured conversation handed to nemo-ethos.
+compatibility: nemo-platform >= 0.1.0; dialogue-driven with read-only pre-flight (`ls`, `find`, `Read`); one intent question per message after the codebase scan; at least three questions covering Purpose & Outcomes, Principles, and Vision; safe under any sandbox; works offline; output is a structured conversation handed to ethos.
 maturity: active
 license: Apache-2.0
 user-invocable: true
@@ -35,7 +35,7 @@ metadata:
 
 Capture what the agent should do before any code or YAML. Product mission and
 user goals matter more than implementation inventory. The output of this skill
-is the data that `nemo-ethos` writes into `agents/<name>-ethos/ETHOS.md` —
+is the data that `ethos` writes into `agents/<name>-ethos/ETHOS.md` —
 the durable contract that downstream optimization agents read as their primary
 context. Underspecified input here directly degrades the quality of generated
 Insights and PRs downstream.
@@ -57,7 +57,7 @@ spending attention on.
 
 The Ethos has five base front-matter fields, plus optional `updated_timestamp`,
 and fifteen body sections. Every body section is required. One field is a
-quality gate for handoff: `nemo-ethos` is blocked until `Role` is concrete.
+quality gate for handoff: `ethos` is blocked until `Role` is concrete.
 For any other canonical section with nothing to say, write `_(none)_` rather
 than dropping the heading.
 
@@ -69,12 +69,12 @@ strip custom sections to make the file look "strict."
 
 | Field | Required | Guidance |
 | :---- | :---- | :---- |
-| `schema_version` | yes | Always `1` for new files. `nemo-ethos` fills this at write time. |
+| `schema_version` | yes | Always `1` for new files. `ethos` fills this at write time. |
 | `name` | yes | Canonical agent name. Use the directory or workflow name if obvious; ask if not. |
-| `created_timestamp` | yes | ISO 8601 timestamp for when the Ethos is created. `nemo-ethos` fills this at write time. |
-| `author` | yes | Human or agent that created the Ethos. `nemo-ethos` fills this from the current author context when known; ask only if ambiguous. |
+| `created_timestamp` | yes | ISO 8601 timestamp for when the Ethos is created. `ethos` fills this at write time. |
+| `author` | yes | Human or agent that created the Ethos. `ethos` fills this from the current author context when known; ask only if ambiguous. |
 | `owner` | optional | Accountable human or team for the approvals named in `Constraints` or `Change Scope`. Ask only if those sections name an approval. |
-| `updated_timestamp` | conditional | Set on edits. Omit on first write. `nemo-ethos` fills this. |
+| `updated_timestamp` | conditional | Set on edits. Omit on first write. `ethos` fills this. |
 
 **Body sections** (in canonical order)
 
@@ -103,7 +103,7 @@ the insights plugin — do not duplicate them into the Ethos.
 
 Check whether an Ethos already exists for this agent. If `agents/<name>-ethos/ETHOS.md`
 is present, ask the user whether they want to edit the existing Ethos or start
-over. If they want to edit, route to `nemo-ethos` directly.
+over. If they want to edit, route to `ethos` directly.
 
 ```bash
 ls agents/*-ethos/ETHOS.md 2>/dev/null || echo "no ethos yet"
@@ -112,7 +112,7 @@ ls agents/*-ethos/ETHOS.md 2>/dev/null || echo "no ethos yet"
 If `agents/<name>-spec/AGENT-SPEC.md` exists, the agent still has a spec
 package. Read that file as prior answers. Scan the codebase, then still run
 the intent interview for anything the spec never answered. Hand those
-answers to `nemo-ethos` so it writes `agents/<name>-ethos/ETHOS.md`.
+answers to `ethos` so it writes `agents/<name>-ethos/ETHOS.md`.
 
 ```bash
 ls agents/*-spec/AGENT-SPEC.md 2>/dev/null && echo "spec package present"
@@ -225,7 +225,7 @@ The scan told you what the agent is. It cannot tell you what the developer
 wants. Run a real interview for that intent before you show a draft Ethos.
 
 This step is a hard gate. Do not present the full draft, and do not hand off
-to `nemo-ethos`, until you have asked at least three questions and received a
+to `ethos`, until you have asked at least three questions and received a
 reply to each. "The scan filled everything" and "asking feels unnecessary"
 are not reasons to skip it.
 
@@ -342,7 +342,7 @@ These mean you skipped the interview:
 - You filled `Purpose & Outcomes`, `Principles`, or `Vision` from the scan
   without a user reply
 - Several intent questions in one message
-- Handing off to `nemo-ethos` with fewer than three Q&A replies in this
+- Handing off to `ethos` with fewer than three Q&A replies in this
   conversation
 
 | Excuse | Reality |
@@ -361,7 +361,7 @@ inferred values shown inline and remaining gaps as `_(none)_`. Then ask
 one question:
 
 > "Here's the full Ethos I'd write. Tell me what to change, and I need a
-> concrete Role before I can hand off to `nemo-ethos`."
+> concrete Role before I can hand off to `ethos`."
 
 Show the rendered Ethos inline in markdown (one `##` section per field,
 same shape as the on-disk file). For fields you defaulted, note the
@@ -412,7 +412,7 @@ for honest gaps, and note them in `Open Questions` when they affect safe
 optimization. Do not drop a heading.
 
 If the Role quality gate is satisfied, announce the handoff in one line
-("Handing off to `nemo-ethos` to write `agents/<name>-ethos/ETHOS.md` and upload
+("Handing off to `ethos` to write `agents/<name>-ethos/ETHOS.md` and upload
 the canonical copy to Filesets") and trigger it.
 
 ## If the user pushes back
