@@ -19,6 +19,8 @@ SPDX_LICENSE = "SPDX-License-Identifier: Apache-2.0"
 HASH_SUFFIXES = {".env", ".py", ".sh", ".toml", ".yaml", ".yml"}
 HTML_SUFFIXES = {".md"}
 HASH_FILENAMES = {".env.example", ".gitignore", "Makefile"}
+# Templates copied verbatim into users' repositories carry no header.
+HEADERLESS_TEMPLATES = {"ethos/skills/ethos/references/templates/ethos.md"}
 
 # Files restored verbatim from NVIDIA-NeMo/nemo-helix keep their upstream header:
 # YAML comments inside the front matter, with the upstream copyright years.
@@ -91,8 +93,10 @@ def check_headers(*, fix_nvidia: bool) -> list[Path]:
         if style is None or not path.is_file():
             continue
 
-        content = path.read_text(encoding="utf-8")
         relative = path.relative_to(PROJECT_ROOT).as_posix()
+        if relative in HEADERLESS_TEMPLATES:
+            continue
+        content = path.read_text(encoding="utf-8")
         if _has_nvidia_header(content, style, relative):
             continue
         if fix_nvidia and "SPDX-FileCopyrightText" not in content[:2000]:

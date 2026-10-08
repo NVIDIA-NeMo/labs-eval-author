@@ -1,22 +1,18 @@
 ---
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-
-schema_version: 1
+schema_version: 2
 name: <canonical-agent-name>
 created_timestamp: <ISO 8601 creation timestamp, e.g. 2026-06-02T20:00:00Z>
 updated_timestamp: <ISO 8601 timestamp of the last edit; omit on first write>
 author: <human or agent that created this ethos.md>
-owner: <accountable human or team for the approvals named below; omit if unowned>
+owner: <accountable human or team for the approvals named in Constraints; omit if unowned>
 ---
 
 # ethos.md: <name>
 
-> This file is the agent's ethos.md — the durable contract that describes the
-> intended behavior, capabilities, validation setup, and change boundaries for
-> this agent. People and agents read it before they build, evaluate, review, or
-> change this agent. Keep it accurate; stale entries here lead them to the
-> wrong conclusions.
+> This file is the agent's ethos.md — a snapshot of the intended behavior,
+> capabilities, validation setup, and boundaries for this agent. People and
+> agents read it before they build, evaluate, review, or change this agent.
+> Keep it accurate; stale entries here lead them to the wrong conclusions.
 >
 > The layout below is lightly parseable by `ethos`: front matter and the
 > required `##` section headers are machine-checked, while section bodies stay
@@ -36,19 +32,16 @@ owner: <accountable human or team for the approvals named below; omit if unowned
 > does not reject custom keys. Do not delete them to look strict.
 >
 > This file records durable intent, so keep run-specific settings out of it. A
-> spend ceiling or experiment count for one optimization run belongs in that
+> spend ceiling or experiment count for one evaluation run belongs in that
 > tool's own config, not here.
 >
 > Section rules:
 >
 > - **Bullet sections** (`Open Questions`): list items only. If the list
 >   is empty, write `_(none)_` instead of leaving the section blank.
-> - **Labeled-bullet sections** (`Scope`, `Change Scope`):
->   `- Label: value` lines only. No prose, no blank-line-separated paragraphs.
->   For list-valued labels inside `Scope`, separate items with semicolons, or
->   write `_(none)_`. For `Change Scope`, name levers that exist on this agent
->   and do not copy a generic catalog. Each lever value is `yes`, `no`, or
->   `with-approval`.
+> - **Labeled-bullet sections** (`Scope`): `- Label: value` lines only. No
+>   prose, no blank-line-separated paragraphs. For list-valued labels, separate
+>   items with semicolons, or write `_(none)_`.
 > - **Free-form sections** (`Role`, `Purpose & Outcomes`, `Tools`, `Harness`,
 >   `Behavior`, `Principles`, `Success Criteria`, `Trade-offs`, `Constraints`,
 >   `Evaluation Setup`, `Metric Semantics`, `Vision`): any markdown. `Tools`
@@ -62,8 +55,8 @@ is the fast, human-readable one-liner another agent should remember>
 ## Purpose & Outcomes
 
 <the mission and the result it is judged by, in that order. Keeping them in one
-section is deliberate: a purpose with no outcome cannot be optimized, and an
-outcome with no purpose gets optimized in the wrong direction.
+section is deliberate: a purpose with no outcome cannot be measured, and an
+outcome with no purpose gets improved in the wrong direction.
 
 **Mission.** One or two short paragraphs: why the agent exists, what user value
 it provides, which product or workflow it belongs to, and the decision or
@@ -73,7 +66,7 @@ user provides it, and say so plainly when this is inferred from code alone.
 **Outcome.** The external result the agent is accountable for, stated so someone
 outside the team could tell whether it worked. Give the measurable target where
 one exists and who owns that number. This is what the agent earns its keep by
-improving, and what a downstream optimizer weighs against cost and latency.
+improving, and what any change to the agent weighs against cost and latency.
 
 Example: "Ships inside the Acme onboarding flow to get a new developer from
 signup to a working API call without human help. Success is cutting median
@@ -96,7 +89,7 @@ rather than inventing one.>
 `Prompt-only.` if none. Group related helpers by capability or source instead
 of listing every low-level method. Capture only behaviorally important purpose,
 credentials or scopes, side effects, data freshness, expected failures, and
-anything a downstream optimizer should know when deciding whether a trace shows
+anything an agent reviewing a trace should know when deciding whether it shows
 bad agent behavior or a normal tool/source limitation.>
 
 | Tool or source | Purpose | Credentials/scopes | Side effects | Freshness / expected failures |
@@ -124,7 +117,7 @@ Write `_(none)_` if you cannot describe how this agent runs.>
 
 <behavioral rules and boundaries: constraints, refusal and escalation policy,
 tone, safety/compliance requirements, accepted limitations, and known non-goals.
-Use this to tell downstream optimization agents what counts as divergence and
+Use this to tell agents working on this agent what counts as divergence and
 what should not be filed as a failure.>
 
 ## Principles
@@ -180,12 +173,11 @@ p95 latency under 10s, cost per session, then token efficiency. A 5% cost
 increase is acceptable for a 2-point correctness gain. Escalation accuracy must
 never regress; it is how users trust the agent."
 
-Keep this at the level of intent. The optimizer turns it into thresholds and
-weights; do not try to write the scoring function here.>
+Keep this at the level of intent; do not try to write a scoring function here.>
 
 ## Constraints
 
-<hard external bounds on the solution space that no optimization may cross,
+<hard external bounds on the solution space that no change may cross,
 regardless of measured benefit. These are usually organizational rather than
 technical, which is exactly why no coding agent can infer them.
 
@@ -202,8 +194,8 @@ Cover whichever apply:
   disclosure obligations that follow.
 - **Production ceilings:** maximum cost per run or session and latency SLOs the
   deployed agent must respect. Where you know the current measured figure, give
-  it alongside the ceiling — "p95 is 4.1s today against a 6s SLO" tells an
-  optimizer how much headroom it has, where the ceiling alone does not. Write
+  it alongside the ceiling — "p95 is 4.1s today against a 6s SLO" tells a
+  reader how much headroom there is, where the ceiling alone does not. Write
   `_(unmeasured)_` rather than guessing.
 - **Required approvals:** changes that need a human sign-off before shipping,
   and who signs.
@@ -237,14 +229,6 @@ re-reporting the same non-issue.>
 | <e.g. `score`> | <what the number actually measures, and its source> | <the claim it supports, and the claim it does not> |
 
 Use `_(none)_` if every metric name means exactly what it says.
-
-## Change Scope
-
-- <part of the agent>: <yes | no | with-approval>
-- Notes: <vetoes, exceptions, or other scope clarifications; use `_(none)_` if there are none>
-
-Use `with-approval` when a change is permitted but must not ship unattended.
-Name the approver in `Constraints` or `Notes`.
 
 ## Vision
 

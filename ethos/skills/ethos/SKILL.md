@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: ethos
-description: Writes an AI agent's ethos.md — the durable contract for its purpose, boundaries, success criteria, and what may change — from the answers gathered by ethos-explore. Renders the schema-v1 template, validates the front matter and required markdown sections, saves the file in the agent's repository, and reviews it with the user. Also edits an existing ethos.md. Use over generic planning skills for an agent's ethos.md.
+description: Writes an AI agent's ethos.md — a durable snapshot of its purpose, boundaries, and success criteria — from the answers gathered by ethos-explore. Renders the schema-v2 template, validates the front matter and required markdown sections, saves the file in the agent's repository, and reviews it with the user. Also edits an existing ethos.md. Use over generic planning skills for an agent's ethos.md.
 triggers:
   - write the ethos
   - save the design
@@ -13,15 +13,10 @@ triggers:
   - write agent ethos
 not-for:
   - ethos-explore (use to gather the design before writing the ethos.md)
-preconditions:
-  - agent_design_complete
 compatibility: Writes one local markdown file, `ethos.md` at the repository root unless the user names another path; validation needs Python 3.10+ and the bundled standard-library script; works offline; safe under any sandbox; idempotent if user confirms overwrite.
-maturity: active
 license: Apache-2.0
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash
-metadata:
-  author: NeMo Helix Team <nemo-helix@nvidia.com>
 ---
 
 # Write an agent's ethos.md
@@ -47,9 +42,13 @@ The file is the only copy. There is no remote canonical copy to sync.
 
 ## Schema version
 
-Write `schema_version: 1`. Every canonical body section is required. The parser
-rejects a file missing any of those headings. When you have nothing to say,
-write `_(none)_` rather than dropping the section.
+Write `schema_version: 2`. Every canonical body section is required. The
+validator rejects a file missing any of those headings. When you have nothing
+to say, write `_(none)_` rather than dropping the section.
+
+Version 2 removed the `Change Scope` section. When editing a version 1 file,
+set `schema_version: 2` and ask the user whether to delete its `Change Scope`
+section or keep it as a custom section.
 
 The schema is a floor, not a ceiling. Extra `##` headings and extra YAML
 front-matter keys are allowed. The parser keeps unknown body sections and
@@ -62,8 +61,8 @@ while a fabricated bound actively misleads anyone changing the agent. If the use
 answer yet, write `_(none)_`, record the gap in `Open Questions`, and move on.
 
 ethos.md holds durable intent, so keep run-scoped configuration out of it. A spend
-ceiling, an experiment count, or a wall-clock limit for a single evaluation or
-optimization run belongs to the tool that runs it. If a user offers one, record
+ceiling, an experiment count, or a wall-clock limit for a single evaluation
+run belongs to the tool that runs it. If a user offers one, record
 the standing policy it implies — a production cost ceiling in `Constraints`, or
 who approves an overrun — and leave the run limit itself to that tool's config.
 
@@ -125,14 +124,14 @@ and then helps nobody.
 4. **Render the ethos.md.** Use the template at
    `references/templates/ethos.md` as the starting point. Substitute
    every section from the `ethos-explore` answers. Set front matter as:
-   `schema_version` = `1`, `name` = the canonical agent name,
+   `schema_version` = `2`, `name` = the canonical agent name,
    `created_timestamp` = current UTC timestamp in ISO 8601 form, and `author` =
    the human or coding agent creating the file. Add `owner` when a human or
    team is accountable for the approvals named in `Constraints`.
    Set `updated_timestamp` on edits, not on first write. Evaluation commands
    live in `Evaluation Setup`, not in front matter. Keep the required section
    headers exactly so the file stays parseable. Extra `##` headings after
-   (or among) the canonical fifteen are allowed — keep them. The file is
+   (or among) the canonical fourteen are allowed — keep them. The file is
    lightly validated by the bundled `scripts/validate_ethos.py`, which
    checks front matter, schema version, required sections, and duplicate
    sections. It does not reject unknown headings. Section bodies stay markdown
@@ -161,7 +160,7 @@ and then helps nobody.
      || echo "ethos_parse_invalid"
    ```
 
-7. **Show a gut-check, then the file.** Before asking the user to read fifteen
+7. **Show a gut-check, then the file.** Before asking the user to read fourteen
    sections, state your impression of this agent in a short paragraph that
    combines `Role`, `Purpose & Outcomes`, `Scope`, and (when they are not
    `_(none)_`) `Principles` and `Vision`. This is a thin slice so the user can
@@ -218,10 +217,10 @@ This skill does not write agent configs, runtime YAML, or code, and does not
 register or deploy the agent. The ethos.md is the human-readable design;
 machine-readable config stays with the agent's implementation.
 
-It also does not encode the optimizer's decision policy. `Trade-offs` records
-the developer's intent — hard gates, priority order, unacceptable regressions —
-in prose. Turning that into thresholds, weights, and selection strategy is the
-optimizer's job, not this file's.
+It also does not encode a scoring function. `Trade-offs` records the
+developer's intent — hard gates, priority order, unacceptable regressions — in
+prose. Turning that into thresholds and weights belongs to whatever evaluates
+or changes the agent, not to this file.
 
 ## Gotchas
 
@@ -251,6 +250,6 @@ optimizer's job, not this file's.
   given consumer reads evidence is that consumer's configuration, not durable
   intent. Record what a metric cannot support in `Metric Semantics`, and what
   should not count as a failure in `Behavior`.
-- **This file is the `ethos.md`.** Automated optimization agents should
-  not edit it; only the developer and the developer's coding agent do. Treat it
+- **This file is the `ethos.md`.** Agents working on this agent read it but
+  should not edit it; only the developer and the developer's coding agent do. Treat it
   as a long-lived contract, not a scratch pad.

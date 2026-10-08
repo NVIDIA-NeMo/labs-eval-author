@@ -38,7 +38,7 @@ For standalone Gym trace conversion, see
 
 The portable [`ethos` skill](skills/ethos/SKILL.md) lives in Eval Author and
 ships with its other skills. It combines exploration, intent questions, local
-`ETHOS.md` authoring, and review in one file, including the schema-v1 outline.
+`ETHOS.md` authoring, and review in one file, including the schema-v1 outline (the restored skills under `ethos/` use schema v2).
 
 [`ethos/`](ethos/README.md) holds the original two-skill workflow, renamed
 `ethos-explore` and `ethos`, restored from NeMo Helix for evaluation against the
