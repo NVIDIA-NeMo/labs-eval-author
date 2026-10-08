@@ -53,7 +53,7 @@
     },
     {
       "type": "implicit",
-      "prompt": "I have a NeMo agent in this repo. Explore it and ask me the questions the code cannot answer before we write ETHOS.md.",
+      "prompt": "I have a NeMo agent in this repo. Explore it and ask me the questions the code cannot answer before we write ethos.md.",
       "expected_skill": "ethos-explore"
     },
     {

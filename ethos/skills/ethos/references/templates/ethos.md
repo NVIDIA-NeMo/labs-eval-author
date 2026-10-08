@@ -6,13 +6,13 @@ schema_version: 1
 name: <canonical-agent-name>
 created_timestamp: <ISO 8601 creation timestamp, e.g. 2026-06-02T20:00:00Z>
 updated_timestamp: <ISO 8601 timestamp of the last edit; omit on first write>
-author: <human or agent that created this ethos>
+author: <human or agent that created this ethos.md>
 owner: <accountable human or team for the approvals named below; omit if unowned>
 ---
 
-# Ethos: <name>
+# ethos.md: <name>
 
-> This file is the agent's ETHOS.md — the durable contract that describes the
+> This file is the agent's ethos.md — the durable contract that describes the
 > intended behavior, capabilities, validation setup, and change boundaries for
 > this agent. Downstream NeMo Platform optimization agents read this file as
 > their primary context. Keep it accurate; stale entries here directly degrade

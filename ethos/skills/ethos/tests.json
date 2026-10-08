@@ -33,12 +33,12 @@
     },
     {
       "type": "implicit",
-      "prompt": "Save the approved design and our decision to use a supported Codex harness in ETHOS.md.",
+      "prompt": "Save the approved design and our decision to use a supported Codex harness in ethos.md.",
       "expected_skill": "ethos"
     },
     {
       "type": "implicit",
-      "prompt": "Persist our NAT compatibility decision in the agent's ETHOS.md so the design record stays accurate.",
+      "prompt": "Persist our NAT compatibility decision in the agent's ethos.md so the design record stays accurate.",
       "expected_skill": "ethos"
     },
     {

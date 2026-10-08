@@ -16,8 +16,8 @@ triggers:
   - onboard my existing agent
 not-for:
   - nemo-skill-selection (use to dispatch when intent is unclear)
-  - ethos (use to write the Ethos file once explore is done)
-  - nemo-build-agent (use after the Ethos exists)
+  - ethos (use to write the ethos.md file once explore is done)
+  - nemo-build-agent (use after the ethos.md exists)
   - nemo-model-selection (use for the model question in step 5; explore delegates to it)
   - superpowers:brainstorming (use for design work unrelated to NeMo Platform)
 preconditions:
@@ -35,7 +35,7 @@ metadata:
 
 Capture what the agent should do before any code or YAML. Product mission and
 user goals matter more than implementation inventory. The output of this skill
-is the data that `ethos` writes into `agents/<name>-ethos/ETHOS.md` —
+is the data that `ethos` writes into `agents/<name>-ethos/ethos.md` —
 the durable contract that downstream optimization agents read as their primary
 context. Underspecified input here directly degrades the quality of generated
 Insights and PRs downstream.
@@ -44,7 +44,7 @@ This skill is **explore first, then a mandatory intent interview.** Scan the
 codebase and docs, infer implementation-shaped fields, then ask the user for
 intent source cannot own. Do not skip the interview because the scan looked
 complete, and do not skip a question because you think you already know the
-answer. Do not dump the draft Ethos until that interview has asked at least
+answer. Do not dump the draft ethos.md until that interview has asked at least
 three questions and received a reply to each.
 
 The division of labor is: **infer implementation, ask for intent.** Almost
@@ -55,7 +55,7 @@ spending attention on.
 
 ## The schema you are filling
 
-The Ethos has five base front-matter fields, plus optional `updated_timestamp`,
+The ethos.md has five base front-matter fields, plus optional `updated_timestamp`,
 and fifteen body sections. Every body section is required. One field is a
 quality gate for handoff: `ethos` is blocked until `Role` is concrete.
 For any other canonical section with nothing to say, write `_(none)_` rather
@@ -71,8 +71,8 @@ strip custom sections to make the file look "strict."
 | :---- | :---- | :---- |
 | `schema_version` | yes | Always `1` for new files. `ethos` fills this at write time. |
 | `name` | yes | Canonical agent name. Use the directory or workflow name if obvious; ask if not. |
-| `created_timestamp` | yes | ISO 8601 timestamp for when the Ethos is created. `ethos` fills this at write time. |
-| `author` | yes | Human or agent that created the Ethos. `ethos` fills this from the current author context when known; ask only if ambiguous. |
+| `created_timestamp` | yes | ISO 8601 timestamp for when the ethos.md is created. `ethos` fills this at write time. |
+| `author` | yes | Human or agent that created the ethos.md. `ethos` fills this from the current author context when known; ask only if ambiguous. |
 | `owner` | optional | Accountable human or team for the approvals named in `Constraints` or `Change Scope`. Ask only if those sections name an approval. |
 | `updated_timestamp` | conditional | Set on edits. Omit on first write. `ethos` fills this. |
 
@@ -92,33 +92,34 @@ strip custom sections to make the file look "strict."
 | 10 | Constraints | Hard external bounds no change may cross: approved providers/models/regions, data residency and handling, compliance obligations, production cost ceilings and latency SLOs, and changes that need human sign-off. Give the current measured figure next to a ceiling when you know it. Usually organizational, which is why the code cannot supply them. Write `_(none)_` if unconstrained. |
 | 11 | Evaluation Setup | Current validation setup: how to run it, what datasets/checks it uses, what scorers/metrics measure, pass/fail thresholds, and known coverage gaps relative to the success criteria. If no eval suite exists, say so explicitly. |
 | 12 | Metric Semantics | What ambiguous or load-bearing metric and telemetry field names actually mean, and which claims they do not support. Write `_(none)_` when every name means exactly what it says. |
-| 13 | Change Scope | A permissions list — what may be modified. Each lever takes `yes`, `no`, or `with-approval`. Name levers that exist on this agent. Do not copy a platform catalog. The loop never edits the Ethos itself. |
+| 13 | Change Scope | A permissions list — what may be modified. Each lever takes `yes`, `no`, or `with-approval`. Name levers that exist on this agent. Do not copy a platform catalog. The loop never edits the ethos.md itself. |
 | 14 | Vision | Where the agent is headed: an intention beyond today's job, plus one or two concrete use cases it should grow into but does not serve yet. That last part marks what `Scope` excludes *for now* rather than on principle. Write `_(none)_` rather than pasting a dated backlog. |
 | 15 | Open Questions | Open facts that affect safe use, evaluation, or modification of the agent. Write `_(none)_` when there are none. Remove items once answered. |
 
 Known issues / failure patterns are tracked as first-class Insight entities by
-the insights plugin — do not duplicate them into the Ethos.
+the insights plugin — do not duplicate them into the ethos.md.
 
 ## Pre-flight
 
-Check whether an Ethos already exists for this agent. If `agents/<name>-ethos/ETHOS.md`
-is present, ask the user whether they want to edit the existing Ethos or start
-over. If they want to edit, route to `ethos` directly.
+Check whether an ethos.md already exists for this agent. If `agents/<name>-ethos/ethos.md`
+or the legacy uppercase `agents/<name>-ethos/ETHOS.md` is present, ask the user
+whether they want to edit the existing ethos.md or start over. If they want to
+edit, route to `ethos` directly.
 
 ```bash
-ls agents/*-ethos/ETHOS.md 2>/dev/null || echo "no ethos yet"
+find agents -maxdepth 2 -path 'agents/*-ethos/*' -iname ethos.md 2>/dev/null | grep . || echo "no ethos.md yet"
 ```
 
 If `agents/<name>-spec/AGENT-SPEC.md` exists, the agent still has a spec
 package. Read that file as prior answers. Scan the codebase, then still run
 the intent interview for anything the spec never answered. Hand those
-answers to `ethos` so it writes `agents/<name>-ethos/ETHOS.md`.
+answers to `ethos` so it writes `agents/<name>-ethos/ethos.md`.
 
 ```bash
 ls agents/*-spec/AGENT-SPEC.md 2>/dev/null && echo "spec package present"
 ```
 
-After the Ethos is uploaded and the user confirms it, copy remaining package
+After the ethos.md is uploaded and the user confirms it, copy remaining package
 files such as `agent.yaml` into `agents/<name>-ethos/`. Do that when those
 files still live only in the spec package. Confirm, then delete
 `agents/<name>-spec/` and the `<name>-spec` Fileset:
@@ -149,7 +150,7 @@ interview and ask for Role first.
    Then use `Glob` / `Grep` to find `nemo-agents-spec-v1`,
    `langgraph`, `StateGraph`, `create_react_agent`, `system_prompt`, skills,
    MCP servers, and tool definitions. Treat any harness or framework name you
-   find as a clue about how the agent runs, not as a value the Ethos must pick.
+   find as a clue about how the agent runs, not as a value the ethos.md must pick.
 
 2. **Find design context.** Look for `README.md`, `AGENTS.md`,
    product/design/planning docs, launch notes, and anything in `docs/`. Read
@@ -165,9 +166,9 @@ interview and ask for Role first.
    capability, and deployment, then recommends a specific NIM model with a
    plain-English explanation grounded in what the model is actually good at.
    Return here with the chosen model string, which `nemo-build-agent` writes
-   into `agent.yaml`. The Ethos has no `Model` section — record the *permitted*
+   into `agent.yaml`. The ethos.md has no `Model` section — record the *permitted*
    providers and model families in `Constraints` instead, since the config
-   already carries the model in use and it changes without touching the Ethos.
+   already carries the model in use and it changes without touching the ethos.md.
    If the user wants to skip the conversation, the default is cloud,
    `nvidia/llama-3.3-nemotron-super-49b-v1` — announce that and move on.
    Local NIMs require host-gpu mode.
@@ -222,7 +223,7 @@ interview and ask for Role first.
 ## Step 2 — Ask intent questions
 
 The scan told you what the agent is. It cannot tell you what the developer
-wants. Run a real interview for that intent before you show a draft Ethos.
+wants. Run a real interview for that intent before you show a draft ethos.md.
 
 This step is a hard gate. Do not present the full draft, and do not hand off
 to `ethos`, until you have asked at least three questions and received a
@@ -337,7 +338,7 @@ draft before the next question.
 
 These mean you skipped the interview:
 
-- You are about to paste the full Ethos and have asked fewer than three
+- You are about to paste the full ethos.md and have asked fewer than three
   questions
 - You filled `Purpose & Outcomes`, `Principles`, or `Vision` from the scan
   without a user reply
@@ -354,16 +355,16 @@ These mean you skipped the interview:
 | The draft review can collect intent | Review is for corrections. Ask intent first. |
 | The user looks busy | One short multiple-choice question is enough to start. |
 
-## Step 3 — Present the draft Ethos
+## Step 3 — Present the draft ethos.md
 
-After the interview, present the entire Ethos at once — every field, with
+After the interview, present the entire ethos.md at once — every field, with
 inferred values shown inline and remaining gaps as `_(none)_`. Then ask
 one question:
 
-> "Here's the full Ethos I'd write. Tell me what to change, and I need a
+> "Here's the full ethos.md I'd write. Tell me what to change, and I need a
 > concrete Role before I can hand off to `ethos`."
 
-Show the rendered Ethos inline in markdown (one `##` section per field,
+Show the rendered ethos.md inline in markdown (one `##` section per field,
 same shape as the on-disk file). For fields you defaulted, note the
 default in parentheses so the user knows they can override:
 
@@ -383,7 +384,7 @@ Do not walk the schema field by field in this review. Do not restart the
 intent interview here unless the reply surfaces a contradiction.
 
 Do not use public-facing shorthand like `AUT` or "agent under test" in the
-rendered Ethos. Use "this agent" for the agent being specified. Use
+rendered ethos.md. Use "this agent" for the agent being specified. Use
 "target agent" only where the agent's purpose is explicitly to inspect or
 modify another agent, and name optimizer helper agents only when they are
 part of the actual product workflow.
@@ -412,7 +413,7 @@ for honest gaps, and note them in `Open Questions` when they affect safe
 optimization. Do not drop a heading.
 
 If the Role quality gate is satisfied, announce the handoff in one line
-("Handing off to `ethos` to write `agents/<name>-ethos/ETHOS.md` and upload
+("Handing off to `ethos` to write `agents/<name>-ethos/ethos.md` and upload
 the canonical copy to Filesets") and trigger it.
 
 ## If the user pushes back
@@ -448,7 +449,7 @@ the canonical copy to Filesets") and trigger it.
   per helper method when several helpers share the same source, credential,
   side effect, freshness, and failure mode. Group them and call out only the
   differences an optimizer or evaluator needs to know.
-- **Mission before mechanics.** An Ethos that only says how the current code is
+- **Mission before mechanics.** An ethos.md that only says how the current code is
   wired is not good enough. If goal context cannot be found in the codebase or
   docs, say the mission is inferred from implementation and still ask the user
   to confirm `Purpose & Outcomes`. A guessed business objective is worse than
@@ -478,11 +479,11 @@ the canonical copy to Filesets") and trigger it.
 - **Keep Platform terminology at the design boundary.** Record the desired
   harness behavior and artifacts without exposing Fabric SDK types or asking
   the user to design a raw runtime config. `nemo-agent-config` owns the
-  machine-readable Platform YAML after the Ethos is approved.
+  machine-readable Platform YAML after the ethos.md is approved.
 - **Change Scope is a permissions list, not a wishlist.** It controls what
   later optimization may edit. Walk the levers that exist on this agent so
   the user knows what they're consenting to. Offer `with-approval` for levers
   the user wants available but not automatic. Do not copy a platform catalog.
 - **Do not invent Known Issues fields.** Known issues / recurring failure
   patterns live in the Insights plugin as first-class entities, not in the
-  Ethos.
+  ethos.md.

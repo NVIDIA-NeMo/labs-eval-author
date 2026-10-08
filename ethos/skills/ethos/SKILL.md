@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: ethos
-description: Captures a NeMo Platform agent Ethos as a durable artifact at agents/<name>-ethos/ETHOS.md. Validates the front matter and required markdown sections, writes the file, and uploads it to a NeMo Filesets fileset (the canonical copy). The Ethos location is fully derivable from the agent's workspace and name — this skill does not return or persist a ref. Use over generic planning skills for any NeMo Platform agent Ethos.
+description: Captures a NeMo Platform agent ethos.md as a durable artifact at agents/<name>-ethos/ethos.md. Validates the front matter and required markdown sections, writes the file, and uploads it to a NeMo Filesets fileset (the canonical copy). The ethos.md location is fully derivable from the agent's workspace and name — this skill does not return or persist a ref. Use over generic planning skills for any NeMo Platform agent ethos.md.
 triggers:
   - write the ethos
   - save the design
@@ -12,8 +12,8 @@ triggers:
   - nemo ethos
   - write agent ethos
 not-for:
-  - ethos-explore (use to gather the design before writing the Ethos)
-  - nemo-build-agent (use to scaffold and deploy once the Ethos is signed off)
+  - ethos-explore (use to gather the design before writing the ethos.md)
+  - nemo-build-agent (use to scaffold and deploy once the ethos.md is signed off)
   - nemo-skill-selection (use for dispatch when intent is unclear)
 preconditions:
   - nemo_setup_complete
@@ -28,31 +28,31 @@ metadata:
   author: NeMo Helix Team <nemo-helix@nvidia.com>
 ---
 
-# NeMo Platform agent Ethos
+# NeMo Platform agent ethos.md
 
-Turn the answers from `ethos-explore` into a durable artifact. The Ethos is
+Turn the answers from `ethos-explore` into a durable artifact. The ethos.md is
 the contract `nemo-build-agent` reads before producing the Platform-managed
 `agent.yaml` or preserving an existing NAT compatibility workflow, and
-the `ETHOS.md` that downstream optimization agents read as
+the `ethos.md` that downstream optimization agents read as
 their primary context. Without it, downstream skills have to re-ask
 everything and the optimization loop has no contract for what the agent is
 supposed to do or what may be changed.
 
-The Ethos records the **intended** state of the agent, which is not the same as
+The ethos.md records the **intended** state of the agent, which is not the same as
 the implemented state. The codebase already shows what the agent does. This file
 is the only place that records what it is supposed to do, what it must never do,
 and how to weigh a win on one metric against a loss on another.
 
 ## Storage model
 
-Two copies of the Ethos exist intentionally:
+Two copies of the ethos.md exist intentionally:
 
 * **Canonical**: a NeMo Filesets fileset named `<agent-name>-ethos` in the
-  active workspace. It holds `ETHOS.md` and may also hold `agent.yaml`
+  active workspace. It holds `ethos.md` and may also hold `agent.yaml`
   plus relative artifacts used by the executable agent package. Downstream
   services derive the relevant file ref from workspace and agent name.
 * **Local cache**: `agents/<name>-ethos/` in the developer's working directory.
-  `ETHOS.md` is the human-readable contract; `agent.yaml` is the optional
+  `ethos.md` is the human-readable contract; `agent.yaml` is the optional
   machine-readable Platform config created by `nemo-agent-config` during the
   build path.
 
@@ -61,10 +61,10 @@ skill re-uploads to refresh the Fileset. If the platform copy has drifted
 ahead (e.g. the refinement-mode skill updated it server-side), pull it
 down before editing.
 
-**The Ethos location is by convention, not by reference.** Given an
+**The ethos.md location is by convention, not by reference.** Given an
 agent's workspace and name, the remote file ref is always
-`<workspace>/<agent-name>-ethos#ETHOS.md`, mirrored locally at
-`agents/<agent-name>-ethos/ETHOS.md`. The `Agent` entity does
+`<workspace>/<agent-name>-ethos#ethos.md`, mirrored locally at
+`agents/<agent-name>-ethos/ethos.md`. The `Agent` entity does
 **not** carry an `ethos_file_ref` field — downstream consumers compute the
 ref from `(workspace, agent_name)` via
 `nemo_agents_plugin.entities.ethos_file_ref`.
@@ -85,7 +85,7 @@ Do not invent content to look complete: `_(none)_` in `Constraints` is honest,
 while a fabricated bound actively misleads the optimizer. If the user has no
 answer yet, write `_(none)_`, record the gap in `Open Questions`, and move on.
 
-Ethos holds durable intent, so keep run-scoped configuration out of it. A spend
+ethos.md holds durable intent, so keep run-scoped configuration out of it. A spend
 ceiling, an experiment count, or a wall-clock limit for a single optimization
 run belongs to the tool that runs it. If a user offers one, record the standing
 policy it implies — a production cost ceiling in `Constraints`, or who approves
@@ -112,11 +112,14 @@ and then helps nobody.
    `support-triage`, `code-reviewer`. If the user has not named it, propose
    two options based on the role. Must match `[a-z][a-z0-9-]*`.
 
-2. **Pre-flight: check the local file.** If `agents/${NAME}-ethos/ETHOS.md` exists,
-   ask the user whether to overwrite or pick a different name.
+2. **Pre-flight: check the local file.** If `agents/${NAME}-ethos/ethos.md` or
+   the legacy uppercase `agents/${NAME}-ethos/ETHOS.md` exists, ask the user
+   whether to overwrite or pick a different name. Read a legacy file as the
+   existing ethos.md.
 
    ```bash
-   ls "agents/${NAME}-ethos/ETHOS.md" 2>/dev/null && echo "ethos_exists" || echo "ethos_new"
+   { test -e "agents/${NAME}-ethos/ethos.md" || test -e "agents/${NAME}-ethos/ETHOS.md"; } \
+     && echo "ethos_exists" || echo "ethos_new"
    ```
 
 3. **Pre-flight: check the Fileset.** If the canonical copy exists, surface
@@ -131,8 +134,10 @@ and then helps nobody.
 
    ```bash
    mkdir -p "agents/${NAME}-ethos"
-   nemo files download "${NAME}-ethos" ETHOS.md \
-     --local-path "agents/${NAME}-ethos/ETHOS.md"
+   nemo files download "${NAME}-ethos" ethos.md \
+     --local-path "agents/${NAME}-ethos/ethos.md" \
+   || nemo files download "${NAME}-ethos" ETHOS.md \
+     --local-path "agents/${NAME}-ethos/ethos.md"
    ```
 
 4. **Run a focus check before rendering.** The carried-over answers should be
@@ -161,7 +166,7 @@ and then helps nobody.
      for the agent being specified. Use "target agent" only when this agent's
      job is explicitly to inspect or modify another agent.
 
-5. **Render the Ethos.** Use the template at
+5. **Render the ethos.md.** Use the template at
    `references/templates/ethos.md` as the starting point. Substitute
    every section from the `ethos-explore` answers. Set front matter as:
    `schema_version` = `1`, `name` = the canonical agent name,
@@ -177,8 +182,17 @@ and then helps nobody.
    sections. It does not reject unknown headings. Section bodies stay markdown
    for agents and humans to read directly.
 
-6. **Write the file.** Path: `agents/<name>-ethos/ETHOS.md`. Create the
-   `agents/<name>-ethos/` directory if it does not exist.
+6. **Write the file.** Path: `agents/<name>-ethos/ethos.md`. Create the
+   `agents/<name>-ethos/` directory if it does not exist. If a legacy
+   `ETHOS.md` exists, rename it to `ethos.md` before writing, through a
+   temporary name so the rename also works on case-insensitive filesystems:
+
+   ```bash
+   if ls "agents/${NAME}-ethos" | grep -qx ETHOS.md; then
+     mv "agents/${NAME}-ethos/ETHOS.md" "agents/${NAME}-ethos/ethos.md.tmp"
+     mv "agents/${NAME}-ethos/ethos.md.tmp" "agents/${NAME}-ethos/ethos.md"
+   fi
+   ```
 
 7. **Validate before upload.** Load the file through the parser and surface any
    warnings to the user. A parse failure means the file is malformed; fix it
@@ -190,7 +204,7 @@ and then helps nobody.
    python -c "
    from pathlib import Path
    from nemo_agents_plugin.ethos_parse import parse_ethos
-   ethos = parse_ethos(Path('agents/${NAME}-ethos/ETHOS.md').read_text())
+   ethos = parse_ethos(Path('agents/${NAME}-ethos/ethos.md').read_text())
    print(f'valid: name={ethos.name} version={ethos.schema_version} role={ethos.role[:60]!r}')
    for warning in ethos.warnings:
        print(f'warning: {warning}')
@@ -198,18 +212,18 @@ and then helps nobody.
    ```
 
 8. **Upload to Filesets (canonical copy).** Create the per-agent fileset if
-   needed and upload `ETHOS.md`:
+   needed and upload `ethos.md`:
 
    ```bash
    nemo files filesets create "${NAME}-ethos" 2>/dev/null || true
-   nemo files upload "agents/${NAME}-ethos/ETHOS.md" "${NAME}-ethos" \
-     --remote-path ETHOS.md
+   nemo files upload "agents/${NAME}-ethos/ethos.md" "${NAME}-ethos" \
+     --remote-path ethos.md
    ```
 
    No ref to capture or pass downstream — the location is by convention.
    `nemo-build-agent` and downstream optimization consumers both call
    `ethos_file_ref(workspace, name)` to compute
-   `<workspace>/<name>-ethos#ETHOS.md` when they need it.
+   `<workspace>/<name>-ethos#ethos.md` when they need it.
 
 9. **Show a gut-check, then the file.** Before asking the user to read fifteen
    sections, state your impression of this agent in a short paragraph that
@@ -234,11 +248,11 @@ and then helps nobody.
 
 10. **Hand off.** Once confirmed, tell the user the next skill:
 
-    - `nemo-build-agent` will read `agents/<name>-ethos/ETHOS.md`, use
+    - `nemo-build-agent` will read `agents/<name>-ethos/ethos.md`, use
       `nemo-agent-config` to produce `agent.yaml` by default, and call
       `nemo agents create`. Existing NAT workflow YAML may remain on the
       compatibility path. No `--ethos-file-ref` flag is needed because the
-      Ethos location is derivable.
+      ethos.md location is derivable.
     - The `eval-setup` skill (M2) will fill in the `Evaluation Setup`
       section when ready.
     - The insights plugin reads the same canonical fileset server-side once
@@ -250,17 +264,17 @@ After writing and uploading, all three must hold:
 
 ```bash
 # Local file present and non-empty.
-test -s "agents/${NAME}-ethos/ETHOS.md" && echo "local_ok" || echo "local_missing"
+test -s "agents/${NAME}-ethos/ethos.md" && echo "local_ok" || echo "local_missing"
 
-# Loads through the lightweight Ethos parser.
+# Loads through the lightweight ethos.md parser.
 python -c "
 from pathlib import Path
 from nemo_agents_plugin.ethos_parse import parse_ethos
-parse_ethos(Path('agents/${NAME}-ethos/ETHOS.md').read_text())
+parse_ethos(Path('agents/${NAME}-ethos/ethos.md').read_text())
 " && echo "ethos_parse_ok" || echo "ethos_parse_invalid"
 
 # Canonical Fileset copy is reachable.
-nemo files list "${NAME}-ethos" 2>/dev/null | grep -q ETHOS.md \
+nemo files list "${NAME}-ethos" 2>/dev/null | grep -q ethos.md \
   && echo "fileset_ok" || echo "fileset_missing"
 ```
 
@@ -273,16 +287,16 @@ contents.
 | Symptom | Cause | Recovery |
 |---|---|---|
 | `local_missing` after write | Wrong working directory or permission denied | Run `pwd`; check the user is in the cloned repo |
-| `ethos_parse_invalid` | Ethos malformed — missing front matter, missing required section, duplicate section, or bad schema version | Read the parser error; fix the named section in place; do not silently work around |
+| `ethos_parse_invalid` | ethos.md malformed — missing front matter, missing required section, duplicate section, or bad schema version | Read the parser error; fix the named section in place; do not silently work around |
 | `fileset_missing` after upload | Files service down or auth missing | Check `nemo workspaces list`; if that fails, the platform is unreachable — re-upload after `nemo-status` clears |
-| User says "this is wrong" | Ethos captured the wrong answers | Edit the relevant section in place; re-validate; re-upload |
+| User says "this is wrong" | ethos.md captured the wrong answers | Edit the relevant section in place; re-validate; re-upload |
 | Name validation keeps failing | User keeps proposing names with underscores or capitals | Pin the regex `[a-z][a-z0-9-]*` and show one example that passes |
 | `ethos-explore` was skipped | User invoked `ethos` cold | Route back to `ethos-explore` and return here when the conversation is done |
 
 ## What this skill is not
 
 This skill does not produce `agent.yaml`, migrate NAT workflow YAML, or create
-the `Agent` entity. The Ethos is the human-readable design. Machine-readable
+the `Agent` entity. The ethos.md is the human-readable design. Machine-readable
 config authoring belongs to `nemo-agent-config`, while registration and
 deployment belong to `nemo-build-agent`.
 
@@ -299,20 +313,20 @@ optimizer's job, not this file's.
   rejects missing or duplicate required sections, but it does not reject
   custom headings. Section bodies remain markdown for humans and agents to
   read directly.
-- **Ethos lives next to the implementation config.** Keep `ETHOS.md`,
+- **ethos.md lives next to the implementation config.** Keep `ethos.md`,
   Platform `agent.yaml`, and their relative artifacts under
   `agents/<name>-ethos/` so local and Filesets consumers share one package root.
 - **The Fileset is canonical, not the local file.** If the two disagree,
   the Fileset wins. Re-pull before editing if you suspect server-side
   drift.
-- **The Ethos location is convention, not configuration.** Always
-  `<workspace>/<agent-name>-ethos#ETHOS.md`. Do not introduce a flag,
+- **The ethos.md location is convention, not configuration.** Always
+  `<workspace>/<agent-name>-ethos#ethos.md`. Do not introduce a flag,
   env var, or persisted field to override it — if the layout needs to
   change, update `ethos_file_ref` in
   `nemo_agents_plugin.entities` and every consumer follows.
 - **Names with underscores or capitals break tools.** Validate against
   `[a-z][a-z0-9-]*`.
-- **Role is a hard requirement.** Do not write the Ethos without a concrete
+- **Role is a hard requirement.** Do not write the ethos.md without a concrete
   one. Route back to `ethos-explore` for that field only.
 - **Honest empty answers belong in the section.** Write `_(none)_` for
   `Constraints` or `Trade-offs` when the user has no answer. Do not invent a
@@ -321,15 +335,15 @@ optimizer's job, not this file's.
   context was not found in the codebase and the user did not provide outside
   context, make that provenance clear instead of letting implementation details
   masquerade as mission. A mission with no stated outcome cannot be optimized.
-- **Keep public terminology clean.** The generated Ethos is user-facing. Avoid
+- **Keep public terminology clean.** The generated ethos.md is user-facing. Avoid
   `AUT` and "agent under test"; reserve internal shorthand for test harnesses
   and code comments.
-- **Do not duplicate Insights into the Ethos.** Known issues / recurring
+- **Do not duplicate Insights into the ethos.md.** Known issues / recurring
   failure patterns live in the Insights plugin as first-class entities; the
-  Ethos has no `Known Issues` section, and no `Signals` section either — how a
+  ethos.md has no `Known Issues` section, and no `Signals` section either — how a
   given consumer reads evidence is that consumer's configuration, not durable
   intent. Record what a metric cannot support in `Metric Semantics`, and what
   should not count as a failure in `Behavior`.
-- **This file is the `ETHOS.md`.** Downstream optimization agents should
+- **This file is the `ethos.md`.** Downstream optimization agents should
   not edit it; only the developer and the developer's coding agent do. Treat it
   as a long-lived contract, not a scratch pad.
