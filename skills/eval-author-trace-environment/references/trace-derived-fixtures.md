@@ -236,58 +236,47 @@ replace a native call with a shell command or claim those future adapters exist.
 
 ## Evaluation integration
 
-Generating a mock is not sufficient to claim access. The task author must copy
-the generated directory to `/opt/tool-call-fixtures` in the agent image and merge
-`integration.toml` into `task.toml`. Candidate finalization rejects mock access
-unless the task config contains the exact `trace-tool-call-replay` stdio MCP
-server contract. Harbor NOP, Oracle, and negative-control runs remain the
-authority for task solvability and verifier discrimination, **not** for native
-tool registration: those agents can solve via shell without discovering MCP.
+For Harbor mock access, copy generated fixtures to `/opt/tool-call-fixtures` in
+the agent image and merge `integration.toml` into `task.toml`. Finalization
+requires the exact `trace-tool-call-replay` stdio MCP contract. Keep Python 3,
+a POSIX shell, and executable `launch-replay.sh` in the image. The launcher takes
+no registration arguments and locates its scenario relative to itself, avoiding
+the current Codex writer's joining of executable and arguments into one name;
+it does not patch Harbor.
 
-The generated executable `launch-replay.sh` takes no registration arguments and
-resolves its scenario relative to itself. This supports Harbor's current Codex
-writer, which otherwise joins the executable and arguments into one executable
-name. It does not patch or replace Harbor. Keep the launcher executable and retain
-Python 3 and a POSIX shell in the image.
-
-Before proof, run `check-runtime --task-dir <task-dir>` using the helper. This
-checks the generic task integration without selecting a model or harness. Add
+Before proof, run `check-runtime --task-dir <task-dir>`. Add
 `--mock-agent <harbor-agent-name-or-module:Class>` to inspect the selected
-harness's registration. The helper uses Harbor's factory, not an agent-name
-allowlist. This imports and constructs provider/custom code, so use only trusted
-installed harnesses. It never runs their emitted shell commands, installs an
-agent, or calls a model. Constructor-specific options or unfamiliar APIs may
-require a harness-specific execution check instead.
+harness's registration through Harbor's factory. This imports and constructs
+trusted installed provider/custom code, without an allowlist, emitted shell
+execution, agent installation, or model calls. Constructor options or unfamiliar
+APIs may need a harness-specific execution check instead.
 
-Runtime report v2 separates `mock_integration.registration` from
-`mock_integration.execution`. Registration readers inspect literal JSON/TOML
-configuration emitted by the installed writer, including map and list encodings:
+Runtime report v2 separates `mock_integration.registration` and
+`mock_integration.execution`. Registration inspects literal JSON/TOML emitted by
+the installed writer, including map and list encodings:
 
-| Registration status | Evidence and consequence |
+| Registration | Meaning |
 |---|---|
-| `verified` | The inspected payload retains the executable, arguments, and stdio transport. This is not proof that the harness loads it or calls the mock. |
-| `unverified` | No agent selected, unavailable provider, unfamiliar writer/API, or missing evidence. Does not block generic task preflight; native mock access remains unproven. |
-| `unsupported` | The recognized registration payload demonstrably drops or changes the required contract. Blocks this preflight for that integration until corrected. |
+| `verified` | Executable, arguments, and stdio transport preserved; runtime loading/calls still unproven |
+| `unverified` | No selected agent, unavailable provider, unfamiliar writer/API, or missing evidence; generic preflight may pass |
+| `unsupported` | Recognized payload demonstrably changes/drops the contract; blocks that integration's preflight |
 
-The default regression suite tests the installed Codex, Claude Code, and Mistral
-Vibe writers with identical fixtures and protocol assertions. These are test
-cases, not an allowlist. `valid: true` means no required preflight check failed;
-it does not imply every integration is verified. Execution is always reported
-`unverified` by this static probe, including for verified registration.
+`valid: true` means no required preflight failed, not that all integrations are
+verified. Static execution status is always `unverified`. Default regressions
+exercise Codex, Claude Code, and Mistral Vibe writers with identical fixtures;
+these are test cases, not an allowlist.
 
-Also run the intended evaluation agent with the generated task configuration and
-verify that it discovers and calls the mock. Retain its trace and the mock audit
-log privately. Check a recorded input, an unseen input, and an unknown function
-through the client. The repository's protocol integration tests exercise the
-installed Harbor writers plus a real MCP client process; those tests are not a
-substitute for an agent/image-specific run. Obtain approval for model spend when
-it has not already been requested. If unavailable, report that integration as
-unproven rather than equating a direct server invocation with agent access.
+Run the intended agent with the generated task config to prove mock discovery
+and calls. Privately retain its trace and mock audit log; check a recorded input,
+an unseen input, and an unknown function through the client. Obtain model-spend
+approval unless already authorized. If unavailable, report unproven integration.
+Direct server calls, writer/protocol tests with a real MCP client, and Harbor
+NOP/Oracle/negative controls do not replace this agent/image-specific evidence:
+controls can solve via shell without discovering MCP.
 
-For `real`, the existing environment construction path supplies the software,
-files, services, credentials, or hardware legitimately required by the task. For
-`none`, no fixture is generated. Neither state is assumed successful before
-Harbor proof.
+For `real`, supply legitimately required software, files, services, credentials,
+or hardware through environment construction. For `none`, generate no fixture.
+Neither state is assumed successful before Harbor proof.
 
 ## Privacy and limitations
 

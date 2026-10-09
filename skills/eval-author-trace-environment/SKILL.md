@@ -242,76 +242,46 @@ according to the selected output path.
 ## Step 6: author and prove a candidate environment
 
 For `no_candidate`, skip construction and use Step 7's no-candidate finalization
-for either provider. For every candidate, read
-[references/task-fidelity.md](references/task-fidelity.md) for starting-state,
-runtime setup, assertion, and alternative-solution review. These authoring
-checks supplement provider proof; the helper does not machine-check all of them.
-For Gym output, read and follow
-[references/gym-output.md](references/gym-output.md) for construction, native
-validation, and handoff. It replaces the Harbor-specific instructions below,
-Step 7's candidate finalization, and Harbor batch/publication reporting.
+for either provider. For candidates, read and apply
+[Task fidelity](references/task-fidelity.md): starting state, setup, assertions,
+alternative solutions, and evidence honesty. These authoring checks supplement
+provider proof; the helper does not machine-check all of them.
 
-For proof execution failures and result recaps, follow
-[Execution recovery](../eval-author/references/execution-recovery.md) alongside
-this workflow's integrity protocol. Diagnostic probes never complete proof.
+For Gym output, follow [Gym output](references/gym-output.md) instead of the
+Harbor construction below, Step 7's candidate finalization, and Harbor
+batch/publication reporting. For either provider's execution failures and recaps,
+follow [Execution recovery](../eval-author/references/execution-recovery.md);
+diagnostic probes never complete proof.
 
-For Harbor output, under `<task-dir>/task/`, create the smallest
-Harbor task that reproduces the initial state and objectively verifies the
-generalized outcome. Read and follow `references/task-contract.md` for the
-required layout, the separate no-network verifier contract, and the
-reviewer-facing README sections, and `references/environment-integrity.md` for
+For Harbor, construct `<task-dir>/task/` using [Task contract](references/task-contract.md)
+and [Environment integrity](references/environment-integrity.md). Preserve the
+evidenced capability and initial state, and objectively verify the generalized
+outcome. Never copy private trace payloads into the task; include only necessary
+starting files. Apply the separate no-network verifier,
 agent-network, contamination, portability, repeat-run, and negative-control
-requirements. Never copy private trace payloads into the task; include only the
-minimal files needed to reproduce the starting state. Human-supplied or
-reviewed `Relevant experience` is necessary for readiness; never invent it.
+requirements. Human-supplied or reviewed `Relevant experience` is necessary for
+readiness; never invent it.
 
-Create `<task-dir>/README.md` using
-[Suite review and rerun instructions](../eval-author/references/suite-readme.md), separate
-from the reviewer-facing `task/README.md`. Map the generalized outcomes to the
-task and its scored checks, documenting when selecting one item runs the whole
-task. Label NOP/Oracle commands as task controls; if no real-agent configuration
-exists, state that agent evaluation is pending instead of inventing one.
-Present and link the case inventory once authored, identifying the reviewed
-source trace as provenance. Refresh it after validation with links to the
-generated task's control results and available execution traces.
+Create `<task-dir>/README.md` using [Suite review and rerun instructions](../eval-author/references/suite-readme.md),
+separate from `task/README.md`. Map outcomes to tasks and scored checks, including
+when one selection runs the whole task. Label NOP/Oracle as task controls; absent
+a real-agent config, state that agent evaluation is pending. Present and link the
+case inventory with reviewed source-trace provenance, then refresh it after
+validation with control results and available execution traces.
 
-`tests/test.sh` must emit one `check-id\tPASS|FAIL` row per scored check to
-`/logs/verifier/results`; read and follow `references/check-grammar.md`, including its outcome-by-outcome
-review and executed copy probes when transcription could bypass requested behavior.
+Apply [Check grammar](references/check-grammar.md), including outcome review and
+executed copy probes where transcription could bypass behavior. `tests/test.sh`
+must write one `check-id\tPASS|FAIL` row per scored check to `/logs/verifier/results`.
 
-Work in an authoring loop, not one pass. `validate-task` lints the tree with
-remediation hints; fix every issue it reports. Then `probe` runs one
-diagnostic NOP and Oracle pair in the real container; design checks so probe
-NOP fails every scored check and probe Oracle passes all of them. Probes are
-diagnostic-only, capped per task revision, and never accepted as proof — see
-`references/environment-integrity.md`.
-
-Execute the repeat-run protocol in `references/environment-integrity.md`.
-For example, record the first NOP job's inputs and then run it:
-
-```bash
-python <skill_dir>/scripts/trace_environment.py record-run-inputs \
-  --task-dir <task-dir> --arm nop --job-dir private/jobs/nop-1
-harbor run -p <task-dir>/task -a nop \
-  --jobs-dir <task-dir>/private/jobs --job-name nop-1
-```
-
-Repeat with `nop-2`, `oracle-1`, and `oracle-2`, selecting the matching arm
-and agent. Follow the integrity reference to declare and run the negative
-control. Retain every exact Harbor job and use the reference's
-`record-validation` command; proof requires the per-check rows from
-`references/check-grammar.md` in every job. Never hand-write rewards, job IDs,
-exceptions, or checksums.
-
-Failed proof remains technical evidence, and a fixable defect starts the
-bounded repair loop: `record-repair` with a reason code, then a fresh manifest
-and proof set (at most three repairs). Do not weaken the verifier to make
-Oracle pass.
-
-If Harbor or Docker is missing, technical status is `not_run` and the environment
-is `unproven`; do not describe it as ready. The integrity reference defines the
-conditions for technical status `passed` and the limits of that claim; passing
-proof does not establish human review.
+Follow the integrity reference's authoring loop: fix all `validate-task` issues,
+then use bounded diagnostic `probe` runs (NOP fails every scored check, Oracle
+passes all). Execute its retained proof protocol with `record-run-inputs` before
+each job: two NOPs, two Oracles, and the declared negative control. Record actual
+jobs with `record-validation`; never invent rewards, IDs, exceptions, or hashes.
+Failed proof stays evidence. Fixable defects require `record-repair`, fresh
+manifests and proof, within the three-repair limit; never weaken the verifier.
+Missing Harbor or Docker means `not_run` and `unproven`. Passed technical proof
+does not establish human review.
 
 ## Step 7: finalize Harbor or no_candidate and verify the summary
 

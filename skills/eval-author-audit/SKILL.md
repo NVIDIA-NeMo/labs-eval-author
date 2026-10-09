@@ -1,14 +1,8 @@
 ---
 name: eval-author-audit
 description: >-
-  Guide coverage audits with milestone check-ins and user-confirmed eval and trace sources.
-  Generate, validate, measure, and report on an audit-spec coverage denominator
-  for Eval Author. Use when the user wants a hand-editable audit.md file derived
-  from Ethos, needs schema enforcement for declared tools, capabilities, failure
-  cases, evidence, and references, wants to measure which audit items one ATIF
-  trace covers, wants to aggregate coverage across measured traces, or accepts
-  a coverage audit of existing evals. Changes
-  none of the user's source, and saves audit artifacts under `.eval-author/`.
+  Use when auditing eval coverage against Ethos: define and validate audit.md,
+  measure selected ATIF traces, and report evidence gaps.
 triggers:
   - audit my existing evals
   - generate audit.md from ETHOS.md
@@ -49,24 +43,10 @@ the findings with the user. It does not generate tasks yet.
 
 ## Start a guided audit
 
-Read this entry procedure before issuing or batching customer-repository scans;
-loading a skill alongside a file listing does not satisfy the trace-source gate.
-After the user accepts the opening below, orient the audit using directly named
-non-trace inputs and saved progress.
-Until the user selects the trace source and location, do not run a whole-workspace
-file listing or recursive search that could expose traces. Confirmed absence
-needs no search to prove it.
-For a fresh full audit, the first deliverable is the opening below. The audit
-request already establishes permission to audit; this opening gives the user the
-path ahead and hands them the conversation before analysis begins. Do not replace
-that handoff with a statement that the request authorizes work.
-
-Send the opening as the turn-ending response (`final` when the host has channels),
-not a commentary update followed by continued work. Explain briefly that the
-audit compares intended behavior with evaluation evidence, then render the five
-steps below using literal `- [ ]` checkboxes. Retain each label and description;
-plain bullets or labels alone do not satisfy the opening. Leave every step
-unchecked and mark **Understand your agent** as **We're here**:
+For a fresh full audit, the first deliverable is a turn-ending opening (`final`
+when available). Explain that the audit compares intended behavior with evaluation
+evidence, then show these five literal unchecked checkboxes, retaining each label
+and description and marking **Understand your agent** as **We're here**:
 
 - [ ] **Understand your agent** — agree on what your agent should do, what it should avoid, and what a good result looks like.
 - [ ] **Confirm evals and traces** — confirm which evaluations to audit and locate traces (records of agent runs) so we can check what the evaluations actually exercised.
@@ -74,40 +54,33 @@ unchecked and mark **Understand your agent** as **We're here**:
 - [ ] **Measure coverage** — use the run records to see which of those items were exercised.
 - [ ] **Generate and review coverage report** — create or update `audit-coverage-report.md`, then review coverage, gaps, evidence limits, and next steps together.
 
-End with **“Ready to get started?”**, finish the turn, and wait for the user's
-reply. Do not use an asynchronous question to keep this turn running. Before
-that reply, no repository work starts: no locating, reading, validating, creating,
-or updating Ethos; eval or trace inspection; runtime probes; progress-file writes;
-or subagent delegation. Do not batch those operations with skill loading. Keep
-the pending opening in the conversation. An existing accepted Ethos, supplied
-paths, or the initial audit request does not answer this conversation checkpoint.
+End with **“Ready to get started?”** and wait. Before acceptance, do no repository
+work: no Ethos checks or writes, eval/trace inspection, runtime probes, progress
+writes, or delegation. Do not batch them with skill loading. Existing Ethos,
+supplied paths, or permission to audit do not answer this checkpoint; keep it
+pending in the conversation, not an asynchronous question followed by more work.
 
-After acceptance, read [Guided audit milestones](references/guided-audit.md) for
-completion criteria, check-ins, missing inputs, and resumption, then begin
-**Understand your agent**. Acceptance starts that milestone; it does not complete
-Ethos review or later check-ins. On return to an audit already started, reuse the
-answered opening and established progress; resume the earliest unfinished,
-non-deferred milestone or its pending check-in, preserving agreed deferrals.
-Check in after each visible milestone. The core's authoring welcome and Harbor
-setup milestones are not audit prerequisites.
-Every opening, milestone check-in, and missing-source question hands control to
-the user: end the turn and leave no audit subagents or independent inspection
-running while the question is unanswered. Asking for trace selection while
-continuing to review eval definitions is not a paused checkpoint.
-Known inputs can shorten a milestone but do not answer its transition check-in:
-after explaining the result, pause before the next milestone unless that exact
-transition was already answered. Do not draft the specification in the opening
-turn merely because Ethos and the absence of evals or traces are already known.
+After acceptance, read [Guided audit milestones](references/guided-audit.md) and
+begin **Understand your agent**. The reference owns completion criteria,
+turn-ending milestone check-ins, missing inputs, and resumption. Acceptance of
+the opening starts that milestone; it does not approve later transitions. Known
+inputs do not answer check-ins. End all independent work and delegation while a
+checkpoint awaits its answer. Reuse answered checkpoints and resume the earliest
+unfinished, non-deferred milestone, preserving agreed deferrals. The core's
+authoring welcome and Harbor setup are not audit prerequisites.
 
-Explicit requests only to generate, validate, measure, or aggregate keep their
-requested scope; do not require the full checklist or unrelated milestones.
-Generation still needs the Ethos pre-flight. Existing-spec validation,
-measurement, and aggregation use their supplied inputs without a new Ethos
-interview. Every audit operation that searches for or reads traces must first
-follow trace-source selection in [Confirm evals and traces](references/guided-audit.md#2-confirm-evals-and-traces),
-including trace inspection for runtime tool names. An explicit user-selected
-source and location already supplied in this conversation satisfies that
-confirmation; a path discovered in a file does not.
+Use directly named non-trace inputs and saved progress for orientation. Before
+any trace search or read, including tool-name inspection, follow
+[Confirm evals and traces](references/guided-audit.md#2-confirm-evals-and-traces).
+A user-selected source and location already supplied in this conversation suffice;
+a path found in a file does not. Until selection, do not list or recursively
+search the whole workspace where traces could be exposed. Confirmed absence
+needs no search to prove it.
+
+Scoped generate, validate, measure, or aggregate requests keep their scope without
+the full checklist. Generation still needs Ethos pre-flight; existing-spec
+validation, measurement, and aggregation use supplied inputs without a new Ethos
+interview. The trace-source rule still applies.
 
 ## Ethos Pre-flight
 
@@ -243,8 +216,7 @@ rubric and authoring context rather than separate hidden checks.
 
 ## Step 2: Generate Or Reconcile Audit.md
 
-Create or update `.eval-author/audit.md` from `<ethos_path>` and the reviewed item
-proposals:
+Generate from `<ethos_path>` and reviewed item proposals:
 
 ```bash
 uv run --with pyyaml --with jsonschema \
@@ -254,67 +226,32 @@ uv run --with pyyaml --with jsonschema \
   --out .eval-author/audit.md
 ```
 
-The default mode is `reconcile`. If `.eval-author/audit.md` does not exist, it
-creates the file. If it already exists, the generator parses the existing marked
-block, updates source metadata such as the Ethos digest, preserves existing item
-bodies by stable `name`, appends new proposed items, and reports proposed edits
-without silently rewriting them. Hand-authored prose outside the marked block is
-preserved.
+The default `--mode reconcile` creates a missing file or updates the existing
+marked block. It refreshes source metadata, preserves reviewed item bodies by
+stable `name` and prose outside the block, appends new items, and reports proposed
+edits without applying them. Choose other modes only for the requested scope:
 
-By default, the generator treats `.eval-author/audit-items.yaml` as a partial
-update proposal. Missing existing items are not stale in that mode, because the
-items file may contain only additions or edits. Use `--items-mode full` only when
-the items file is intended to be the complete denominator; then existing items
-omitted from the proposal are reported as `possibly_stale_items`.
+| Option added to the command | Behavior |
+|---|---|
+| `--mode suggest` | Same comparison as reconcile; writes nothing |
+| `--items-mode full` | Treat proposals as the complete denominator; report omitted existing items as `possibly_stale_items` |
+| `--mode replace` | Rewrite the whole file, including outside prose; only when the user wants to discard the existing generated file |
 
-Use the explicit modes when the default is not what the user wants:
-
-```bash
-uv run --with pyyaml --with jsonschema \
-  <skill_dir>/scripts/audit_spec/generate.py \
-  --ethos <ethos_path> \
-  --items .eval-author/audit-items.yaml \
-  --out .eval-author/audit.md \
-  --mode suggest
-
-uv run --with pyyaml --with jsonschema \
-  <skill_dir>/scripts/audit_spec/generate.py \
-  --ethos <ethos_path> \
-  --items .eval-author/audit-items.yaml \
-  --out .eval-author/audit.md \
-  --mode reconcile \
-  --items-mode full
-
-uv run --with pyyaml --with jsonschema \
-  <skill_dir>/scripts/audit_spec/generate.py \
-  --ethos <ethos_path> \
-  --items .eval-author/audit-items.yaml \
-  --out .eval-author/audit.md \
-  --mode replace
-```
-
-`suggest` performs the same comparison as `reconcile` but writes nothing.
-`replace` rewrites the whole file from the item proposal file, including prose
-outside the marked block, and should be used only when the user wants to discard
-the existing generated audit file.
-
-The generator prints a JSON summary containing `written`, `added_items`,
+Without `--items-mode full`, proposals are partial: omitted existing items are
+not stale. Inspect the JSON summary's `written`, `added_items`,
 `conflicting_items`, `conflicting_items_applied`, and `possibly_stale_items`.
-Treat `conflicting_items` as items where the proposal differs from the reviewed
-audit item; reconcile mode preserves the reviewed item and reports
-`conflicting_items_applied: false` so the user can accept the change manually or
-through a future editor. If reconcile adds items, finds conflicts, reports stale
-items in full mode, or detects an agent-name change, an approved audit is
-demoted to `status: draft` unless the user passes `--status approved`.
+Reconcile preserves conflicting reviewed items and returns
+`conflicting_items_applied: false`; accepted changes need manual editing or a
+future editor. Additions, conflicts, stale items in full mode, or an agent-name
+change demote an approved audit to `status: draft` unless explicitly overridden
+with `--status approved`.
 
-The generator adds an optional `sources` entry for Ethos with `name: ethos`, a
-path relative to `audit.md`, and a real `sha256` digest. It uses the frontmatter
-`name` from `ETHOS.md` when `--agent` is omitted. If that inferred name differs
-from the existing audit's `agent`, reconcile preserves the reviewed audit name
-and reports `agent_change` unless the user passes `--agent` explicitly.
-`source_refs` are advisory provenance notes in v1; the validator preserves them
-but does not resolve them against `sources` until a future generator or grammar
-defines that reference format.
+The generator records an Ethos `sources` entry with `name: ethos`, a path
+relative to `audit.md`, and a real `sha256` digest. Without `--agent`, it infers
+the name from Ethos frontmatter; if that differs from an existing audit, reconcile
+preserves the reviewed name and reports `agent_change`. Explicit `--agent`
+overrides it. `source_refs` remain advisory provenance: v1 preserves them but
+does not resolve them against `sources`.
 
 ## Step 3: Validate
 
@@ -334,12 +271,11 @@ complete or correct.
 
 ## Step 4: Measure One ATIF Trace
 
-After validation and the guided audit's specification review (when applicable),
-measure one completed trial directory or one ATIF trajectory file from the
-user-confirmed source. If that input is missing or unusable, follow the guided
-audit's unavailable-evidence guidance; do not search elsewhere without the
-user selecting another location. Use `--measure` to select one or more
-comma-separated measurement methods; the default is `tool_calls`.
+After validation and, for a guided audit, specification review, measure one
+completed trial or ATIF file from the user-confirmed source. If it is missing or
+unusable, follow the guided audit's unavailable-evidence guidance; do not search
+another source without user selection. Read the measurement assumptions and
+method contracts in [the script README](scripts/audit_spec/README.md).
 
 ```bash
 uv run --with-requirements <skill_dir>/requirements.txt \
@@ -350,114 +286,42 @@ uv run --with-requirements <skill_dir>/requirements.txt \
   --out-dir .eval-author/audit-measurements
 ```
 
-The current `--trial-dir` reader supports Harbor-style trial directories that
-normally contain `agent/trajectory.json`; agents that do not emit ATIF may not
-have that file. When the trace file is already known, pass it directly and stamp
-the task explicitly:
+`--trial-dir` expects `agent/trajectory.json`, which not every agent emits.
+For a known ATIF file, replace it with `--trace <path-to>/trajectory.json
+--task-id <task-id> --run-id <run-id>`. The default method is `tool_calls`;
+`--measure` accepts repeated flags or CSV such as
+`tool_calls,capabilities,failure_cases`. Select the other methods when those
+item kinds should be measured. The trace is parsed once for all methods;
+unknown methods fail before loading it.
 
-```bash
-uv run --with-requirements <skill_dir>/requirements.txt \
-  <skill_dir>/scripts/audit_spec/measure.py \
-  --audit .eval-author/audit.md \
-  --trace <path-to>/trajectory.json \
-  --task-id <task-id> \
-  --run-id <run-id> \
-  --measure tool_calls \
-  --out-dir .eval-author/audit-measurements
-```
+For non-tool `evidence_required` (such as `user_intent`, `output`, `outcome`,
+`policy_boundary`, or `verifier`), inspect the selected trace and write judgment
+sidecars under `.eval-author/`:
 
-`--measure` may be passed more than once or as CSV, for example
-`--measure tool_calls,capabilities,failure_cases`. The default is `tool_calls`;
-include the other methods when the user wants the same trace to count against
-capability or failure-case items. The script loads the trajectory once, then runs
-each selected method against the same parsed Harbor trajectory model. Unknown
-method names fail before the trace is loaded.
+| Method | Schema | Additional measurement argument |
+|---|---|---|
+| `capabilities` | `schemas/audit_capability_judgments.schema.json` | `--capability-judgments .eval-author/capability-judgments.json` |
+| `failure_cases` | `schemas/audit_failure_case_judgments.schema.json` | `--failure-case-judgments .eval-author/failure-case-judgments.json` |
 
-When capability evidence contains non-tool kinds such as `user_intent`, `output`,
-`outcome`, `policy_boundary`, or `verifier`, inspect the trace and write a
-structured judgment file under `.eval-author/` using
-`schemas/audit_capability_judgments.schema.json`. Each judgment must target the
-capability `name` plus the zero-based `evidence_required` index, copy the
-evidence `kind` and `description` exactly, and judge only non-tool evidence. Do
-not write judgments for `tool_call`; the script measures those deterministically.
-Set the sidecar's required `trace_sha256` to `sha256:` followed by the lowercase
-SHA-256 digest of the exact ATIF trajectory file you inspected. Measurement
-rejects the sidecar if those trace bytes have changed or another trace is used.
-Use the capability description, evidence description, and concrete trace content
-as the rubric: mark `satisfied` only when the trace clearly demonstrates the
-requirement, `missing` when it clearly does not, and `unclear` when the trace is
-ambiguous or insufficient. Include brief rationale and supporting trace
-references when available. A subjective judgment can satisfy only the non-tool
-evidence it targets; it cannot override missing required tools or missing
-`tool_call` evidence.
-Pass the sidecar when measuring capabilities:
+Target each judgment by item `name` and zero-based evidence index; copy its
+`kind` and `description` exactly. Set `trace_sha256` to `sha256:` plus the
+lowercase digest of the exact inspected ATIF bytes. Judge only non-tool evidence:
+`satisfied` requires clear demonstration, `missing` clear absence, and `unclear`
+ambiguous or insufficient evidence. Include rationale and trace references.
+Use capability descriptions or failure triggers, expected behavior, and
+prohibited outputs as rubric context; judge what `evidence_required` states.
 
-```bash
-uv run --with-requirements <skill_dir>/requirements.txt \
-  <skill_dir>/scripts/audit_spec/measure.py \
-  --audit .eval-author/audit.md \
-  --trace <path-to>/trajectory.json \
-  --task-id <task-id> \
-  --run-id <run-id> \
-  --measure capabilities \
-  --capability-judgments .eval-author/capability-judgments.json \
-  --out-dir .eval-author/audit-measurements
-```
+Coverage is conjunctive: all deterministic and judged requirements must hold.
+Judgments cannot override missing required tools or `tool_call` evidence;
+failure cases also require every `prohibited_tools` value to be absent from the
+whole trace. Missing judgments leave items uncovered. Stale trace digests or
+evidence targets fail before report writes; never relabel stale evidence.
 
-Capability coverage is conjunctive: every deterministic requirement must be
-satisfied, and every judged evidence requirement must be satisfied. Missing
-judgments leave the capability uncovered. Stale judgments fail measurement
-before the script writes a coverage report, including judgments bound to a
-different trace digest.
-
-Failure-case coverage follows the same pattern. Inspect the trace and write
-`schemas/audit_failure_case_judgments.schema.json`, targeting each non-tool
-evidence requirement by failure-case `name`, zero-based index, exact `kind`, and
-exact `description`. Judge only what `evidence_required` states, using the
-failure case's trigger, expected behavior, and prohibited outputs as context.
-Then measure it with:
-
-```bash
-uv run --with-requirements <skill_dir>/requirements.txt \
-  <skill_dir>/scripts/audit_spec/measure.py \
-  --audit .eval-author/audit.md \
-  --trace <path-to>/trajectory.json \
-  --task-id <task-id> \
-  --run-id <run-id> \
-  --measure failure_cases \
-  --failure-case-judgments .eval-author/failure-case-judgments.json \
-  --out-dir .eval-author/audit-measurements
-```
-
-A failure case is covered only when every evidence requirement is satisfied and
-none of its `prohibited_tools` appears anywhere in the trace. Missing judgments
-leave it uncovered, and a subjective judgment cannot override missing
-`tool_call` evidence or an observed prohibited tool. The same trace-digest and
-stale-target checks used for capability judgments apply.
-
-The script writes one folder per task, run, and method. Task and run ids are
-encoded as single path components so ids containing `/` cannot create nested or
-escaping paths:
-
-```text
-.eval-author/audit-measurements/task=<encoded-task-id>/run=<encoded-run-id>/<method>/coverage.json
-.eval-author/audit-measurements/task=<encoded-task-id>/run=<encoded-run-id>/<method>/details.json
-```
-
-`coverage.json` uses the shared coverage schema and contains only the stable
-audit item names this trace covered plus provider-neutral subject identity
-(`trace`, `trace_format`, `task_id`, and `run_id`). It also records
-`item_kind_count`, the denominator for the measured item kind. Coverage
-aggregation should consume this file and ignore method-specific debug details.
-`details.json` is specific to the selected method and carries traceability data
-for humans.
-
-For current method semantics and details schemas, see
-`scripts/audit_spec/README.md`.
-
-The script validates `coverage.json` against `schemas/audit_coverage.schema.json`
-and validates `details.json` against the selected method's details schema before
-writing. Use the next step to union coverage across tasks and runs.
+Each task/run/method writes schema-validated `coverage.json` and `details.json`
+under `.eval-author/audit-measurements/task=<encoded-task-id>/run=<encoded-run-id>/<method>/`.
+IDs are encoded as single path components. The script README defines coverage
+identity fields and method-specific details. Aggregate coverage files, not debug
+details, in the next step.
 
 ## Step 5: Aggregate Coverage Reports
 
