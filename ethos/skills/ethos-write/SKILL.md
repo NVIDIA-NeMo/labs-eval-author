@@ -45,6 +45,8 @@ The file is the only copy. There is no remote canonical copy to sync.
 Write `schema_version: 1`. Every canonical body section is required. The
 validator rejects a file missing any of those headings. When you have nothing
 to say, write `_(none)_` rather than dropping the section.
+Version 1 is the only schema version. When a new version ships, its migration
+steps belong in this skill.
 
 The schema is a floor, not a ceiling. Extra `##` headings and extra YAML
 front-matter keys are allowed. The parser keeps unknown body sections and
