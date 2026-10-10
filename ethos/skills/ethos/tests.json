@@ -23,7 +23,7 @@
     },
     {
       "type": "implicit",
-      "prompt": "Save the NeMo agent design somewhere durable so I do not lose it.",
+      "prompt": "Save the agent design somewhere durable so I do not lose it.",
       "expected_skill": "ethos"
     },
     {
@@ -33,12 +33,12 @@
     },
     {
       "type": "implicit",
-      "prompt": "Save the approved design and our decision to use a supported Codex harness in ethos.md.",
+      "prompt": "Save the approved design and our decision to run the agent as a long-lived service in ethos.md.",
       "expected_skill": "ethos"
     },
     {
       "type": "implicit",
-      "prompt": "Persist our NAT compatibility decision in the agent's ethos.md so the design record stays accurate.",
+      "prompt": "Persist our decision to keep the agent prompt-only in its ethos.md so the design record stays accurate.",
       "expected_skill": "ethos"
     },
     {
@@ -48,7 +48,7 @@
     },
     {
       "type": "implicit",
-      "prompt": "Explore is done. Job is clear, three categories, prompt-only, hosted Nemotron Super. Capture it.",
+      "prompt": "Explore is done. Job is clear, three categories, prompt-only, hosted model only. Capture it.",
       "expected_skill": "ethos"
     },
     {
@@ -58,7 +58,7 @@
     },
     {
       "type": "implicit",
-      "prompt": "Write down the cost ceiling and the approved model providers for this agent so the optimizer stops suggesting things we cannot ship.",
+      "prompt": "Write down the cost ceiling and the approved model providers for this agent so nobody proposes changes we cannot ship.",
       "expected_skill": "ethos"
     },
     {
@@ -68,7 +68,7 @@
     },
     {
       "type": "negative-control",
-      "prompt": "Create agent.yaml with Hermes as the default harness.",
+      "prompt": "Create the agent's runtime config file with a ReAct loop as the default.",
       "expected_skill_not": "ethos"
     },
     {

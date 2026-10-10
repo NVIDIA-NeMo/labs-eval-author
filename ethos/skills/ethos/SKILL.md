@@ -35,7 +35,7 @@ and how to weigh a win on one metric against a loss on another.
 
 The ethos.md is a local file in the agent's repository, committed alongside
 the code it describes. Use the path the user names. Otherwise reuse an
-existing ethos.md, including a legacy uppercase `ETHOS.md`. Otherwise write
+existing ethos.md, including an `ETHOS.md` written by Eval Author 0.1.0. Otherwise write
 `ethos.md` at the repository root; in a repository with several agents, put it
 at the root of the agent's own package and confirm that path with the user.
 The file is the only copy. There is no remote canonical copy to sync.
@@ -46,8 +46,9 @@ Write `schema_version: 2`. Every canonical body section is required. The
 validator rejects a file missing any of those headings. When you have nothing
 to say, write `_(none)_` rather than dropping the section.
 
-Version 2 removed the `Change Scope` section. When editing a version 1 file,
-set `schema_version: 2` and ask the user whether to delete its `Change Scope`
+Eval Author 0.1.0 wrote `ETHOS.md` with `schema_version: 1`, which also
+required a `Change Scope` section. When editing such a file, set
+`schema_version: 2` and ask the user whether to delete its `Change Scope`
 section or keep it as a custom section.
 
 The schema is a floor, not a ceiling. Extra `##` headings and extra YAML
@@ -89,7 +90,7 @@ and then helps nobody.
 
 2. **Pre-flight: locate the file.** Resolve `ETHOS_PATH` as described in
    [Location](#location). If a file already exists there, ask the user whether
-   to edit it or start over. Read a legacy `ETHOS.md` as the existing ethos.md.
+   to edit it or start over. Read an Eval Author 0.1.0 `ETHOS.md` as the existing ethos.md.
 
    ```bash
    find . -maxdepth 4 -iname ethos.md -not -path '*/.git/*' -not -path '*/node_modules/*' 2>/dev/null | grep . || echo "ethos_new"
@@ -138,7 +139,7 @@ and then helps nobody.
    for agents and humans to read directly.
 
 5. **Write the file.** Write to `ETHOS_PATH`, creating its directory if needed.
-   If a legacy `ETHOS.md` exists in that directory, rename it to `ethos.md`
+   If an Eval Author 0.1.0 `ETHOS.md` exists in that directory, rename it to `ethos.md`
    before writing, through a temporary name so the rename also works on
    case-insensitive filesystems:
 

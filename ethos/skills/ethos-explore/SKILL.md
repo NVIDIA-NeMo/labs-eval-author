@@ -92,7 +92,7 @@ Track known issues and recurring failure patterns where the team tracks bugs.
 ## Pre-flight
 
 Check whether an ethos.md already exists for this agent. Look for `ethos.md`,
-including the legacy uppercase `ETHOS.md`, at the repository root and next to
+including an `ETHOS.md` written by Eval Author 0.1.0, at the repository root and next to
 the agent's package. If one is present, ask the user whether they want to edit
 the existing ethos.md or start over. If they want to edit, route to `ethos`
 directly.

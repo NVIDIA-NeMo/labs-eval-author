@@ -34,15 +34,13 @@ The experimental trace-environment skill documents its
 For standalone Gym trace conversion, see
 [`gym-to-atif`](skills/gym-to-atif/SKILL.md).
 
-## Ethos authoring
+## ethos.md authoring
 
-The portable [`ethos` skill](skills/ethos/SKILL.md) lives in Eval Author and
-ships with its other skills. It combines exploration, intent questions, local
-`ETHOS.md` authoring, and review in one file, including the schema-v1 outline (the restored skills under `ethos/` use schema v2).
-
-[`ethos/`](ethos/README.md) holds the original two-skill workflow, renamed
-`ethos-explore` and `ethos`, restored from NeMo Helix for evaluation against the
-consolidated skill. It is not installed with the Eval Author skills.
+The [`ethos-explore` and `ethos` skills](ethos/README.md) create and maintain an
+agent's `ethos.md` (schema version 2). They live under `ethos/skills/` and
+install separately from the Eval Author skills, which link to them from
+[Local Ethos](skills/eval-author/references/local-ethos.md). The ethos skill
+bundles a standard-library validator, `scripts/validate_ethos.py`.
 
 ## Public NeMo Compass dependency
 
@@ -63,7 +61,7 @@ instructions. The individual skill files document each workflow in detail.
 
 | Skill | Purpose |
 | --- | --- |
-| [`ethos`](skills/ethos/SKILL.md) | Explore intended behavior and author or update a local ETHOS.md. |
+| [`ethos-explore`](ethos/skills/ethos-explore/SKILL.md), [`ethos`](ethos/skills/ethos/SKILL.md) | Explore intended behavior, then write and validate a local ethos.md. Installed separately. |
 | [`eval-author`](skills/eval-author/SKILL.md) | Entry point and shared workflow guidance. |
 | [`eval-author-first-eval`](skills/eval-author-first-eval/SKILL.md) | Plan, build, and validate a small starter evaluation suite. |
 | [`eval-author-discover`](skills/eval-author-discover/SKILL.md) | Inventory evaluations and check Harbor readiness. |

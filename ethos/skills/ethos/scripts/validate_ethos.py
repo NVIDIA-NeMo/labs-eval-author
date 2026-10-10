@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 SCHEMA_VERSION = 2
-# Version 1 also required ``Change Scope``; version 2 removed it.
+# Eval Author 0.1.0 wrote version 1, which also required ``Change Scope``.
 LEGACY_SECTIONS = {1: ("Change Scope",)}
 REQUIRED_SECTIONS = (
     "Role",

@@ -91,11 +91,10 @@ parse. A section with nothing to say contains `_(none)_`.
 
 ## Create an ethos.md
 
-Install both skills together; `ethos-explore` hands off to `ethos`. From a
-checkout of this repository:
+Install both skills together; `ethos-explore` hands off to `ethos`:
 
 ```bash
-npx skills add ./ethos --agent claude-code
+npx skills add https://github.com/NVIDIA-NeMo/labs-eval-author/tree/main/ethos --agent claude-code
 ```
 
 Replace `claude-code` with your assistant's identifier. Then, in your agent's
@@ -118,24 +117,12 @@ python3 ethos/skills/ethos/scripts/validate_ethos.py path/to/ethos.md
 
 To revise an existing ethos.md, ask for the edit directly; `ethos` updates the
 relevant sections in place and sets `updated_timestamp`. Both skills also find
-an existing file named `ETHOS.md`, the earlier uppercase name; `ethos` renames
-it to `ethos.md` when it writes.
+an `ETHOS.md` written by Eval Author 0.1.0; `ethos` renames it to `ethos.md` and
+upgrades it to schema version 2 when it writes.
 
-## Relationship to Eval Author
+## Using ethos.md with Eval Author
 
-Eval Author's own installation uses the single-file
-[`skills/ethos`](../skills/ethos/SKILL.md) skill, which writes a local
-`ETHOS.md`. Both are named `ethos`; install one or the other in a given
-assistant. `npx skills add NVIDIA-NeMo/labs-eval-author --skill '*'` does not
-install the skills in this directory.
-
-## Origin
-
-The skills, template, and each skill's `tests.json` test cases come from
-[NVIDIA-NeMo/nemo-helix](https://github.com/NVIDIA-NeMo/nemo-helix) at commit
-`08128e6d0e1248928d4d4152a39bc06360ca74b1`, the last revision before upstream
-removed them in `0fd8da64c`. They were renamed from `nemo-explore` and
-`nemo-ethos`, the file they write from `ETHOS.md` to `ethos.md`, and their NeMo
-Platform onboarding, model selection, and Filesets storage were removed. This
-README adapts the NeMo Helix ethos.md documentation page
-(`docs/agents/ethos.mdx`) from the same commit.
+Eval Author's first evaluations and coverage audits use ethos.md as their target
+and hand off to these skills to create or revise it. Installing Eval Author
+(`npx skills add NVIDIA-NeMo/labs-eval-author --skill '*'`) does not install
+them; add them with the command above.
