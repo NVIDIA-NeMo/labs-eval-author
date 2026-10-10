@@ -37,7 +37,7 @@ For standalone Gym trace conversion, see
 ## ethos.md authoring
 
 The [`ethos-orchestrate`, `ethos-explore`, and `ethos-write` skills](ethos/README.md) create
-and maintain an agent's `ethos.md` (schema version 2). `ethos-orchestrate` routes requests
+and maintain an agent's `ethos.md` (schema version 1). `ethos-orchestrate` routes requests
 to the other two. They live under `ethos/skills/` and install separately from
 the Eval Author skills, which link to them from
 [Local Ethos](skills/eval-author/references/local-ethos.md). The ethos-write

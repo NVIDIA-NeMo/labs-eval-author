@@ -2023,10 +2023,10 @@ def test_filled_ethos_template_passes_the_bundled_validator(tmp_path: Path) -> N
     [
         (lambda text: text.replace("## Vision\n", "## Later\n"), "missing section: ## Vision"),
         (lambda text: text + "\n## Role\n\nAgain.\n", "duplicate section: ## Role"),
-        (lambda text: text.replace("schema_version: 2", "schema_version: 3"), "unsupported schema_version"),
-        (lambda text: text.replace("schema_version: 2", "schema_version: 1"), "missing section: ## Change Scope"),
+        (lambda text: text.replace("schema_version: 1", "schema_version: 2"), "unsupported schema_version"),
+        (lambda text: text.replace("## Change Scope\n", "## Permissions\n"), "missing section: ## Change Scope"),
     ],
-    ids=["missing-section", "duplicate-section", "future-version", "v1-without-change-scope"],
+    ids=["missing-section", "duplicate-section", "unknown-version", "missing-change-scope"],
 )
 def test_ethos_validator_rejects_malformed_files(tmp_path: Path, transform: Callable[[str], str], error: str) -> None:
     path = tmp_path / "ethos.md"
@@ -2036,13 +2036,12 @@ def test_ethos_validator_rejects_malformed_files(tmp_path: Path, transform: Call
     assert error in result.stderr
 
 
-def test_ethos_validator_accepts_eval_author_0_1_0_files_with_a_warning(tmp_path: Path) -> None:
-    path = tmp_path / "ETHOS.md"
-    text = _filled_ethos_template().replace("schema_version: 2", "schema_version: 1")
-    path.write_text(text + "\n## Change Scope\n\n- prompts: yes\n", encoding="utf-8")
+def test_ethos_validator_warns_when_schema_version_is_missing(tmp_path: Path) -> None:
+    path = tmp_path / "ethos.md"
+    path.write_text(_filled_ethos_template().replace("schema_version: 1\n", ""), encoding="utf-8")
     result = _run_script(_ETHOS_VALIDATE, str(path))
     assert result.returncode == 0, result.stderr
-    assert "schema_version 1 is outdated" in result.stdout
+    assert "no 'schema_version'" in result.stdout
 
 
 def test_audit_skill_anchors_tool_names_to_runtime_measurement_surface() -> None:

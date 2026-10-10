@@ -2,9 +2,9 @@
 name: ethos-orchestrate
 description: >-
   Entry point for an AI agent's ethos.md: a durable snapshot of what the agent
-  is for, what it must not do, and what success looks like. Routes a request
-  to explore and capture intent (ethos-explore), write or edit the file
-  (ethos-write), or bring an Eval Author 0.1.0 ETHOS.md up to schema version 2.
+  is for, what it must not do, what success looks like, and what may change.
+  Routes a request to explore and capture intent (ethos-explore), or write or
+  edit the file (ethos-write), including renaming an Eval Author 0.1.0 ETHOS.md.
   Owns the standard every ethos sub-flow follows. Use when the user asks "help
   me write an ethos.md", "does my agent have an ethos.md?", "update my agent's
   ethos.md", or when you need to pick between the ethos sub-flows.
@@ -14,7 +14,7 @@ triggers:
   - does this repo have an ethos.md
   - update my agent's ethos.md
   - review my agent's ethos.md
-  - upgrade my ETHOS.md
+  - rename my ETHOS.md to ethos.md
   - what is an ethos.md
 not-for:
   - ethos-explore (use to scan the agent and interview the user for intent)
@@ -54,7 +54,7 @@ find . -maxdepth 4 -iname ethos.md -not -path '*/.git/*' -not -path '*/node_modu
 | No ethos.md and the user wants one | [ethos-explore](../ethos-explore/SKILL.md) | Show the path ahead below, then scan and interview. Explore hands off to ethos-write. |
 | An ethos.md exists and the user names specific changes | [ethos-write](../ethos-write/SKILL.md) | Edit the named sections in place, validate, and review. No new interview. |
 | An ethos.md exists and intent may have drifted, or the user wants it revisited | [ethos-explore](../ethos-explore/SKILL.md) | Read the file as prior answers; interview only for what changed or is missing. |
-| An Eval Author 0.1.0 `ETHOS.md` (`schema_version: 1`) | [ethos-write](../ethos-write/SKILL.md) | Rename to `ethos.md`, set `schema_version: 2`, and ask whether to keep `Change Scope` as a custom section. |
+| An Eval Author 0.1.0 `ETHOS.md` | [ethos-write](../ethos-write/SKILL.md) | Rename it to `ethos.md`; the contents already match the schema. Then handle any requested edits. |
 | The user wants to know what ethos.md is, or whether one exists | This skill | Explain it, or report what was found and whether it validates. Offer the next route; do not start writing. |
 
 When several apply, take the earliest row that matches. A request phrased as
@@ -80,22 +80,23 @@ unfinished step instead of repeating the opening.
 
 - Code, prompts, configs, and docs establish what the agent does today. They
   draft `Tools`, `Harness`, `Evaluation Setup`, and similar sections.
-- Only the user establishes purpose, principles, vision, trade-offs, and
-  constraints. An inferred answer is a draft to confirm, never a filled section.
+- Only the user establishes purpose, principles, vision, trade-offs,
+  constraints, and change scope. An inferred answer is a draft to confirm,
+  never a filled section.
 - An honest `_(none)_`, recorded in `Open Questions`, beats a plausible guess.
 - The bundled validator establishes structure: front matter, schema version,
-  and the fourteen required sections. A file that validates can still be wrong;
+  and the fifteen required sections. A file that validates can still be wrong;
   the user's review establishes that it is right.
 
 ## Vocabulary
 
 | Term | Meaning |
 |---|---|
-| ethos.md | The agent's intent snapshot: front matter plus fourteen required `##` sections, schema version 2 |
+| ethos.md | The agent's intent snapshot: front matter plus fifteen required `##` sections, schema version 1 |
 | Section | One required `##` heading from the [template](../ethos-write/references/templates/ethos.md). Extra headings are allowed and preserved |
 | Inferred | Drafted from source; shown to the user as an option, never final |
 | Confirmed | Answered or accepted by the user in this conversation |
-| Legacy file | An `ETHOS.md` with `schema_version: 1` written by Eval Author 0.1.0 |
+| Legacy file | An `ETHOS.md` written by Eval Author 0.1.0; same schema, earlier file name |
 
 ## Sub-flows
 
@@ -105,7 +106,7 @@ This file carries the standard and the routing; the sub-flow carries the steps.
 | Sub-flow | Use it to |
 |---|---|
 | [`ethos-explore`](../ethos-explore/SKILL.md) | Scan the agent's code and docs, then ask one intent question at a time; hand the agreed answers to ethos-write |
-| [`ethos-write`](../ethos-write/SKILL.md) | Render the template, save `ethos.md`, run the validator, show a gut-check, and get the user's confirmation; edit or upgrade an existing file |
+| [`ethos-write`](../ethos-write/SKILL.md) | Render the template, save `ethos.md`, run the validator, show a gut-check, and get the user's confirmation; edit an existing file or rename an Eval Author 0.1.0 `ETHOS.md` |
 
 ## Boundaries
 
@@ -158,6 +159,6 @@ Route: ethos-write, editing Constraints in place.
 Deliverable: the updated file, validated, with the change shown for review.
 
 Request: "We still have the ETHOS.md Eval Author made last month."
-Route: ethos-write's upgrade of the legacy file.
-Deliverable: ethos.md at schema version 2, with Change Scope kept or removed as the user chose.
+Route: ethos-write, renaming the legacy file.
+Deliverable: ethos.md with unchanged contents, validated.
 ```

@@ -1,10 +1,10 @@
 ---
-schema_version: 2
+schema_version: 1
 name: <canonical-agent-name>
 created_timestamp: <ISO 8601 creation timestamp, e.g. 2026-06-02T20:00:00Z>
 updated_timestamp: <ISO 8601 timestamp of the last edit; omit on first write>
 author: <human or agent that created this ethos.md>
-owner: <accountable human or team for the approvals named in Constraints; omit if unowned>
+owner: <accountable human or team for the approvals named below; omit if unowned>
 ---
 
 # ethos.md: <name>
@@ -39,9 +39,12 @@ owner: <accountable human or team for the approvals named in Constraints; omit i
 >
 > - **Bullet sections** (`Open Questions`): list items only. If the list
 >   is empty, write `_(none)_` instead of leaving the section blank.
-> - **Labeled-bullet sections** (`Scope`): `- Label: value` lines only. No
->   prose, no blank-line-separated paragraphs. For list-valued labels, separate
->   items with semicolons, or write `_(none)_`.
+> - **Labeled-bullet sections** (`Scope`, `Change Scope`):
+>   `- Label: value` lines only. No prose, no blank-line-separated paragraphs.
+>   For list-valued labels inside `Scope`, separate items with semicolons, or
+>   write `_(none)_`. For `Change Scope`, name levers that exist on this agent
+>   and do not copy a generic catalog. Each lever value is `yes`, `no`, or
+>   `with-approval`.
 > - **Free-form sections** (`Role`, `Purpose & Outcomes`, `Tools`, `Harness`,
 >   `Behavior`, `Principles`, `Success Criteria`, `Trade-offs`, `Constraints`,
 >   `Evaluation Setup`, `Metric Semantics`, `Vision`): any markdown. `Tools`
@@ -229,6 +232,14 @@ re-reporting the same non-issue.>
 | <e.g. `score`> | <what the number actually measures, and its source> | <the claim it supports, and the claim it does not> |
 
 Use `_(none)_` if every metric name means exactly what it says.
+
+## Change Scope
+
+- <part of the agent>: <yes | no | with-approval>
+- Notes: <vetoes, exceptions, or other scope clarifications; use `_(none)_` if there are none>
+
+Use `with-approval` when a change is permitted but must not ship unattended.
+Name the approver in `Constraints` or `Notes`.
 
 ## Vision
 

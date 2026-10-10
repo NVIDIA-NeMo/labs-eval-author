@@ -13,7 +13,7 @@ triggers:
   - onboard my existing agent
 not-for:
   - ethos-write (use to write or edit the ethos.md file once explore is done)
-  - ethos-orchestrate (use to choose between exploring, writing, and upgrading an ethos.md)
+  - ethos-orchestrate (use to choose between exploring and writing an ethos.md)
   - superpowers:brainstorming (use for design work that is not about an agent's intended behavior)
 compatibility: Dialogue-driven with read-only pre-flight (`ls`, `find`, `Read`); one intent question per message after the codebase scan; at least three questions covering Purpose & Outcomes, Principles, and Vision; safe under any sandbox; works offline; output is a structured conversation handed to ethos-write.
 license: Apache-2.0
@@ -47,12 +47,12 @@ spending attention on.
 ## The schema you are filling
 
 The ethos.md has five base front-matter fields, plus optional `updated_timestamp`,
-and fourteen body sections. Every body section is required. One field is a
+and fifteen body sections. Every body section is required. One field is a
 quality gate for handoff: `ethos-write` is blocked until `Role` is concrete.
 For any other canonical section with nothing to say, write `_(none)_` rather
 than dropping the heading.
 
-The fourteen headings are a floor, not a ceiling. Extra `##` headings and extra
+The fifteen headings are a floor, not a ceiling. Extra `##` headings and extra
 YAML front-matter keys are allowed. Keep them if the user adds them. Do not
 strip custom sections to make the file look "strict."
 
@@ -60,11 +60,11 @@ strip custom sections to make the file look "strict."
 
 | Field | Required | Guidance |
 | :---- | :---- | :---- |
-| `schema_version` | yes | Always `2` for new files. `ethos-write` fills this at write time. |
+| `schema_version` | yes | Always `1` for new files. `ethos-write` fills this at write time. |
 | `name` | yes | Canonical agent name. Use the directory or workflow name if obvious; ask if not. |
 | `created_timestamp` | yes | ISO 8601 timestamp for when the ethos.md is created. `ethos-write` fills this at write time. |
 | `author` | yes | Human or agent that created the ethos.md. `ethos-write` fills this from the current author context when known; ask only if ambiguous. |
-| `owner` | optional | Accountable human or team for the approvals named in `Constraints`. Ask only if that section names an approval. |
+| `owner` | optional | Accountable human or team for the approvals named in `Constraints` or `Change Scope`. Ask only if those sections name an approval. |
 | `updated_timestamp` | conditional | Set on edits. Omit on first write. `ethos-write` fills this. |
 
 **Body sections** (in canonical order)
@@ -83,8 +83,9 @@ strip custom sections to make the file look "strict."
 | 10 | Constraints | Hard external bounds no change may cross: approved providers/models/regions, data residency and handling, compliance obligations, production cost ceilings and latency SLOs, and changes that need human sign-off. Give the current measured figure next to a ceiling when you know it. Usually organizational, which is why the code cannot supply them. Write `_(none)_` if unconstrained. |
 | 11 | Evaluation Setup | Current validation setup: how to run it, what datasets/checks it uses, what scorers/metrics measure, pass/fail thresholds, and known coverage gaps relative to the success criteria. If no eval suite exists, say so explicitly. |
 | 12 | Metric Semantics | What ambiguous or load-bearing metric and telemetry field names actually mean, and which claims they do not support. Write `_(none)_` when every name means exactly what it says. |
-| 13 | Vision | Where the agent is headed: an intention beyond today's job, plus one or two concrete use cases it should grow into but does not serve yet. That last part marks what `Scope` excludes *for now* rather than on principle. Write `_(none)_` rather than pasting a dated backlog. |
-| 14 | Open Questions | Open facts that affect safe use, evaluation, or modification of the agent. Write `_(none)_` when there are none. Remove items once answered. |
+| 13 | Change Scope | A permissions list — what may be modified. Each lever takes `yes`, `no`, or `with-approval`. Name levers that exist on this agent. Do not copy a generic catalog. Automated changes never edit the ethos.md itself. |
+| 14 | Vision | Where the agent is headed: an intention beyond today's job, plus one or two concrete use cases it should grow into but does not serve yet. That last part marks what `Scope` excludes *for now* rather than on principle. Write `_(none)_` rather than pasting a dated backlog. |
+| 15 | Open Questions | Open facts that affect safe use, evaluation, or modification of the agent. Write `_(none)_` when there are none. Remove items once answered. |
 
 The ethos.md records durable intent, not a running list of observed failures.
 Track known issues and recurring failure patterns where the team tracks bugs.
@@ -178,6 +179,7 @@ interview and ask for Role first.
      configs, and telemetry field names. Fill only the entries whose meaning is
      genuinely ambiguous from the name. Write `_(none)_` when every name is
      obvious.
+   - **Change Scope** — not in the code; ask the user.
    - **Principles** — not in the code; ask in the intent interview even if a
      prompt hints at one. A prompt is the implementation, not the intent
      behind it.
@@ -205,8 +207,8 @@ After the scan, split fields into two piles:
   `Tools`, `Harness`, `Evaluation Setup`, `Behavior` copied from prompts,
   `Metric Semantics` from scorer names.
 - **Intent** — fields source cannot own: `Purpose & Outcomes`, `Principles`,
-  and `Vision` always; then `Constraints`, `Trade-offs`, and a ranked
-  `Success Criteria` when the repo only has eval wiring.
+  and `Vision` always; then `Constraints`, `Trade-offs`, `Change Scope`, and
+  a ranked `Success Criteria` when the repo only has eval wiring.
 
 Walk the intent pile. Skip a topic only when **this conversation** already
 answered it. A README, prompt, or roadmap is not a substitute for a user
@@ -242,7 +244,8 @@ already answered:
 
 1. `Constraints` — hard bounds no change may cross.
 2. `Trade-offs` — hard gates, then a ranking.
-3. Ranked `Success Criteria` when the repo only has eval wiring.
+3. `Change Scope` — which levers on this agent may move.
+4. Ranked `Success Criteria` when the repo only has eval wiring.
 
 Do not collect run limits. A spend cap or experiment count for one evaluation
 run belongs to the tool that runs it. If the user volunteers
@@ -337,6 +340,9 @@ default in parentheses so the user knows they can override:
 - `Tools: Prompt-only.` *(default — say so if the agent needs tools)*
 - `Purpose & Outcomes` / `Success Criteria` inferred from implementation
   *(say so if there is outside context to incorporate)*
+- `Change Scope:` name the parts of this agent a change may touch
+  *(default — call out anything you want to lock down, or mark it
+  `with-approval`)*
 
 When the user could not answer a section, write `_(none)_` and add the
 gap to `Open Questions`. Say "`Constraints`: _(none)_ — anyone changing this
@@ -439,5 +445,9 @@ If the Role quality gate is satisfied, announce the handoff in one line
 - **Record intent, not runtime config.** Describe the desired harness behavior
   and artifacts without asking the user to design a raw runtime config. Config
   files stay with the agent's implementation.
+- **Change Scope is a permissions list, not a wishlist.** It controls what
+  later changes may edit. Walk the levers that exist on this agent so
+  the user knows what they're consenting to. Offer `with-approval` for levers
+  the user wants available but not automatic. Do not copy a generic catalog.
 - **Do not invent Known Issues fields.** Known issues and recurring failure
   patterns belong in the team's issue tracker, not in the ethos.md.

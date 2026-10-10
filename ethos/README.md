@@ -17,9 +17,9 @@ This directory holds three coding-assistant skills that create and maintain an
 
 | Skill | What it does |
 | --- | --- |
-| [`ethos-orchestrate`](skills/ethos-orchestrate/SKILL.md) | Entry point. Finds any existing ethos.md and routes the request to explore, write, or upgrade. |
+| [`ethos-orchestrate`](skills/ethos-orchestrate/SKILL.md) | Entry point. Finds any existing ethos.md and routes the request to explore or write. |
 | [`ethos-explore`](skills/ethos-explore/SKILL.md) | Reads the agent's code and docs, fills in what they establish, then asks one intent question at a time for what they cannot. Hands its answers to `ethos-write`. |
-| [`ethos-write`](skills/ethos-write/SKILL.md) | Writes `ethos.md` from those answers using the [schema-v2 template](skills/ethos-write/references/templates/ethos.md), validates the front matter and required sections, and reviews the result with you. |
+| [`ethos-write`](skills/ethos-write/SKILL.md) | Writes `ethos.md` from those answers using the [schema-v1 template](skills/ethos-write/references/templates/ethos.md), validates the front matter and required sections, and reviews the result with you. |
 
 ## Why it exists
 
@@ -55,8 +55,11 @@ not only the implemented one; where they differ, say so.
 | **Portable context** | Every developer, reviewer, and agent working on this agent starts from the same file instead of reconstructing intent from the repo. |
 | **Shared contract** | Humans and agents agree on purpose, bounds, and what counts as divergence. |
 | **Spec-driven creation** | Purpose, goals, and expected behavior are explicit before code exists. |
-| **Safe changes** | Anyone changing the agent knows its hard constraints, trade-offs, and what must not regress. |
+| **Safe changes** | Anyone changing the agent knows what they may change, what needs approval, and what they must not touch. |
 | **Recursive updates** | Intent clarified while reviewing a change, eval, or finding goes back into the file. A stale ethos.md steers the next change the wrong way. |
+
+`Change Scope` is the machine-readable part of safe changes: each lever is
+`yes`, `no`, or `with-approval`.
 
 ## ethos.md is not `AGENTS.md`
 
@@ -69,7 +72,7 @@ not only the implemented one; where they differ, say so.
 ## What's in the file
 
 YAML front matter (`schema_version`, `name`, `created_timestamp`, `author`, and
-optional `owner` and `updated_timestamp`) followed by fourteen required sections.
+optional `owner` and `updated_timestamp`) followed by fifteen required sections.
 Section bodies stay human-readable; the headings are the outline other agents
 parse. A section with nothing to say contains `_(none)_`.
 
@@ -87,6 +90,7 @@ parse. A section with nothing to say contains `_(none)_`.
 | `Constraints` | Limits no change may cross. |
 | `Evaluation Setup` | How it is tested and measured. |
 | `Metric Semantics` | What metric names mean, and the claims they do not support. |
+| `Change Scope` | What may be changed, what needs approval, and what must not be touched. |
 | `Vision` | Where the agent is headed, beyond today's scope. |
 | `Open Questions` | Unknowns to resolve. |
 
@@ -118,8 +122,8 @@ python3 ethos/skills/ethos-write/scripts/validate_ethos.py path/to/ethos.md
 
 To revise an existing ethos.md, ask for the edit directly; `ethos-write` updates the
 relevant sections in place and sets `updated_timestamp`. Both skills also find
-an `ETHOS.md` written by Eval Author 0.1.0; `ethos-write` renames it to `ethos.md` and
-upgrades it to schema version 2 when it writes.
+an `ETHOS.md` written by Eval Author 0.1.0; `ethos-write` renames it to `ethos.md`
+when it writes.
 
 ## Using ethos.md with Eval Author
 

@@ -2,9 +2,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Validate an ethos.md file against schema version 2.
+"""Validate an ethos.md file against schema version 1.
 
-Checks front matter, schema version, required fields, and the fourteen required
+Checks front matter, schema version, required fields, and the fifteen required
 ``##`` sections, and rejects duplicate sections. Extra sections and extra
 front-matter keys are allowed. Standard library only.
 
@@ -19,9 +19,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-SCHEMA_VERSION = 2
-# Eval Author 0.1.0 wrote version 1, which also required ``Change Scope``.
-LEGACY_SECTIONS = {1: ("Change Scope",)}
+SCHEMA_VERSION = 1
 REQUIRED_SECTIONS = (
     "Role",
     "Purpose & Outcomes",
@@ -35,6 +33,7 @@ REQUIRED_SECTIONS = (
     "Constraints",
     "Evaluation Setup",
     "Metric Semantics",
+    "Change Scope",
     "Vision",
     "Open Questions",
 )
@@ -80,12 +79,9 @@ def validate(text: str) -> list[str]:
     warnings: list[str] = []
     raw_version = front.get("schema_version", "")
     if not raw_version:
-        raise EthosError(f"front matter field 'schema_version' is required; use {SCHEMA_VERSION}")
-    if not raw_version.isdigit() or int(raw_version) not in (SCHEMA_VERSION, *LEGACY_SECTIONS):
+        warnings.append(f"front matter has no 'schema_version'; add 'schema_version: {SCHEMA_VERSION}'")
+    elif raw_version != str(SCHEMA_VERSION):
         raise EthosError(f"unsupported schema_version {raw_version!r}; expected {SCHEMA_VERSION}")
-    version = int(raw_version)
-    if version != SCHEMA_VERSION:
-        warnings.append(f"schema_version {version} is outdated; update the file to version {SCHEMA_VERSION}")
 
     for key in ("name", "author"):
         if not front.get(key):
@@ -100,7 +96,7 @@ def validate(text: str) -> list[str]:
         if heading in seen:
             raise EthosError(f"duplicate section: ## {heading}")
         seen.add(heading)
-    for heading in (*REQUIRED_SECTIONS, *LEGACY_SECTIONS.get(version, ())):
+    for heading in REQUIRED_SECTIONS:
         if heading not in seen:
             raise EthosError(f"missing section: ## {heading}")
     return warnings

@@ -89,23 +89,22 @@ demo Ethos; production claims require resolving the relevant policy authority.
 
 ## Save, check, and review
 
-Write the complete document. Use `schema_version: 2`, the actual agent name and
+Write the complete document. Use `schema_version: 1`, the actual agent name and
 author, and an ISO 8601 creation timestamp. On edits, retain creation metadata,
 add `updated_timestamp`, preserve unknown frontmatter keys and custom sections,
 and make targeted changes instead of replacing an existing file with the template.
 When editing an Eval Author 0.1.0 `ETHOS.md`, the ethos-write skill renames it to
-`ethos.md`, sets `schema_version: 2`, and asks whether to keep its
-`Change Scope` section as a custom section.
+`ethos.md`; its contents already match the schema.
 
 Read back the exact file and check:
 
 1. It is nonempty and at the selected in-repo path.
-2. Frontmatter is a mapping with version 2, nonempty `name` and `author`, and valid
+2. Frontmatter is a mapping with version 1, nonempty `name` and `author`, and valid
    ISO 8601 creation and optional update timestamps.
-3. Each of the template's fourteen `##` headings occurs once. Extra headings are
+3. Each of the template's fifteen `##` headings occurs once. Extra headings are
    allowed. Role and Purpose & Outcomes express concrete intent; remaining sections
    have real content or honest `_(none)_` values, with no template placeholders.
-4. Purpose, boundaries, and constraints agree with the user's answers;
+4. Purpose, boundaries, and change permissions agree with the user's answers;
    implementation references do not establish user approval.
 
 When the ethos-write skill's `scripts/validate_ethos.py` is available and the caller

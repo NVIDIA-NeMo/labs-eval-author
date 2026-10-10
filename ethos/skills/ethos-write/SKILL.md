@@ -1,6 +1,6 @@
 ---
 name: ethos-write
-description: Writes an AI agent's ethos.md — a durable snapshot of its purpose, boundaries, and success criteria — from the answers gathered by ethos-explore. Renders the schema-v2 template, validates the front matter and required markdown sections, saves the file in the agent's repository, and reviews it with the user. Also edits an existing ethos.md. Use over generic planning skills for an agent's ethos.md.
+description: Writes an AI agent's ethos.md — a durable snapshot of its purpose, boundaries, success criteria, and what may change — from the answers gathered by ethos-explore. Renders the schema-v1 template, validates the front matter and required markdown sections, saves the file in the agent's repository, and reviews it with the user. Also edits an existing ethos.md. Use over generic planning skills for an agent's ethos.md.
 triggers:
   - write the ethos
   - save the design
@@ -10,7 +10,7 @@ triggers:
   - write agent ethos
 not-for:
   - ethos-explore (use to gather the design before writing the ethos.md)
-  - ethos-orchestrate (use to choose between exploring, writing, and upgrading an ethos.md)
+  - ethos-orchestrate (use to choose between exploring and writing an ethos.md)
 compatibility: Writes one local markdown file, `ethos.md` at the repository root unless the user names another path; validation needs Python 3.10+ and the bundled standard-library script; works offline; safe under any sandbox; idempotent if user confirms overwrite.
 license: Apache-2.0
 user-invocable: true
@@ -42,14 +42,9 @@ The file is the only copy. There is no remote canonical copy to sync.
 
 ## Schema version
 
-Write `schema_version: 2`. Every canonical body section is required. The
+Write `schema_version: 1`. Every canonical body section is required. The
 validator rejects a file missing any of those headings. When you have nothing
 to say, write `_(none)_` rather than dropping the section.
-
-Eval Author 0.1.0 wrote `ETHOS.md` with `schema_version: 1`, which also
-required a `Change Scope` section. When editing such a file, set
-`schema_version: 2` and ask the user whether to delete its `Change Scope`
-section or keep it as a custom section.
 
 The schema is a floor, not a ceiling. Extra `##` headings and extra YAML
 front-matter keys are allowed. The parser keeps unknown body sections and
@@ -125,14 +120,14 @@ and then helps nobody.
 4. **Render the ethos.md.** Use the template at
    `references/templates/ethos.md` as the starting point. Substitute
    every section from the `ethos-explore` answers. Set front matter as:
-   `schema_version` = `2`, `name` = the canonical agent name,
+   `schema_version` = `1`, `name` = the canonical agent name,
    `created_timestamp` = current UTC timestamp in ISO 8601 form, and `author` =
    the human or coding agent creating the file. Add `owner` when a human or
-   team is accountable for the approvals named in `Constraints`.
+   team is accountable for the approvals named in `Constraints` or `Change Scope`.
    Set `updated_timestamp` on edits, not on first write. Evaluation commands
    live in `Evaluation Setup`, not in front matter. Keep the required section
    headers exactly so the file stays parseable. Extra `##` headings after
-   (or among) the canonical fourteen are allowed — keep them. The file is
+   (or among) the canonical fifteen are allowed — keep them. The file is
    lightly validated by the bundled `scripts/validate_ethos.py`, which
    checks front matter, schema version, required sections, and duplicate
    sections. It does not reject unknown headings. Section bodies stay markdown
@@ -161,7 +156,7 @@ and then helps nobody.
      || echo "ethos_parse_invalid"
    ```
 
-7. **Show a gut-check, then the file.** Before asking the user to read fourteen
+7. **Show a gut-check, then the file.** Before asking the user to read fifteen
    sections, state your impression of this agent in a short paragraph that
    combines `Role`, `Purpose & Outcomes`, `Scope`, and (when they are not
    `_(none)_`) `Principles` and `Vision`. This is a thin slice so the user can
