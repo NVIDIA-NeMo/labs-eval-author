@@ -1,9 +1,6 @@
 ---
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-
 name: ethos-explore
-description: Captures what an AI agent is supposed to do — its purpose, boundaries, and success criteria — as a durable snapshot for anyone building, evaluating, reviewing, or changing it. Explores the user's codebase and docs first, then asks one intent question at a time for what source cannot supply. Output feeds the ethos skill, which writes ethos.md. Use over generic brainstorming when the goal is an agent's ethos.md.
+description: Captures what an AI agent is supposed to do — its purpose, boundaries, and success criteria — as a durable snapshot for anyone building, evaluating, reviewing, or changing it. Explores the user's codebase and docs first, then asks one intent question at a time for what source cannot supply. Output feeds the ethos-write skill, which writes ethos.md. Use over generic brainstorming when the goal is an agent's ethos.md.
 triggers:
   - design my agent
   - what should my agent do
@@ -15,19 +12,22 @@ triggers:
   - write an ethos.md for my agent
   - onboard my existing agent
 not-for:
-  - ethos (use to write or edit the ethos.md file once explore is done)
+  - ethos-write (use to write or edit the ethos.md file once explore is done)
+  - ethos-orchestrate (use to choose between exploring, writing, and upgrading an ethos.md)
   - superpowers:brainstorming (use for design work that is not about an agent's intended behavior)
-compatibility: Dialogue-driven with read-only pre-flight (`ls`, `find`, `Read`); one intent question per message after the codebase scan; at least three questions covering Purpose & Outcomes, Principles, and Vision; safe under any sandbox; works offline; output is a structured conversation handed to ethos.
+compatibility: Dialogue-driven with read-only pre-flight (`ls`, `find`, `Read`); one intent question per message after the codebase scan; at least three questions covering Purpose & Outcomes, Principles, and Vision; safe under any sandbox; works offline; output is a structured conversation handed to ethos-write.
 license: Apache-2.0
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash
 ---
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Explore an agent's intended behavior
 
 Capture what the agent should do. Product mission and user goals matter more
 than implementation inventory. The output of this skill is the data that
-`ethos` writes into `ethos.md` — the durable contract that people and agents
+`ethos-write` writes into `ethos.md` — the durable contract that people and agents
 read before they build, evaluate, review, or change this agent. Underspecified
 input here leads every one of them to guess at intent from code and traces.
 
@@ -48,7 +48,7 @@ spending attention on.
 
 The ethos.md has five base front-matter fields, plus optional `updated_timestamp`,
 and fourteen body sections. Every body section is required. One field is a
-quality gate for handoff: `ethos` is blocked until `Role` is concrete.
+quality gate for handoff: `ethos-write` is blocked until `Role` is concrete.
 For any other canonical section with nothing to say, write `_(none)_` rather
 than dropping the heading.
 
@@ -60,12 +60,12 @@ strip custom sections to make the file look "strict."
 
 | Field | Required | Guidance |
 | :---- | :---- | :---- |
-| `schema_version` | yes | Always `2` for new files. `ethos` fills this at write time. |
+| `schema_version` | yes | Always `2` for new files. `ethos-write` fills this at write time. |
 | `name` | yes | Canonical agent name. Use the directory or workflow name if obvious; ask if not. |
-| `created_timestamp` | yes | ISO 8601 timestamp for when the ethos.md is created. `ethos` fills this at write time. |
-| `author` | yes | Human or agent that created the ethos.md. `ethos` fills this from the current author context when known; ask only if ambiguous. |
+| `created_timestamp` | yes | ISO 8601 timestamp for when the ethos.md is created. `ethos-write` fills this at write time. |
+| `author` | yes | Human or agent that created the ethos.md. `ethos-write` fills this from the current author context when known; ask only if ambiguous. |
 | `owner` | optional | Accountable human or team for the approvals named in `Constraints`. Ask only if that section names an approval. |
-| `updated_timestamp` | conditional | Set on edits. Omit on first write. `ethos` fills this. |
+| `updated_timestamp` | conditional | Set on edits. Omit on first write. `ethos-write` fills this. |
 
 **Body sections** (in canonical order)
 
@@ -94,7 +94,7 @@ Track known issues and recurring failure patterns where the team tracks bugs.
 Check whether an ethos.md already exists for this agent. Look for `ethos.md`,
 including an `ETHOS.md` written by Eval Author 0.1.0, at the repository root and next to
 the agent's package. If one is present, ask the user whether they want to edit
-the existing ethos.md or start over. If they want to edit, route to `ethos`
+the existing ethos.md or start over. If they want to edit, route to `ethos-write`
 directly.
 
 ```bash
@@ -193,7 +193,7 @@ The scan told you what the agent is. It cannot tell you what the developer
 wants. Run a real interview for that intent before you show a draft ethos.md.
 
 This step is a hard gate. Do not present the full draft, and do not hand off
-to `ethos`, until you have asked at least three questions and received a
+to `ethos-write`, until you have asked at least three questions and received a
 reply to each. "The scan filled everything" and "asking feels unnecessary"
 are not reasons to skip it.
 
@@ -309,7 +309,7 @@ These mean you skipped the interview:
 - You filled `Purpose & Outcomes`, `Principles`, or `Vision` from the scan
   without a user reply
 - Several intent questions in one message
-- Handing off to `ethos` with fewer than three Q&A replies in this
+- Handing off to `ethos-write` with fewer than three Q&A replies in this
   conversation
 
 | Excuse | Reality |
@@ -328,7 +328,7 @@ inferred values shown inline and remaining gaps as `_(none)_`. Then ask
 one question:
 
 > "Here's the full ethos.md I'd write. Tell me what to change, and I need a
-> concrete Role before I can hand off to `ethos`."
+> concrete Role before I can hand off to `ethos-write`."
 
 Show the rendered ethos.md inline in markdown (one `##` section per field,
 same shape as the on-disk file). For fields you defaulted, note the
@@ -375,7 +375,7 @@ for honest gaps, and note them in `Open Questions` when they affect safe
 changes. Do not drop a heading.
 
 If the Role quality gate is satisfied, announce the handoff in one line
-("Handing off to `ethos` to write `ethos.md`") and trigger it.
+("Handing off to `ethos-write` to write `ethos.md`") and trigger it.
 
 ## If the user pushes back
 

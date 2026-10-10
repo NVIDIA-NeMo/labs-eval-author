@@ -14,7 +14,7 @@ skill does not authorize starting its reads, validation, or generation early.
 
 For new or revised intent, use the [ethos-explore skill](../../../ethos/skills/ethos-explore/SKILL.md),
 which explores the repository and interviews the user, then hands off to the
-[ethos skill](../../../ethos/skills/ethos/SKILL.md), which writes, validates,
+[ethos-write skill](../../../ethos/skills/ethos-write/SKILL.md), which writes, validates,
 and reviews the file. They install separately from Eval Author
 (`npx skills add https://github.com/NVIDIA-NeMo/labs-eval-author/tree/main/ethos`). Pass the selected agent,
 existing answers, chosen local path, and review state. The procedure below supplies
@@ -24,7 +24,7 @@ saved path, gaps, checks, and review state before continuing Eval Author.
 An already suitable ethos.md can go directly through the locate-and-reuse checks.
 
 When those skills are not available, follow this procedure directly with the
-[ethos.md template](../../../ethos/skills/ethos/references/templates/ethos.md)
+[ethos.md template](../../../ethos/skills/ethos-write/references/templates/ethos.md)
 when it is readable, and tell the user how to install the skills.
 
 ## Introduce ethos.md
@@ -80,7 +80,7 @@ old tests. Surface conflicts with existing scoring for the user's resolution.
 A limited first eval set need not wait for unrelated details, but explain any gaps
 instead of presenting a partial Ethos as a complete account of the agent.
 
-Use the [ethos.md template](../../../ethos/skills/ethos/references/templates/ethos.md). A concrete Role and Purpose &
+Use the [ethos.md template](../../../ethos/skills/ethos-write/references/templates/ethos.md). A concrete Role and Purpose &
 Outcomes are required; other sections contain actual answers or an honest
 `_(none)_`, with uncertainties recorded in Open Questions. Do not invent metrics
 or leave template placeholders. Treat demo policies as fixtures when that is the
@@ -93,7 +93,7 @@ Write the complete document. Use `schema_version: 2`, the actual agent name and
 author, and an ISO 8601 creation timestamp. On edits, retain creation metadata,
 add `updated_timestamp`, preserve unknown frontmatter keys and custom sections,
 and make targeted changes instead of replacing an existing file with the template.
-When editing an Eval Author 0.1.0 `ETHOS.md`, the ethos skill renames it to
+When editing an Eval Author 0.1.0 `ETHOS.md`, the ethos-write skill renames it to
 `ethos.md`, sets `schema_version: 2`, and asks whether to keep its
 `Change Scope` section as a custom section.
 
@@ -108,7 +108,7 @@ Read back the exact file and check:
 4. Purpose, boundaries, and constraints agree with the user's answers;
    implementation references do not establish user approval.
 
-When the ethos skill's `scripts/validate_ethos.py` is available and the caller
+When the ethos-write skill's `scripts/validate_ethos.py` is available and the caller
 can run Python, use it; otherwise use structural inspection.
 Report whether checks were structural inspection or parser-backed, and fix local
 errors before calling the document complete. These checks do not prove evaluation

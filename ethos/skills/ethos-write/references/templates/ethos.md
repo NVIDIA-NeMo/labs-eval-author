@@ -14,7 +14,7 @@ owner: <accountable human or team for the approvals named in Constraints; omit i
 > agents read it before they build, evaluate, review, or change this agent.
 > Keep it accurate; stale entries here lead them to the wrong conclusions.
 >
-> The layout below is lightly parseable by `ethos`: front matter and the
+> The layout below is lightly parseable by `ethos-write`: front matter and the
 > required `##` section headers are machine-checked, while section bodies stay
 > markdown for humans and agents to read directly.
 >

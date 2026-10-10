@@ -6,24 +6,6 @@
 Notable changes to NeMo Eval Author are recorded here. Eval Author is a research
 preview: workflows, skills, and saved artifacts may change between releases.
 
-## Unreleased
-
-### Changed
-
-- **ethos.md authoring moved to two separately installed skills.**
-  [`ethos-explore`](ethos/skills/ethos-explore/SKILL.md) explores the agent and
-  interviews you; [`ethos`](ethos/skills/ethos/SKILL.md) writes, validates, and
-  reviews the file. Install them with
-  `npx skills add https://github.com/NVIDIA-NeMo/labs-eval-author/tree/main/ethos`.
-  See the [ethos.md guide](ethos/README.md).
-- **The document is now `ethos.md`, schema version 2.** Version 2 removes the
-  `Change Scope` section. Eval Author still finds an `ETHOS.md` written by
-  0.1.0, and the `ethos` skill renames and upgrades it when it next writes.
-
-### Removed
-
-- The bundled single-file `ethos` skill and Eval Author's `ETHOS.md` template.
-
 ## 0.1.0
 
 Initial research-preview release, tested with Harbor 0.20.0 and NeMo Gym v0.6.0.

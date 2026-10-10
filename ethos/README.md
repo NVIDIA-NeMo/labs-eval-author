@@ -12,13 +12,14 @@ execution.
 Code shows implementation. ethos.md records mission, constraints, and what
 success and failure mean.
 
-This directory holds two coding-assistant skills that create and maintain an
+This directory holds three coding-assistant skills that create and maintain an
 `ethos.md`:
 
 | Skill | What it does |
 | --- | --- |
-| [`ethos-explore`](skills/ethos-explore/SKILL.md) | Reads the agent's code and docs, fills in what they establish, then asks one intent question at a time for what they cannot. Hands its answers to `ethos`. |
-| [`ethos`](skills/ethos/SKILL.md) | Writes `ethos.md` from those answers using the [schema-v2 template](skills/ethos/references/templates/ethos.md), validates the front matter and required sections, and reviews the result with you. |
+| [`ethos-orchestrate`](skills/ethos-orchestrate/SKILL.md) | Entry point. Finds any existing ethos.md and routes the request to explore, write, or upgrade. |
+| [`ethos-explore`](skills/ethos-explore/SKILL.md) | Reads the agent's code and docs, fills in what they establish, then asks one intent question at a time for what they cannot. Hands its answers to `ethos-write`. |
+| [`ethos-write`](skills/ethos-write/SKILL.md) | Writes `ethos.md` from those answers using the [schema-v2 template](skills/ethos-write/references/templates/ethos.md), validates the front matter and required sections, and reviews the result with you. |
 
 ## Why it exists
 
@@ -91,7 +92,7 @@ parse. A section with nothing to say contains `_(none)_`.
 
 ## Create an ethos.md
 
-Install both skills together; `ethos-explore` hands off to `ethos`:
+Install the three skills together:
 
 ```bash
 npx skills add https://github.com/NVIDIA-NeMo/labs-eval-author/tree/main/ethos --agent claude-code
@@ -101,23 +102,23 @@ Replace `claude-code` with your assistant's identifier. Then, in your agent's
 repository, ask your coding assistant:
 
 ```text
-Use ethos-explore to capture what my agent should do, then write its ethos.md.
+Use ethos-orchestrate to write an ethos.md for my agent.
 ```
 
 `ethos-explore` scans the codebase first and asks at least three intent
-questions, covering purpose and outcomes, principles, and vision. `ethos`
+questions, covering purpose and outcomes, principles, and vision. `ethos-write`
 writes `ethos.md` at the repository root, or at a path you name, validates it,
 and asks you to review it. Commit it with the agent's code. You can also write
-the file by hand from the [template](skills/ethos/references/templates/ethos.md)
+the file by hand from the [template](skills/ethos-write/references/templates/ethos.md)
 and check it with the bundled validator:
 
 ```bash
-python3 ethos/skills/ethos/scripts/validate_ethos.py path/to/ethos.md
+python3 ethos/skills/ethos-write/scripts/validate_ethos.py path/to/ethos.md
 ```
 
-To revise an existing ethos.md, ask for the edit directly; `ethos` updates the
+To revise an existing ethos.md, ask for the edit directly; `ethos-write` updates the
 relevant sections in place and sets `updated_timestamp`. Both skills also find
-an `ETHOS.md` written by Eval Author 0.1.0; `ethos` renames it to `ethos.md` and
+an `ETHOS.md` written by Eval Author 0.1.0; `ethos-write` renames it to `ethos.md` and
 upgrades it to schema version 2 when it writes.
 
 ## Using ethos.md with Eval Author

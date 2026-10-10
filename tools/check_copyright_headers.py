@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import argparse
-import re
 import subprocess
 from pathlib import Path
 
@@ -20,16 +19,7 @@ HASH_SUFFIXES = {".env", ".py", ".sh", ".toml", ".yaml", ".yml"}
 HTML_SUFFIXES = {".md"}
 HASH_FILENAMES = {".env.example", ".gitignore", "Makefile"}
 # Templates copied verbatim into users' repositories carry no header.
-HEADERLESS_TEMPLATES = {"ethos/skills/ethos/references/templates/ethos.md"}
-
-# Files restored verbatim from NVIDIA-NeMo/nemo-helix keep their upstream header:
-# YAML comments inside the front matter, with the upstream copyright years.
-UPSTREAM_HELIX_PREFIX = "ethos/skills/"
-UPSTREAM_HELIX_HEADER = re.compile(
-    r"\A---\n# SPDX-FileCopyrightText: Copyright \(c\) [0-9]{4}(?:-[0-9]{4})? "
-    r"NVIDIA CORPORATION & AFFILIATES\. All rights reserved\.\n"
-    r"# SPDX-License-Identifier: Apache-2\.0\n"
-)
+HEADERLESS_TEMPLATES = {"ethos/skills/ethos-write/references/templates/ethos.md"}
 
 
 def _tracked_and_untracked_files() -> list[Path]:
@@ -70,9 +60,7 @@ def _header_offset(content: str, style: str) -> int:
     return 0
 
 
-def _has_nvidia_header(content: str, style: str, relative: str) -> bool:
-    if relative.startswith(UPSTREAM_HELIX_PREFIX) and UPSTREAM_HELIX_HEADER.match(content):
-        return True
+def _has_nvidia_header(content: str, style: str) -> bool:
     header = _nvidia_header(style)
     return content.startswith(header, _header_offset(content, style))
 
@@ -92,12 +80,11 @@ def check_headers(*, fix_nvidia: bool) -> list[Path]:
         style = _comment_style(path)
         if style is None or not path.is_file():
             continue
-
-        relative = path.relative_to(PROJECT_ROOT).as_posix()
-        if relative in HEADERLESS_TEMPLATES:
+        if path.relative_to(PROJECT_ROOT).as_posix() in HEADERLESS_TEMPLATES:
             continue
+
         content = path.read_text(encoding="utf-8")
-        if _has_nvidia_header(content, style, relative):
+        if _has_nvidia_header(content, style):
             continue
         if fix_nvidia and "SPDX-FileCopyrightText" not in content[:2000]:
             _add_nvidia_header(path, content, style)

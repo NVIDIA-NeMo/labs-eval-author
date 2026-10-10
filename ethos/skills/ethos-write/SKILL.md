@@ -1,8 +1,5 @@
 ---
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-
-name: ethos
+name: ethos-write
 description: Writes an AI agent's ethos.md — a durable snapshot of its purpose, boundaries, and success criteria — from the answers gathered by ethos-explore. Renders the schema-v2 template, validates the front matter and required markdown sections, saves the file in the agent's repository, and reviews it with the user. Also edits an existing ethos.md. Use over generic planning skills for an agent's ethos.md.
 triggers:
   - write the ethos
@@ -13,11 +10,14 @@ triggers:
   - write agent ethos
 not-for:
   - ethos-explore (use to gather the design before writing the ethos.md)
+  - ethos-orchestrate (use to choose between exploring, writing, and upgrading an ethos.md)
 compatibility: Writes one local markdown file, `ethos.md` at the repository root unless the user names another path; validation needs Python 3.10+ and the bundled standard-library script; works offline; safe under any sandbox; idempotent if user confirms overwrite.
 license: Apache-2.0
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash
 ---
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Write an agent's ethos.md
 
@@ -210,7 +210,7 @@ gut-check has been shown, and the user has confirmed the contents.
 | `local_missing` after write | Wrong working directory or permission denied | Run `pwd`; check the user is in the cloned repo |
 | `ethos_parse_invalid` | ethos.md malformed — missing front matter, missing required section, duplicate section, or bad schema version | Read the parser error; fix the named section in place; do not silently work around |
 | User says "this is wrong" | ethos.md captured the wrong answers | Edit the relevant section in place; re-validate |
-| `ethos-explore` was skipped | User invoked `ethos` cold | Route back to `ethos-explore` and return here when the conversation is done |
+| `ethos-explore` was skipped | User invoked `ethos-write` cold | Route back to `ethos-explore` and return here when the conversation is done |
 
 ## What this skill is not
 

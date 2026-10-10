@@ -16,8 +16,8 @@ together: skills load sibling skills and their bundled scripts, schemas,
 templates, and references. The set includes the **experimental**
 trace-to-environment workflow.
 
-First evaluations and coverage audits also need the `ethos-explore` and `ethos`
-skills, which install separately:
+First evaluations and coverage audits also need the ethos skills (`ethos-orchestrate`,
+`ethos-explore`, and `ethos-write`), which install separately:
 `npx skills add https://github.com/NVIDIA-NeMo/labs-eval-author/tree/main/ethos`.
 See the [ethos.md guide](../ethos/README.md).
 

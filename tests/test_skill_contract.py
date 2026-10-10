@@ -67,7 +67,7 @@ _GYM_TO_ATIF_DIR = _SKILLS_DIR / "gym-to-atif"
 _TRACE_ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-trace-environment"
 _ENVIRONMENT_DIR = _SKILLS_DIR / "eval-author-environment"
 _ETHOS_SKILLS_DIR = _SKILLS_DIR.parent / "ethos" / "skills"
-_ETHOS_DIR = _ETHOS_SKILLS_DIR / "ethos"
+_ETHOS_DIR = _ETHOS_SKILLS_DIR / "ethos-write"
 _ETHOS_EXPLORE_DIR = _ETHOS_SKILLS_DIR / "ethos-explore"
 _ETHOS_TEMPLATE = _ETHOS_DIR / "references" / "templates" / "ethos.md"
 _ETHOS_VALIDATE = _ETHOS_DIR / "scripts" / "validate_ethos.py"
@@ -1962,6 +1962,20 @@ def test_audit_skill_reads_schema_before_drafting_items() -> None:
     assert "Do not use validation as the primary way to discover the format" in normalized_step
 
 
+def test_ethos_skills_are_named_for_their_directories_and_links_resolve() -> None:
+    """Renaming an ethos skill must not strand its siblings' routes or links."""
+    skill_dirs = sorted(path.parent for path in _ETHOS_SKILLS_DIR.glob("*/SKILL.md"))
+    assert [path.name for path in skill_dirs] == ["ethos-explore", "ethos-orchestrate", "ethos-write"]
+    names = {path.name for path in skill_dirs}
+    for skill_dir in skill_dirs:
+        frontmatter, body = _frontmatter_and_body(skill_dir)
+        assert frontmatter["name"] == skill_dir.name
+        ethos_routes = {entry.split(" ", 1)[0] for entry in frontmatter["not-for"] if entry.startswith("ethos")}
+        assert ethos_routes <= names, f"{skill_dir.name} routes to unknown skills {ethos_routes - names}"
+        for link in re.findall(r"\]\((\.\./[^)#]+)\)", body):
+            assert (skill_dir / link).resolve().is_file(), f"{skill_dir.name} links to missing {link}"
+
+
 def test_local_ethos_handoff_resources_resolve() -> None:
     """Eval Author's ethos.md handoff must reach the ethos skills and their template."""
     reference = _CORE_DIR / "references" / "local-ethos.md"
@@ -1996,7 +2010,7 @@ def _filled_ethos_template() -> str:
 
 
 def test_filled_ethos_template_passes_the_bundled_validator(tmp_path: Path) -> None:
-    """The template the ethos skill renders must satisfy the validator it runs."""
+    """The template the ethos-write skill renders must satisfy the validator it runs."""
     path = tmp_path / "ethos.md"
     path.write_text(_filled_ethos_template() + "\n## Local Notes\n\nKeep demo fixtures.\n", encoding="utf-8")
     result = _run_script(_ETHOS_VALIDATE, str(path))
