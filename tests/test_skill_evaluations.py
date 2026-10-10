@@ -27,7 +27,9 @@ def test_ci_evaluation_is_advisory_and_always_attempts_artifact_upload():
     assert upload["if"] == "always()"
     assert upload["with"]["path"].endswith("/skillevaluator-summary.json")
     assert upload["with"]["if-no-files-found"] == "warn"
-    scan = next(step for step in jobs["skill-evaluator"]["steps"] if step.get("name", "").startswith("Scan main"))
+    scan = next(
+        step for step in jobs["skill-evaluator"]["steps"] if "collect_skill_evaluations.py" in step.get("run", "")
+    )
     assert scan["if"] == "${{ !cancelled() }}"
     assert not jobs["test"].get("continue-on-error", False)
 
